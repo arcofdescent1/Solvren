@@ -1,0 +1,61 @@
+---
+title: Architecture Overview
+description: High-level architecture of Solvren.
+section: Architecture
+order: 0
+toc: true
+---
+
+## Overview
+
+Solvren coordinates governance workflows across revenue systems.
+
+The platform connects change management workflows with risk analysis and operational safeguards.
+
+---
+
+## Core Architecture
+
+Solvren consists of several major components.
+
+<Mermaid
+  chart={`
+flowchart TD
+  A[Change Intake] --> B[Coordination Engine]
+  B --> C[AI Risk Engine]
+  C --> D[Approval Workflows]
+  D --> E[Audit & Governance]
+`}
+/>
+
+---
+
+## Components
+
+### Change Intake
+
+Collects structured metadata about operational changes.
+
+---
+
+### Coordination Engine
+
+Generates governance workflows including approvals and evidence requirements.
+
+---
+
+### Risk Analysis Engine
+
+Analyzes potential financial risk associated with a change.
+
+---
+
+### Approval Workflows
+
+Coordinate cross-team review and decision-making.
+
+---
+
+### Audit System
+
+Records historical decisions and governance activity.

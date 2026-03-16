@@ -1,0 +1,48 @@
+---
+title: Domain Permissions
+description: Control which users can view and review changes in specific governance domains.
+section: Admin
+order: 4
+toc: true
+---
+
+## What domain permissions control
+
+Domain permissions refine access beyond base org roles.
+
+They answer:
+
+- who can see Finance changes
+- who can review Security changes
+- who should be excluded from restricted domains
+
+## Typical domains
+
+Examples:
+
+- Finance
+- Security
+- Data
+- Operations
+- Legal
+
+## Common permission model
+
+A user may have:
+
+- view access
+- review access
+
+This allows some users to observe a domain while limiting approval authority to a smaller set.
+
+## Why domain permissions matter
+
+They protect against overexposure and keep reviewers aligned with real responsibilities.
+
+<Callout variant="warning" title="Important">
+Approval mappings and domain permissions should align. If the system suggests a reviewer for a domain but that user lacks review permission for that domain, the coordination plan should surface a coverage problem.
+</Callout>
+
+<Screenshot title="Domain permissions" caption="Use domain permissions to keep review and visibility aligned to actual responsibility boundaries.">
+  <ScreenshotPlaceholder label="Per-user Domain Access Matrix" lines={6} />
+</Screenshot>

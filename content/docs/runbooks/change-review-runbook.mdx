@@ -1,0 +1,92 @@
+---
+title: Change Review Runbook
+description: Step-by-step guide for reviewing operational changes.
+section: Runbooks
+order: 1
+toc: true
+---
+
+## Overview
+
+This runbook provides guidance for reviewers evaluating operational changes.
+
+Following a consistent review process improves governance quality.
+
+<Mermaid
+  chart={`
+flowchart TD
+  S1[1. Review Change Summary] --> S2[2. Evaluate Risk Report]
+  S2 --> S3[3. Review Evidence]
+  S3 --> S4[4. Evaluate Dependencies]
+  S4 --> S5[5. Approve or Request Changes]
+`}
+/>
+
+## Step 1 — Review Change Summary
+
+Review the change description to understand:
+
+• what is being modified  
+• which systems are affected  
+• expected outcomes
+
+Ensure the change description clearly explains the purpose.
+
+---
+
+## Step 2 — Evaluate the Risk Report
+
+Review the Revenue Impact Report.
+
+Check:
+
+• risk score  
+• identified failure modes  
+• recommended safeguards
+
+Ensure potential risks are clearly understood.
+
+---
+
+## Step 3 — Review Evidence
+
+Verify that operational safeguards are documented.
+
+Check for:
+
+• rollback procedures  
+• testing documentation  
+• monitoring plans
+
+Ensure the organization can detect and recover from failures.
+
+---
+
+## Step 4 — Evaluate Dependencies
+
+Review the systems involved in the change.
+
+Determine whether additional stakeholders should be consulted.
+
+Examples:
+
+• finance review for billing changes  
+• engineering review for system logic changes
+
+---
+
+## Step 5 — Approve or Request Changes
+
+If safeguards are sufficient, approve the change.
+
+If issues remain, request additional evidence or clarification.
+
+---
+
+## Key Principle
+
+Reviewers should ensure that every change answers two questions:
+
+**What could go wrong?**
+
+**How will we detect and recover if it does?**

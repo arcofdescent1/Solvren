@@ -1,0 +1,127 @@
+---
+title: 5-Minute Jira Setup
+description: Connect Jira to Solvren in about 5 minutes.
+section: Guides
+order: 15
+toc: true
+roles:
+  - owner
+  - admin
+---
+
+## Overview
+
+This guide walks you through connecting Jira Cloud to Solvren in about 5 minutes. No developer help required—admins can complete setup from org settings.
+
+---
+
+## Step 1 — Connect Jira
+
+1. Go to **Org settings** → **Integrations** → **Jira** → **Setup**
+2. Click **Connect Jira**
+3. Solvren will request permission to:
+   - Read Jira issues and projects
+   - Sync governance status
+   - Manage webhooks for real-time updates
+
+4. Authorize the app in Atlassian
+5. You'll return to Solvren with Jira connected
+
+---
+
+## Step 2 — Select Projects
+
+Choose the Jira projects you want Solvren to monitor.
+
+Typical projects:
+
+- **Platform Engineering**
+- **Revenue Systems**
+- **Internal Tools**
+- **Billing** or **Payments**
+
+Select only projects where changes might affect revenue, billing, or financial systems. You can add more later.
+
+---
+
+## Step 3 — Map Statuses
+
+Map Jira statuses to Solvren governance states so status changes sync correctly.
+
+Example mapping:
+
+| Jira Status       | Solvren State |
+|-------------------|--------------------|
+| Open              | Draft              |
+| In Progress       | Ready              |
+| Ready for Review  | Ready              |
+| In Review         | In Review          |
+| Blocked           | Blocked            |
+| Done              | Approved           |
+| Rejected          | Rejected           |
+
+Customize mappings to match your workflow. Solvren uses these to keep governance status in sync when Jira issues change.
+
+---
+
+## Step 4 — Enable Features
+
+Recommended feature toggles:
+
+- **Webhook Sync** — Real-time status updates when Jira issues change (recommended)
+- **Issue Property Sync** — Show governance status in Jira (status, risk score, approval progress)
+- **Comment Sync** — Post governance events as Jira comments
+
+Enable all three for the best experience. Webhook Sync requires webhook registration; Solvren handles this automatically.
+
+---
+
+## Step 5 — Validate
+
+Click **Test Connection**.
+
+Solvren checks:
+
+- Jira authentication
+- API access
+- Project permissions
+- Webhook registration (if enabled)
+
+If any check fails, follow the on-screen guidance. Common issues:
+
+- **Webhook not registered** — Ensure the Jira admin has approved webhooks
+- **Project access** — Verify your Jira user has access to selected projects
+
+---
+
+## Step 6 — Done
+
+After validation passes, Solvren will:
+
+- Detect Jira status changes
+- Sync governance data with linked issues
+- Mirror approval decisions in Jira
+- Display governance status in Jira (when Issue Property Sync is enabled)
+
+You can return to **Jira integration** settings anytime to add projects, adjust status mappings, or change feature toggles.
+
+---
+
+## Screenshots
+
+The setup wizard includes:
+
+1. **OAuth screen** — Atlassian authorization
+2. **Project selector** — Choose projects to monitor
+3. **Status mapping table** — Map Jira → Solvren statuses
+4. **Feature toggle panel** — Webhook, property, and comment sync
+5. **Validation results** — Connection health checks
+6. **Success confirmation** — Setup complete
+
+---
+
+## Related
+
+- [Jira Integration (Admin)](../admin/jira-integration) — Full integration reference, webhook setup, API details
+- [Change Workflow](../guides/change-workflow) — How changes flow through Solvren
+- [Organization Setup](../admin/organization-setup) — Initial org configuration

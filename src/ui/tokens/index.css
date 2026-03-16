@@ -1,0 +1,108 @@
+/* SB Admin Pro baseline tokens (visual spec) */
+:root {
+  /* Typography (must bind to runtime-loaded font var) */
+  --font-sans: var(--font-sbpro-sans, ui-sans-serif), system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono, ui-monospace), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* App surfaces */
+  --bg-app: #f2f6fc;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f8fafc; /* cap */
+  --bg-muted: #eff3f9;
+  --bg-elevated: #ffffff;
+
+  /* Text */
+  --text: #1f2d41;
+  --text-muted: #687281;
+  --text-subtle: #9aa7b5;
+  --text-inverse: #ffffff;
+
+  /* Borders (SB alpha) */
+  --border: rgba(31, 45, 65, 0.075);
+  --border-strong: rgba(31, 45, 65, 0.12);
+
+  /* Brand (V1 spec: deep blue) */
+  --primary: #0F62FE;
+  --primary-hover: #0043ce;
+  --primary-contrast: #ffffff;
+
+  /* Status */
+  --success: #00ac69;
+  --warning: #f4a100;
+  --danger: #e81500;
+  --info: #00cfd5;
+
+  /* Focus (SB ring) */
+  --focus: rgba(0, 97, 242, 0.25);
+
+  /* Radius (SB) */
+  --radius-sm: 10px;   /* buttons/inputs */
+  --radius-md: 10px;   /* buttons/inputs */
+  --radius-lg: 12px;   /* cards/dropdowns */
+  --radius-xl: 16px;   /* modals */
+  --radius-sb: 0.35rem; /* legacy: SB admin often uses 0.35rem */
+
+  /* Elevation (SB exact) */
+  --shadow-sm: 0 0.125rem 0.25rem 0 rgba(33, 40, 50, 0.075);
+  --shadow-md: 0 0.15rem 1.75rem 0 rgba(33, 40, 50, 0.15);
+  --shadow-lg: 0 0.5rem 2rem 0 rgba(33, 40, 50, 0.18);
+
+  /* Table density */
+  --cell-y: 0.75rem;
+  --cell-x: 1rem;
+
+  /* Table chrome */
+  --table-header-bg: #f8fafc;
+  --table-header-text: var(--text-muted);
+  --table-row-hover: #f2f6fc;
+  --table-border: var(--border);
+
+  /* Input "solid" (SB input-solid) */
+  --input-solid-bg: #f1f5fb;
+  --input-solid-bg-hover: #eaf1fb;
+  --input-solid-bg-focus: #e6eefb;
+  --input-solid-border: var(--border);
+}
+
+/* Dark mode baseline (SB-pro-compatible, not pitch-black) */
+[data-theme="dark"] {
+  /* Surfaces */
+  --bg-app: #0f172a;
+  --bg-surface: #111827;
+  --bg-surface-2: rgba(255, 255, 255, 0.04);
+  --bg-muted: rgba(255, 255, 255, 0.03);
+  --bg-elevated: #111827;
+
+  /* Text */
+  --text: #e5e7eb;
+  --text-muted: #cbd5e1;
+  --text-subtle: #94a3b8;
+  --text-inverse: #0f172a;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Focus */
+  --focus: rgba(96, 165, 250, 0.45);
+
+  /* Elevation (dark) */
+  --shadow-sm: 0 0.125rem 0.25rem 0 rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 0.5rem 2rem 0 rgba(0, 0, 0, 0.45);
+
+  /* Table chrome (dark) */
+  --table-header-bg: rgba(255, 255, 255, 0.04);
+  --table-header-text: var(--text-muted);
+  --table-row-hover: rgba(255, 255, 255, 0.05);
+  --table-border: var(--border);
+
+  /* Input solid (dark) */
+  --input-solid-bg: rgba(255, 255, 255, 0.04);
+  --input-solid-bg-hover: rgba(255, 255, 255, 0.06);
+  --input-solid-bg-focus: rgba(255, 255, 255, 0.08);
+  --input-solid-border: var(--border);
+
+  /* Card cap (dark) */
+  --card-cap-bg: rgba(255, 255, 255, 0.04);
+}

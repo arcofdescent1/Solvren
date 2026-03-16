@@ -1,0 +1,89 @@
+---
+title: Evidence Requirements
+description: How operational safeguards are documented in Solvren.
+section: Guides
+order: 4
+toc: true
+---
+
+## Overview
+
+Evidence ensures that operational safeguards are documented before a change is implemented.
+
+These safeguards reduce the impact of failures and enable rapid recovery.
+
+---
+
+# Types of Evidence
+
+Typical evidence includes:
+
+### Rollback Plan
+
+Describes how the change can be reversed if issues occur.
+
+Example:
+
+• revert configuration  
+• restore previous pricing  
+• disable new routing rules
+
+---
+
+### Test Scenarios
+
+Describe how the change was validated before release.
+
+Examples:
+
+• billing simulations  
+• pricing validation tests  
+• data integrity checks
+
+---
+
+### Monitoring Plan
+
+Describes how the system will detect problems after deployment.
+
+Examples:
+
+• revenue anomaly alerts  
+• payment failure monitoring  
+• billing reconciliation checks
+
+---
+
+### Revenue Validation
+
+Ensures revenue reporting remains correct.
+
+Examples:
+
+• sample invoice verification  
+• accounting reconciliation  
+• reporting validation
+
+---
+
+# Evidence Enforcement
+
+Organizations may configure required evidence types based on:
+
+• change type  
+• system  
+• domain  
+
+Changes cannot be submitted until all required evidence is provided.
+
+---
+
+# Why Evidence Matters
+
+Operational failures often occur when safeguards are missing.
+
+Evidence ensures that teams have:
+
+• tested the change  
+• planned recovery procedures  
+• validated revenue impact

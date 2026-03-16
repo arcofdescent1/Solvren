@@ -1,0 +1,111 @@
+---
+title: Evidence Enforcement
+description: Configure required safeguards for operational changes.
+section: Admin
+order: 4
+toc: true
+---
+
+## Overview
+
+Evidence Enforcement allows administrators to require operational safeguards before changes can be submitted for review.
+
+These safeguards help ensure that teams have prepared for potential operational risks.
+
+Organizations can configure evidence requirements based on:
+
+• change domain  
+• systems involved  
+• change type  
+
+Enforcing evidence helps prevent operational failures caused by insufficient preparation.
+
+---
+
+## Evidence Types
+
+Common evidence requirements include:
+
+### Rollback Plan
+
+Describes how the change can be reversed if problems occur.
+
+Example rollback actions:
+
+• restore previous pricing configuration  
+• revert billing rules  
+• disable routing changes
+
+---
+
+### Testing Documentation
+
+Confirms that the change was validated before deployment.
+
+Examples include:
+
+• billing simulations  
+• pricing rule validation  
+• invoice generation tests
+
+---
+
+### Monitoring Plan
+
+Describes how teams will detect issues after the change is deployed.
+
+Examples include:
+
+• revenue anomaly alerts  
+• billing error dashboards  
+• monitoring system integrations
+
+---
+
+### Revenue Validation
+
+Ensures that the change does not introduce financial inaccuracies.
+
+Examples include:
+
+• sample invoice verification  
+• reconciliation checks  
+• financial reporting validation
+
+---
+
+## Configuring Evidence Requirements
+
+Administrators can configure required evidence by:
+
+1. Navigating to **Admin → Evidence Policies**
+2. Selecting the domain or system
+3. Defining required evidence types
+
+These requirements are automatically enforced when users create changes.
+
+---
+
+## Why Evidence Enforcement Matters
+
+Operational incidents often occur when safeguards are missing.
+
+Evidence enforcement ensures that teams have:
+
+• tested the change  
+• prepared recovery procedures  
+• implemented monitoring
+
+This significantly reduces operational risk.
+
+---
+
+## Best Practices
+
+Organizations should require stronger safeguards for high-risk domains such as:
+
+• billing configuration  
+• pricing updates  
+• revenue recognition
+
+Lower-risk changes may require fewer safeguards.

@@ -1,0 +1,41 @@
+---
+title: RBAC
+description: Learn how role-based access control works across changes, approvals, settings, and operational views.
+section: Security
+order: 1
+toc: true
+tags:
+  - Security
+  - RBAC
+  - Permissions
+roles:
+  - owner
+  - admin
+  - executive
+lastUpdated: 2026-03-08
+---
+
+## Overview
+
+Solvren uses role-based access control to determine what users can do in the platform.
+
+Roles define capabilities such as creating changes, submitting changes, approving changes, managing users, and managing governance settings.
+
+## Why RBAC exists
+
+RBAC ensures users only perform actions they are authorized to perform, administrative configuration stays controlled, and review authority is intentional.
+
+## Example capability boundaries
+
+- Submitters can create and submit changes
+- Reviewers can approve assigned work
+- Admins can manage governance configuration
+- Viewers have read-only access where allowed
+
+## Relationship to other access controls
+
+RBAC works together with domain permissions, restricted visibility, and explicit access grants.
+
+<Callout variant="note" title="Important distinction">
+RBAC answers what a user can do in general. Domain permissions and restricted visibility answer what specific changes they can see or review.
+</Callout>

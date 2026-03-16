@@ -1,0 +1,136 @@
+---
+title: Change Lifecycle
+description: Understand the lifecycle of a change in Solvren.
+section: Guides
+order: 2
+toc: true
+---
+
+## Overview
+
+Every change created in Solvren moves through a defined lifecycle.
+
+This lifecycle ensures:
+
+• risks are identified  
+• safeguards are documented  
+• approvals are coordinated  
+• changes are traceable  
+
+Understanding this lifecycle helps teams operate the platform efficiently.
+
+---
+
+## Lifecycle Stages
+
+Changes move through the following states.
+
+<Mermaid
+  chart={`
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Ready
+  Ready --> InReview
+  InReview --> Approved
+  InReview --> Rejected
+  Approved --> Archived
+  Rejected --> Draft
+`}
+/>
+
+## Draft
+
+The change is being created and edited.
+
+At this stage users define:
+
+• title and description  
+• systems involved  
+• change type  
+• domain  
+• implementation details  
+
+Draft changes are visible only to their authors and collaborators.
+
+---
+
+## Ready
+
+A change becomes **Ready** once all required information has been completed.
+
+Requirements may include:
+
+• structured intake fields  
+• coordination plan generation  
+• evidence checklist completion  
+
+Ready changes can now be submitted for review.
+
+---
+
+## In Review
+
+Once submitted, the change enters **In Review**.
+
+During this stage:
+
+• approvers are notified  
+• reviewers analyze risk reports  
+• evidence is evaluated  
+• comments may be added
+
+Reviewers can approve the change or request revisions.
+
+---
+
+## Approved
+
+When all required approvals are completed, the change becomes **Approved**.
+
+Approved changes indicate:
+
+• governance requirements were satisfied  
+• reviewers accepted the risk assessment  
+• safeguards are documented
+
+Approval does **not automatically deploy the change**, but signals readiness.
+
+---
+
+## Rejected
+
+Changes may be rejected if:
+
+• risk is too high  
+• evidence is insufficient  
+• implementation plans are unclear  
+
+Rejected changes can be edited and resubmitted.
+
+---
+
+## Archived
+
+After completion, changes move to **Archived**.
+
+Archived changes provide a permanent record of:
+
+• decisions  
+• evidence  
+• approvals  
+• operational context
+
+This historical record is valuable for audits and incident reviews.
+
+---
+
+## Lifecycle Summary
+
+| Stage | Purpose |
+|------|------|
+| Draft | Define change details |
+| Ready | Requirements satisfied |
+| In Review | Approvers evaluate risk |
+| Approved | Governance requirements met |
+| Rejected | Issues must be addressed |
+| Archived | Permanent record |

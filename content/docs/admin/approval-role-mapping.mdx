@@ -1,0 +1,86 @@
+---
+title: Approval Role Mapping
+description: Configure how approvals are routed for operational changes.
+section: Admin
+order: 3
+toc: true
+---
+
+## Overview
+
+Approval Role Mapping determines which stakeholders must review a change before it can be approved.
+
+These mappings allow organizations to enforce governance policies consistently.
+
+Approval requirements are based on:
+
+• change domain  
+• systems involved  
+• change type
+
+---
+
+## How Approval Mapping Works
+
+Solvren uses approval roles instead of individual users.
+
+Roles represent organizational responsibilities such as:
+
+• Finance  
+• Engineering  
+• Product  
+• Revenue Operations
+
+Users are assigned to these roles within the user management settings.
+
+---
+
+## Example Approval Mapping
+
+Organizations typically configure mappings similar to the following:
+
+| Domain | Required Approvers |
+|------|------|
+| Pricing | Finance + Product |
+| Billing | Engineering + Finance |
+| CRM | Revenue Operations |
+
+When a change is created, the system automatically identifies the required reviewers.
+
+---
+
+## Configuring Approval Mappings
+
+Administrators can configure mappings by:
+
+1. Navigating to **Admin → Approval Settings**
+2. Selecting the domain or change type
+3. Assigning required roles
+
+Once configured, these rules automatically apply to all changes.
+
+---
+
+## Why Approval Mapping Matters
+
+Approval mappings ensure that governance policies are applied consistently.
+
+Without structured routing, critical stakeholders may be excluded from important operational decisions.
+
+Automated routing helps ensure that:
+
+• appropriate teams review changes  
+• approvals are consistent across the organization  
+• governance policies are enforced
+
+---
+
+## Best Practices
+
+Recommended practices include:
+
+• requiring finance approval for pricing changes  
+• requiring engineering review for system configuration changes  
+• including revenue operations for CRM changes
+
+These policies help reduce operational risk.

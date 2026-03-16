@@ -1,0 +1,155 @@
+---
+title: Jira Integration
+description: Connect Solvren to Jira Cloud for change creation and status sync.
+section: Admin
+order: 7
+toc: true
+roles:
+  - owner
+  - admin
+---
+
+## Overview
+
+The Jira integration connects Solvren governance workflows to engineering work tracked in Jira Cloud.
+
+Features:
+
+• Create Solvren changes from Jira issues  
+• Link changes to Jira issues  
+• Sync status between Jira and Solvren  
+• Display governance status in Jira
+
+---
+
+## Supported Environments
+
+• **Jira Cloud** — Supported  
+• Jira Server / Data Center — Not supported in V1
+
+---
+
+## Setup
+
+### 1. Create an Atlassian Developer App
+
+1. Go to [Atlassian Developer Console](https://developer.atlassian.com/console/myapps/)
+2. Create an app → OAuth 2.0 (3LO)
+3. Add callback URL: `https://your-app.com/api/integrations/jira/callback`
+4. Configure scopes: `read:jira-work`, `write:jira-work`, `read:jira-user`, `read:jira-project`, `manage:jira-webhook`, `offline_access`
+
+### 2. Environment Variables
+
+Set in `.env` (ATLASSIAN_* takes precedence over JIRA_*):
+
+```
+ATLASSIAN_CLIENT_ID=your_client_id
+ATLASSIAN_CLIENT_SECRET=your_client_secret
+ATLASSIAN_REDIRECT_URI=https://your-app.com/api/integrations/jira/callback
+JIRA_INTEGRATION_ENABLED=true
+```
+
+### 3. Connect from Org Settings
+
+1. Go to **Org settings** → **Jira integration** (or **Settings** → **Connect Jira** / **Configure Jira**)
+2. Click **Connect Jira**
+3. Authorize the app in Atlassian
+4. After connection, configure projects, issue types, status mappings, and feature toggles
+
+---
+
+## Create Change from Jira
+
+Use the API to create a Solvren change from a Jira issue:
+
+```
+POST /api/integrations/jira/create-change
+```
+
+Payload:
+
+```json
+{
+  "orgId": "...",
+  "jiraIssueId": "10045",
+  "jiraIssueKey": "ENG-243",
+  "jiraProjectKey": "ENG",
+  "summary": "Update billing cycle logic",
+  "description": "Modify billing logic to support quarterly plans",
+  "assignee": "user@example.com",
+  "labels": ["billing", "revenue"]
+}
+```
+
+Response:
+
+```json
+{
+  "changeId": "uuid",
+  "status": "created"
+}
+```
+
+---
+
+## Webhook Setup
+
+To sync Jira status changes to Solvren, register a webhook in Jira:
+
+1. In Jira: **Settings** → **System** → **WebHooks**
+2. Create webhook with URL: `https://your-app.com/api/integrations/jira/webhook`
+3. Events: **Issue updated**, **Issue deleted**
+4. Copy the Webhook ID and ensure `X-Atlassian-Webhook-Identifier` is sent (Jira Cloud sends this by default)
+
+---
+
+## Status Mapping
+
+Jira statuses map to Solvren statuses:
+
+| Jira Status       | Solvren Status |
+|-------------------|---------------------|
+| To Do             | DRAFT               |
+| In Progress       | DRAFT               |
+| Ready for Review  | READY               |
+| In Review         | IN_REVIEW           |
+| Done              | APPROVED            |
+| Rejected          | REJECTED            |
+
+Admins can customize mappings in `jira_status_mappings`.
+
+---
+
+## Phase 2 Features
+
+### Webhook registration
+
+When **Webhook sync** is enabled in config and you save, the integration registers a Jira webhook for issue updated/deleted and comment created. Webhooks expire after 30 days; refresh via Jira admin or reconnect.
+
+### Governance status in Jira
+
+When **Issue property sync** is enabled, Solvren writes `Solvren_status` to linked Jira issues (status, risk score, approval progress, link to change).
+
+### Comment sync
+
+When **Comment sync** is enabled, governance events (change created, approval requested/completed/rejected, change approved) are posted as Jira comments with a `[Solvren]` prefix.
+
+### Token refresh
+
+Access tokens are refreshed automatically before expiry (10-minute buffer). Failed refresh marks the integration as error; reconnect from org settings.
+
+### Retry logic
+
+Failed webhook events are retried with exponential backoff. Use **Retry failures** in the Jira config page to queue pending failures for immediate retry. Cron jobs run `/api/cron/jira-sync` (every 2 min) and `/api/cron/jira-retry-failures` (every 5 min).
+
+---
+
+## Troubleshooting
+
+**Jira not configured** — Ensure `JIRA_CLIENT_ID` and `JIRA_CLIENT_SECRET` are set.
+
+**OAuth callback fails** — Verify `JIRA_REDIRECT_URI` matches the URL registered in Atlassian.
+
+**Webhook not processing** — Ensure `X-Atlassian-Webhook-Identifier` header is present. Check `integration_event_failures` for retry queue.
+
+**Token expired** — Reconnect Jira from org settings. Ensure `offline_access` scope and refresh token are stored.

@@ -1,0 +1,22 @@
+# Universal alternative to Vercel cron: call deployed /api/sla/tick every 5 min.
+# Set secret SLA_TICK_URL to your deployed URL, e.g. https://your-app.vercel.app/api/sla/tick
+name: SLA Tick
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call SLA tick
+        env:
+          TICK_URL: ${{ secrets.SLA_TICK_URL }}
+        run: |
+          if [ -z "$TICK_URL" ]; then
+            echo "SLA_TICK_URL secret not set; skipping."
+            exit 0
+          fi
+          curl -sS -X POST "$TICK_URL" -H "Content-Type: application/json" || exit 1

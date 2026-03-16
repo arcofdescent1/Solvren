@@ -1,0 +1,60 @@
+/* SB Admin Pro layout tokens (from sd-admin-pro-main) */
+
+:root {
+  /* Layout dimensions */
+  --sidenav-width: 15rem;
+  --topbar-height: 3.625rem;
+  --footer-height: 5rem;
+
+  /* Sidebar light theme */
+  --sidenav-light-bg: var(--bg-surface);
+  --sidenav-light-color: var(--text);
+  --sidenav-light-heading: var(--text-muted);
+  --sidenav-light-link: var(--text);
+  --sidenav-light-link-active: var(--primary);
+  --sidenav-light-icon: var(--text-muted);
+  --sidenav-light-footer-bg: var(--bg-surface-2);
+
+  /* Sidebar dark theme (used when data-theme="dark") */
+  --sidenav-dark-bg: #111827;
+  --sidenav-dark-color: rgba(255, 255, 255, 0.5);
+  --sidenav-dark-heading: rgba(255, 255, 255, 0.75);
+  --sidenav-dark-link: rgba(255, 255, 255, 0.5);
+  --sidenav-dark-link-active: #fff;
+  --sidenav-dark-icon: rgba(255, 255, 255, 0.75);
+  --sidenav-dark-footer-bg: rgba(0, 0, 0, 0.25);
+
+  /* Generic sidenav vars (resolve to light in :root, dark in [data-theme="dark"]) */
+  --sidenav-bg: var(--sidenav-light-bg);
+  --sidenav-color: var(--sidenav-light-color);
+  --sidenav-heading: var(--sidenav-light-heading);
+  --sidenav-link: var(--sidenav-light-link);
+  --sidenav-link-active: var(--sidenav-light-link-active);
+  --sidenav-icon: var(--sidenav-light-icon);
+  --sidenav-footer-bg: var(--sidenav-light-footer-bg);
+
+  /* Z-index (SB Admin values) */
+  --z-content: 1037;
+  --z-sidenav: 1038;
+  --z-topbar: 1039;
+
+  /* Card (SB Admin) */
+  --card-spacer-y: 1rem;
+  --card-spacer-x: 1.35rem;
+  --card-cap-bg: #f8fafc;
+  --card-border-color: rgba(31, 45, 65, 0.125);
+
+  /* Shadow right (sidebar) - SB Admin box-shadow-right */
+  --shadow-right: 0.15rem 0 1.75rem 0 rgba(31, 45, 65, 0.15);
+}
+
+/* SB Admin Pro dark theme - sidenav uses dark vars */
+[data-theme="dark"] {
+  --sidenav-bg: var(--sidenav-dark-bg);
+  --sidenav-color: var(--sidenav-dark-color);
+  --sidenav-heading: var(--sidenav-dark-heading);
+  --sidenav-link: var(--sidenav-dark-link);
+  --sidenav-link-active: var(--sidenav-dark-link-active);
+  --sidenav-icon: var(--sidenav-dark-icon);
+  --sidenav-footer-bg: var(--sidenav-dark-footer-bg);
+}

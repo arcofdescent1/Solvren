@@ -1,0 +1,104 @@
+---
+title: Systems
+description: The external systems that operational changes interact with.
+section: Concepts
+order: 3
+toc: true
+---
+
+## Overview
+
+Solvren tracks which systems are affected by a change.
+
+These systems represent the platforms where operational logic is implemented.
+
+Understanding system dependencies helps reviewers evaluate risk.
+
+---
+
+## Examples of Systems
+
+Organizations commonly integrate with multiple revenue systems.
+
+Examples include:
+
+---
+
+### Billing Platforms
+
+Systems responsible for customer billing.
+
+Examples:
+
+• Stripe  
+• Chargebee  
+• Recurly
+
+Changes to billing platforms can affect invoices, payments, and subscriptions.
+
+---
+
+### CRM Platforms
+
+Customer relationship management systems.
+
+Examples:
+
+• Salesforce  
+• HubSpot  
+
+CRM changes may affect lead routing, account ownership, or opportunity tracking.
+
+---
+
+### Financial Systems
+
+Systems responsible for accounting and revenue reporting.
+
+Examples:
+
+• NetSuite  
+• QuickBooks  
+• custom financial reporting pipelines
+
+Changes affecting financial systems may require finance approval.
+
+---
+
+### Marketing Platforms
+
+Marketing automation systems responsible for customer communication.
+
+Examples:
+
+• marketing automation tools  
+• campaign platforms  
+• email engagement systems
+
+Changes may affect lead capture or promotional campaigns.
+
+---
+
+### Internal Systems
+
+Many organizations operate internal services that support their revenue operations.
+
+Examples:
+
+• pricing microservices  
+• internal billing APIs  
+• custom reporting pipelines
+
+Changes to these systems may introduce hidden dependencies.
+
+---
+
+## Why Systems Matter
+
+Identifying systems involved in a change helps the platform:
+
+• recommend appropriate approvers  
+• identify operational dependencies  
+• estimate risk exposure
+
+For example, a change affecting both **Stripe and Salesforce** may require coordination between finance and revenue operations teams.

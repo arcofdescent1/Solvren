@@ -1,0 +1,158 @@
+---
+title: Set Up Your Organization
+description: Configure users, roles, and governance settings.
+section: Get Started
+order: 2
+toc: true
+tags:
+  - Getting Started
+  - Setup
+  - Organization
+roles:
+  - owner
+  - admin
+lastUpdated: 2026-03-09
+---
+
+## Overview
+
+Before teams can manage changes in Solvren, the organization must be configured.
+
+The setup process establishes:
+
+• user access  
+• approval roles  
+• governance policies  
+• evidence enforcement rules
+
+This typically takes **10–15 minutes**.
+
+---
+
+# Step 1 — Create Your Organization
+
+When you first sign in, you will be prompted to create an organization.
+
+Provide:
+
+• Organization name  
+• Primary administrator  
+• Default timezone
+
+Organizations are the security boundary for data, approvals, and policies.
+
+---
+
+# Step 2 — Invite Your Team
+
+Solvren works best when all stakeholders involved in revenue systems are included.
+
+Typical roles include:
+
+Engineering  
+Finance  
+Revenue Operations  
+Product  
+Analytics
+
+To invite users:
+
+1. Open **Settings → Users**
+2. Click **Invite User**
+3. Enter email addresses
+4. Assign a role
+
+Users will receive an email invitation.
+
+---
+
+# Step 3 — Configure User Roles
+
+Roles control what actions users can perform.
+
+Typical roles include:
+
+### Owner
+
+Full system access.
+
+Can configure organization settings, roles, and governance policies.
+
+### Admin
+
+Operational administrators responsible for maintaining governance configuration.
+
+### Submitter
+
+Can create and submit changes.
+
+### Reviewer
+
+Responsible for reviewing and approving changes.
+
+---
+
+# Step 4 — Configure Approval Roles
+
+Approval roles represent **organizational responsibility**, not individuals.
+
+Examples:
+
+Engineering Lead  
+Finance  
+Product  
+Revenue Operations  
+Security
+
+Users are assigned to these roles so the system can route approvals automatically.
+
+---
+
+# Step 5 — Configure Approval Mappings
+
+Approval mappings determine **which roles must approve which changes**.
+
+Mappings are based on:
+
+• change type  
+• domain  
+• systems involved
+
+Example:
+
+| Change Type | Required Approvers |
+|--------------|-------------------|
+| Pricing change | Finance + Product |
+| Billing logic change | Engineering + Finance |
+| CRM routing change | RevOps |
+
+Solvren uses these mappings when generating Coordination Autopilot plans.
+
+---
+
+# Step 6 — Configure Evidence Enforcement
+
+Solvren ensures operational safeguards are documented.
+
+Examples of required evidence:
+
+Rollback plan  
+Test scenarios  
+Monitoring plan  
+Revenue validation checks
+
+Evidence requirements can be configured by:
+
+• domain  
+• system  
+• change type
+
+---
+
+## Setup Complete
+
+Once setup is complete, your team can begin creating changes.
+
+Next:
+
+➡ [Create Your First Change](/docs/get-started/first-change)

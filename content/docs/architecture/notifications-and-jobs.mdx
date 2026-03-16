@@ -1,0 +1,36 @@
+---
+title: Notifications and Jobs
+description: Understand how background jobs, notifications, and operational processing support the Solvren workflow.
+section: Architecture
+order: 4
+toc: true
+tags:
+  - Architecture
+  - Notifications
+  - Jobs
+roles:
+  - owner
+  - admin
+  - executive
+lastUpdated: 2026-03-08
+---
+
+## Overview
+
+Solvren relies on background processing to keep operational workflows timely and visible. This typically includes notification dispatch, SLA evaluation, inbox generation, and digest generation.
+
+## Why jobs matter
+
+Without reliable background processing, users may not receive approvals, reminders, or queue updates at the right time.
+
+## Notification model
+
+Notifications may be delivered through in-app surfaces, email, and Slack.
+
+## Operational requirements
+
+Background jobs should be idempotent, observable, and retryable where appropriate.
+
+## Why this matters to admins
+
+Admins and owners should understand that the user experience depends not only on visible UI flows, but also on healthy background job execution.

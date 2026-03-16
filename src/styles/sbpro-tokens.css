@@ -1,0 +1,75 @@
+:root {
+  /* ---- SB Admin Pro baseline (light) ---- */
+  /* SB Pro app background is a very light cool gray */
+  --rg-bg: #f2f6fc;
+  --rg-panel: #ffffff;
+  --rg-panel-2: #f8f9fc;
+
+  --rg-text: #1f2d41;
+  --rg-muted: #687281;
+  --rg-muted-2: #a2acba;
+
+  --rg-border: rgba(31, 45, 65, 0.125);
+  --rg-border-strong: #e3e6ec;
+
+  --rg-primary: #0061f2;
+  --rg-primary-hover: #0052cc;
+  --rg-primary-contrast: #ffffff;
+
+  --rg-success: #00ac69;
+  --rg-warning: #f4a100;
+  --rg-danger: #e81500;
+
+  /* Shadows from SB Pro */
+  --rg-shadow-sm: 0 0.125rem 0.25rem 0 rgba(31, 45, 65, 0.2);
+  --rg-shadow: 0 0.15rem 1.75rem 0 rgba(31, 45, 65, 0.15);
+
+  /* Radii from SB Pro */
+  --rg-radius: 0.35rem;
+}
+
+/* App-level theme switch: we control this explicitly via data-theme */
+html[data-theme="dark"] {
+  /* ---- SB Admin Pro–compatible dark mode ---- */
+  /* Cool, not-black dark palette (closer to SB Pro’s “dark UI” tone) */
+  --rg-bg: #0b1324;
+  --rg-panel: #0f1b2e;
+  --rg-panel-2: #0c1729;
+
+  --rg-text: #eff3f9;
+  --rg-muted: #a2acba;
+  --rg-muted-2: #7b8797;
+
+  --rg-border: rgba(227, 230, 236, 0.12);
+  --rg-border-strong: rgba(227, 230, 236, 0.16);
+
+  --rg-primary: #4c9aff;
+  --rg-primary-hover: #2f7eea;
+  --rg-primary-contrast: #0b1220;
+
+  --rg-shadow-sm: 0 0.125rem 0.25rem 0 rgba(0, 0, 0, 0.35);
+  --rg-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.35);
+}
+
+/* Respect OS preference on first load, unless user overrides. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme]) {
+    --rg-bg: #0b1324;
+    --rg-panel: #0f1b2e;
+    --rg-panel-2: #0c1729;
+
+    --rg-text: #eff3f9;
+    --rg-muted: #a2acba;
+    --rg-muted-2: #7b8797;
+
+    --rg-border: rgba(227, 230, 236, 0.12);
+    --rg-border-strong: rgba(227, 230, 236, 0.16);
+
+    --rg-primary: #4c9aff;
+    --rg-primary-hover: #2f7eea;
+    --rg-primary-contrast: #0b1220;
+
+    --rg-shadow-sm: 0 0.125rem 0.25rem 0 rgba(0, 0, 0, 0.35);
+    --rg-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.35);
+  }
+}

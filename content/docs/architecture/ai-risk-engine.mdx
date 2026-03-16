@@ -1,0 +1,105 @@
+---
+title: AI Risk Engine
+description: How Solvren analyzes potential financial risk before a change is deployed.
+section: Architecture
+order: 2
+toc: true
+---
+
+## Overview
+
+The AI Risk Engine analyzes operational changes to identify potential financial risk before deployment.
+
+By evaluating structured intake data and historical patterns, the system generates a **Revenue Impact Report** that helps reviewers understand the potential consequences of a change.
+
+This analysis allows organizations to proactively identify failure modes before they occur.
+
+---
+
+# Inputs
+
+The AI Risk Engine analyzes several categories of information.
+
+### Change Metadata
+
+Information provided during intake:
+
+• change type  
+• domain  
+• systems involved  
+• rollout method  
+• customer impact  
+• backfill requirements  
+
+These signals provide context about how the change will affect revenue operations.
+
+---
+
+### Organizational Governance Rules
+
+Risk analysis considers the organization's configured policies, including:
+
+• required approvals  
+• evidence requirements  
+• domain-specific safeguards
+
+These rules influence the final readiness evaluation.
+
+---
+
+### Operational Signals
+
+The system evaluates operational signals such as:
+
+• deployment scope  
+• integration dependencies  
+• data migration activity  
+• financial system exposure
+
+Changes that modify billing or pricing systems typically receive higher risk scores.
+
+---
+
+# Risk Outputs
+
+The AI Risk Engine produces structured outputs including:
+
+### Risk Score
+
+A numerical representation of potential risk.
+
+Higher scores indicate greater potential financial exposure.
+
+---
+
+### Failure Mode Analysis
+
+Identifies ways a change could cause unintended outcomes.
+
+Examples:
+
+• pricing misconfiguration  
+• billing duplication  
+• invoice generation failure  
+• reporting discrepancies
+
+---
+
+### Recommended Safeguards
+
+The engine may recommend safeguards such as:
+
+• additional approvals  
+• expanded monitoring  
+• validation checks  
+• rollback verification
+
+---
+
+## Purpose
+
+The AI Risk Engine helps organizations answer a critical question:
+
+**"What could go wrong if we deploy this change?"**
+
+By identifying risk early, teams can address issues before they impact revenue.

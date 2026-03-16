@@ -1,0 +1,27 @@
+---
+title: Revenue Impact Report
+description: Understand how Revenue Impact Reports combine deterministic signals and structured analysis.
+section: Architecture
+order: 2
+toc: true
+---
+
+## Purpose
+
+The Revenue Impact Report helps teams understand the financial and operational risk of a change before it ships.
+
+## What it includes
+
+Typical report outputs include risk level, failure modes, impact areas, safeguards, and executive summary.
+
+## Design model
+
+The report combines deterministic baseline signals, structured report generation, persisted report versions, and stale detection after material edits.
+
+## Why versioning matters
+
+A report should reflect the current change state. If material fields change, the report may become stale and should be regenerated.
+
+<Screenshot title="Revenue Impact Report" caption="The report should summarize financial risk for submitters, reviewers, and executives.">
+  <ScreenshotPlaceholder label="Risk Summary + Failure Modes" lines={7} />
+</Screenshot>

@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solvren
 
-## Getting Started
+Revenue change governance platform: structured intake, approvals, evidence, revenue impact reporting, and coordination autopilot with RBAC and restricted visibility.
 
-First, run the development server:
+---
+
+## What Solvren Is
+
+Solvren helps teams govern changes that affect revenue. It provides:
+
+- **Structured intake** — guided change requests with domains (e.g. Revenue), risk scoring, rollout plans, and customer impact
+- **Evidence enforcement** — checklists, approval areas (Finance, Legal, etc.), and AI-assisted evidence drafting
+- **Approval workflows** — role-based routing, approval packets, and integrated decisions
+- **Revenue impact reporting** — exposure scoring, revenue-at-risk views, and executive summaries
+- **Coordination autopilot** — automated nudges, digests, and notification delivery (in-app, Slack, email)
+- **RBAC & restricted visibility** — domain permissions, approval role mappings, and restricted access for sensitive data
+
+---
+
+## Core Capabilities
+
+| Area | Description |
+|------|-------------|
+| **Auth & org management** | Supabase Auth, org creation, invites, roles |
+| **Guided change intake** | Multi-step intake with type, systems, rollout, evidence, approvals |
+| **Evidence enforcement** | Requirements, checklists, evidence drafts, status tracking |
+| **Approval routing** | Approval areas, role mappings, packets, approve/reject flows |
+| **Dashboards & queues** | Executive dashboard, ops inbox, reviews, overdue, blocked |
+| **Search** | Global search, saved views |
+| **Notifications** | In-app, Slack, optional email; outbox with retries |
+| **Revenue impact reports** | Reports per change, executive narrative, revenue-at-risk |
+| **Coordination autopilot** | SLA tracking, escalation, weekly digest, daily inbox |
+| **Admin & governance** | Domains, approval roles, mappings, permissions, billing |
+
+---
+
+## Quick Start
 
 ```bash
+# Install
+git clone <repo-url>
+cd solvren
+npm install
+
+# Env setup
+cp .env.example .env.local
+# Edit .env.local: set APP_URL, Supabase URL/keys, SUPABASE_SERVICE_ROLE_KEY
+
+# DB migrations (Supabase CLI linked to project)
+supabase db push
+
+# Seed / bootstrap
+# Run app, sign up, create org — onboarding calls POST /api/org/bootstrap automatically
+
+# Run locally
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Sign up, create an org, and use the bootstrap panel in Org Settings if needed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Where the Real Docs Live
 
-## Learn More
+| Doc | Purpose |
+|-----|---------|
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Full deployment runbook: env, Supabase, Stripe, Slack, cron, clean-room validation |
+| [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md) | Production checklist, secrets, monitoring |
+| `docs/USER_GUIDE.md` | (future) End-user guide |
+| `docs/UAT.md` | (future) UAT scripts and handoff |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Repo Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Directory | Contents |
+|-----------|----------|
+| `src/app/` | Next.js App Router pages and API routes |
+| `src/components/` | UI components |
+| `src/lib/` | Env, Supabase client, shared utilities |
+| `src/services/` | Business logic (Slack, AI, coordination, risk) |
+| `supabase/migrations/` | Database migrations (schema, seeds) |
+| `docs/` | Deployment, production readiness, specs |
+| `tests/` | Vitest unit tests |
+| `playwright.config.ts` | E2E tests (Playwright) |

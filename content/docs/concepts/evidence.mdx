@@ -1,0 +1,123 @@
+---
+title: Evidence
+description: Operational safeguards that ensure changes can be safely deployed.
+section: Concepts
+order: 4
+toc: true
+---
+
+## Overview
+
+Evidence represents the operational safeguards required before implementing a change.
+
+These safeguards ensure that teams have:
+
+• tested the change  
+• validated expected outcomes  
+• prepared recovery procedures  
+
+Evidence is a critical component of governance because it ensures that operational readiness is documented before deployment.
+
+---
+
+## Why Evidence Exists
+
+Operational failures often occur when teams implement changes without adequate safeguards.
+
+Common causes include:
+
+• insufficient testing  
+• missing rollback procedures  
+• incomplete monitoring  
+
+Evidence ensures that teams proactively address these risks.
+
+---
+
+## Types of Evidence
+
+Organizations may require different types of evidence depending on the domain and system involved.
+
+---
+
+### Rollback Plan
+
+A rollback plan describes how to reverse a change if issues occur.
+
+Examples:
+
+• restore previous pricing configuration  
+• revert CRM routing rules  
+• disable a billing rule update
+
+Rollback procedures should be clear and executable.
+
+---
+
+### Testing Documentation
+
+Testing documentation verifies that the change behaves as expected.
+
+Examples:
+
+• billing simulations  
+• pricing rule validation  
+• sample invoice verification
+
+Testing reduces the likelihood of unexpected behavior.
+
+---
+
+### Monitoring Plan
+
+Monitoring ensures that teams can detect problems quickly after deployment.
+
+Examples:
+
+• revenue anomaly alerts  
+• invoice failure monitoring  
+• payment error dashboards
+
+Monitoring allows teams to respond rapidly if something goes wrong.
+
+---
+
+### Revenue Validation
+
+Revenue validation confirms that financial outcomes remain correct.
+
+Examples:
+
+• invoice verification  
+• reconciliation checks  
+• financial reporting validation
+
+These checks are particularly important for billing and pricing changes.
+
+---
+
+## Evidence Enforcement
+
+Organizations can configure required evidence types based on:
+
+• change domain  
+• systems involved  
+• change type  
+
+For example:
+
+| Domain | Required Evidence |
+|------|------|
+| Billing | rollback plan |
+| Pricing | testing documentation |
+| Revenue recognition | financial reconciliation |
+
+Evidence requirements ensure that operational safeguards are consistently applied.
+
+---
+
+## Key Principle
+
+Evidence ensures that every change answers an important question:
+
+**"If something goes wrong, how do we detect it and recover?"**

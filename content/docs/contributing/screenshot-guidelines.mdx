@@ -1,0 +1,118 @@
+---
+title: Screenshot Guidelines
+description: Consistent screenshot patterns for Solvren documentation.
+section: Contributing
+order: 1
+toc: true
+---
+
+## Overview
+
+Elite documentation uses consistent screenshot patterns. Follow these guidelines to maintain visual consistency across Solvren docs.
+
+---
+
+## Pattern 1 — Interface Overview
+
+Use for introducing a screen or feature.
+
+**Structure:**
+
+1. Step explanation
+2. Full UI screenshot
+3. Caption explaining the interface
+
+**Example MDX:**
+
+```mdx
+## Creating a Change
+
+Navigate to **Changes → New Change**.
+
+![Create change screen](/docs/images/create-change.png)
+
+The change creation form allows you to define systems, domains, and implementation details.
+```
+
+---
+
+## Pattern 2 — Annotated UI
+
+Use when highlighting specific elements.
+
+**Structure:**
+
+1. Numbered list describing each element
+2. Annotated screenshot with callouts
+
+**Example MDX:**
+
+```mdx
+![Change form annotated](/docs/images/change-form-annotated.png)
+
+1. Select the **Domain** affected by the change
+2. Identify all **Systems involved**
+3. Provide a clear **change description**
+```
+
+---
+
+## Pattern 3 — Workflow Screens
+
+Use for multi-step flows.
+
+**Structure:**
+
+- One screenshot per step
+- Clear step headers
+
+**Example MDX:**
+
+```mdx
+### Step 1 — Create Change
+
+![Create change](/docs/images/change-step1.png)
+
+### Step 2 — Add Evidence
+
+![Add evidence](/docs/images/change-step2.png)
+
+### Step 3 — Submit for Review
+
+![Submit change](/docs/images/change-step3.png)
+```
+
+---
+
+## Folder Structure
+
+Store screenshots in:
+
+```
+/public/docs/images/
+  create-change.png
+  change-form-annotated.png
+  change-step1.png
+  change-step2.png
+  change-step3.png
+  approval-screen.png
+  risk-report.png
+```
+
+---
+
+## Style Guidelines
+
+| Rule | Recommendation |
+|------|----------------|
+| Resolution | 1440px wide |
+| Format | PNG |
+| Theme | Use light mode |
+| Callouts | Simple numbered circles |
+| Cropping | Remove browser UI |
+
+---
+
+## Reference
+
+These patterns follow conventions used by Stripe, Vercel, and Supabase documentation.

@@ -1,0 +1,93 @@
+---
+title: Coordination Autopilot
+description: How Solvren automatically recommends coordination tasks and approvals.
+section: Architecture
+order: 3
+toc: true
+---
+
+## Overview
+
+Operational changes often require coordination across multiple teams.
+
+Coordination Autopilot analyzes change metadata and automatically recommends the governance steps required to safely implement a change.
+
+These recommendations ensure the right stakeholders are involved.
+
+---
+
+## What Coordination Autopilot Generates
+
+The system produces three types of recommendations.
+
+<Mermaid
+  chart={`
+flowchart LR
+  Change[Change Metadata] --> Approvals[Required Approvals]
+  Change --> Evidence[Evidence Requirements]
+  Change --> Tasks[Coordination Tasks]
+`}
+/>
+
+### Required Approvals
+
+Based on change metadata, the system determines which roles should review the change.
+
+Example:
+
+| Domain | Suggested Approvers |
+|------|------|
+| Pricing | Finance + Product |
+| Billing | Engineering + Finance |
+| CRM | RevOps |
+
+These recommendations are derived from the organization's configured approval mappings.
+
+---
+
+### Evidence Requirements
+
+The system may recommend operational safeguards such as:
+
+• rollback procedures  
+• monitoring plans  
+• testing documentation  
+• revenue validation checks
+
+These safeguards reduce the likelihood and impact of operational failures.
+
+---
+
+### Coordination Tasks
+
+Some changes require coordination across multiple teams.
+
+Examples:
+
+• notify finance of pricing updates  
+• validate CRM field mappings  
+• confirm billing rule compatibility
+
+Coordination Autopilot highlights these dependencies.
+
+---
+
+## Applying Recommendations
+
+Users can apply recommended governance steps with a single action.
+
+This dramatically reduces the time required to prepare a change for review.
+
+---
+
+## Why Coordination Matters
+
+Revenue systems are complex and interconnected.
+
+Changes to one system can affect multiple others.
+
+Coordination Autopilot helps teams ensure that:
+
+• stakeholders are aware of changes  
+• dependencies are validated  
+• safeguards are implemented

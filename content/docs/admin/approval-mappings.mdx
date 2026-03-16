@@ -1,0 +1,59 @@
+---
+title: Approval Mappings
+description: Define how systems, domains, and change types map to the right reviewers automatically.
+section: Admin
+order: 3
+toc: true
+tags:
+  - Admin
+  - Governance
+  - Approval Mappings
+roles:
+  - owner
+  - admin
+lastUpdated: 2026-03-08
+---
+
+## What approval mappings do
+
+Approval mappings power Coordination Autopilot.
+
+They answer:
+
+- who should review Finance changes
+- who should review Stripe changes
+- who should review Pricing changes
+
+## Common mapping examples
+
+- Domain: Finance → Finance Reviewer
+- System: Stripe → Billing Owner
+- Change Type: Pricing → Revenue Leadership
+
+## Why this matters
+
+Without mappings, coordination remains manual.
+
+With mappings, the system can automatically suggest the correct reviewers when a change is created or updated.
+
+<Screenshot title="Approval mappings" caption="Mappings let the system convert change context into reviewer suggestions automatically.">
+  <ScreenshotPlaceholder label="Mappings Table" lines={5} />
+</Screenshot>
+
+## Recommended mapping strategy
+
+Start with:
+
+1. domain mappings
+2. critical system mappings
+3. high-risk change type mappings
+
+Then expand after the first few live workflows.
+
+## Validation tips
+
+Before relying on mappings in production-like workflows, confirm:
+
+- each mapped role has members
+- the members actually have domain review permission where required
+- your most common change types resolve to the expected reviewers

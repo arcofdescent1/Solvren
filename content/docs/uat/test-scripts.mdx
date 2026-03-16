@@ -1,0 +1,35 @@
+---
+title: UAT Test Scripts
+description: Run structured user acceptance tests against the full Solvren workflow.
+section: UAT
+order: 2
+toc: true
+---
+
+## UAT goals
+
+User Acceptance Testing should confirm that the product works for real users in realistic workflows.
+
+## Core test groups
+
+Recommended UAT coverage includes owner and admin setup, submitter workflow, reviewer workflow, evidence enforcement, restricted visibility, search and queues, notifications, dashboard correctness.
+
+## Typical UAT structure
+
+Each test should include persona, prerequisites, steps, expected outcomes, pass/fail result, and notes.
+
+## Example scenario: Submitter creates and submits a high-risk change
+
+1. Log in as the submitter
+2. Create a draft
+3. Complete guided intake
+4. Generate Coordination Plan
+5. Generate Revenue Impact Report
+6. Apply approvers and evidence
+7. Submit for review
+
+Expected outcomes: readiness becomes satisfied, report and plan appear, review status updates, approval request becomes visible to the assigned reviewer.
+
+<Callout variant="tip" title="Recommendation">
+Use seeded personas and sample changes for UAT so every run is comparable and easier to debug.
+</Callout>

@@ -1,0 +1,9 @@
+-- Phase 2: extend integration_connections status to support connecting/configured
+-- Drop existing check and add extended one
+
+alter table public.integration_connections
+  drop constraint if exists integration_connections_status_check;
+
+alter table public.integration_connections
+  add constraint integration_connections_status_check
+  check (status in ('disconnected', 'connecting', 'connected', 'configured', 'error'));
