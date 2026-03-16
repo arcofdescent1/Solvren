@@ -3,6 +3,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { authStateFromUser } from "@/lib/auth";
 import { AppShell } from "@/ui/layout/app-shell";
 
+export const runtime = "nodejs";
+
 /**
  * App route layout: auth guard + app shell (top nav, side nav).
  * Unauthenticated users redirect to login.

@@ -4,6 +4,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { authStateFromUser } from "@/lib/auth";
 import { PublicShell } from "@/components/layout/PublicShell";
 
+export const runtime = "nodejs";
+
 /**
  * Public route layout: marketing header + footer only.
  * No app sidebar or top nav. Used for /, /login, /pricing, /auth/*, etc.

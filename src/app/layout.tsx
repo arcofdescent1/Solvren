@@ -4,6 +4,8 @@ import "./globals.css";
 
 import { ThemeInitScript } from "@/ui";
 
+export const runtime = "nodejs";
+
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -43,6 +45,11 @@ export default function RootLayout({
     >
       <head>
         <ThemeInitScript />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__SUPABASE_ENV__={url:${JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")},key:${JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "")}};`,
+          }}
+        />
       </head>
       <body className="antialiased">{children}</body>
     </html>
