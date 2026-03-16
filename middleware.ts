@@ -11,5 +11,6 @@ export async function middleware(_req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Disabled: empty matcher = middleware never runs (diagnose MIDDLEWARE_INVOCATION_FAILED)
+  matcher: [] as string[],
 };
