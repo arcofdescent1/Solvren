@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { authStateFromUser } from "@/lib/auth";
 
 function isAllowedForUnverified(pathname: string): boolean {
   return (
@@ -19,28 +17,31 @@ function isAllowedForUnverified(pathname: string): boolean {
   );
 }
 
+/** Inlined so middleware has no Edge-unsafe imports (e.g. from @/lib/auth). */
+function isVerified(user: { email_confirmed_at?: string | null } | null): boolean {
+  if (!user) return false;
+  const at = user.email_confirmed_at;
+  return at != null && at !== "";
+}
+
 export async function middleware(req: NextRequest) {
-  const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-pathname", req.nextUrl.pathname);
-  let res = NextResponse.next({ request: { headers: requestHeaders } });
-
-  // Simple correlation id for debugging pilot issues.
   try {
-    const rid = req.headers.get("x-request-id") ?? crypto.randomUUID();
-    res.headers.set("x-request-id", rid);
-  } catch {
-    // non-fatal
-  }
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-pathname", req.nextUrl.pathname);
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    try {
+      const rid = req.headers.get("x-request-id") ?? crypto.randomUUID();
+      res.headers.set("x-request-id", rid);
+    } catch {
+      /* non-fatal */
+    }
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Env not set (e.g. Vercel env vars missing): skip auth to avoid MIDDLEWARE_INVOCATION_FAILED
-    return res;
-  }
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return res;
 
-  try {
+    const { createServerClient } = await import("@supabase/ssr");
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll: () => req.cookies.getAll(),
@@ -53,21 +54,17 @@ export async function middleware(req: NextRequest) {
     });
 
     const { data: { user } } = await supabase.auth.getUser();
-    const state = authStateFromUser(user ?? null);
+    const authenticated = user != null;
+    const verified = isVerified(user ?? null);
 
-    // Signed-in but unverified: only allow verify-pending, verified, verify-error, callback, login, home
-    if (state.isAuthenticated && !state.isVerified) {
-      if (!isAllowedForUnverified(req.nextUrl.pathname)) {
-        const redirect = new URL("/auth/verify-pending", req.url);
-        return NextResponse.redirect(redirect);
-      }
+    if (authenticated && !verified && !isAllowedForUnverified(req.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL("/auth/verify-pending", req.url));
     }
-  } catch {
-    // Supabase or auth failed (e.g. invalid URL/key): continue without auth so app still loads
-    return res;
-  }
 
-  return res;
+    return res;
+  } catch {
+    return NextResponse.next();
+  }
 }
 
 export const config = {
