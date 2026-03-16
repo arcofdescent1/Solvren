@@ -32,10 +32,16 @@ export async function middleware(req: NextRequest) {
     // non-fatal
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Env not set (e.g. Vercel env vars missing): skip auth to avoid MIDDLEWARE_INVOCATION_FAILED
+    return res;
+  }
+
+  try {
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll: () => req.cookies.getAll(),
         setAll: (cookiesToSet) => {
@@ -44,18 +50,21 @@ export async function middleware(req: NextRequest) {
           });
         },
       },
-    }
-  );
+    });
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const state = authStateFromUser(user ?? null);
+    const { data: { user } } = await supabase.auth.getUser();
+    const state = authStateFromUser(user ?? null);
 
-  // Signed-in but unverified: only allow verify-pending, verified, verify-error, callback, login, home
-  if (state.isAuthenticated && !state.isVerified) {
-    if (!isAllowedForUnverified(req.nextUrl.pathname)) {
-      const redirect = new URL("/auth/verify-pending", req.url);
-      return NextResponse.redirect(redirect);
+    // Signed-in but unverified: only allow verify-pending, verified, verify-error, callback, login, home
+    if (state.isAuthenticated && !state.isVerified) {
+      if (!isAllowedForUnverified(req.nextUrl.pathname)) {
+        const redirect = new URL("/auth/verify-pending", req.url);
+        return NextResponse.redirect(redirect);
+      }
     }
+  } catch {
+    // Supabase or auth failed (e.g. invalid URL/key): continue without auth so app still loads
+    return res;
   }
 
   return res;

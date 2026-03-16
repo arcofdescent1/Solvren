@@ -61,3 +61,6 @@ archive.zip
 # local caches and dumps
 *.sqlite
 *.db
+
+.vercel
+.env*.local

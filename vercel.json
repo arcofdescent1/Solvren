@@ -1,11 +1,11 @@
 {
   "crons": [
-    { "path": "/api/sla/tick", "schedule": "*/5 * * * *" },
-    { "path": "/api/notifications/process", "schedule": "*/2 * * * *" },
-    { "path": "/api/integrations/slack/deliveries/process", "schedule": "*/2 * * * *" },
+    { "path": "/api/sla/tick", "schedule": "0 1 * * *" },
+    { "path": "/api/notifications/process", "schedule": "0 2 * * *" },
+    { "path": "/api/integrations/slack/deliveries/process", "schedule": "0 3 * * *" },
     { "path": "/api/inbox/daily/run", "schedule": "0 13 * * *" },
     { "path": "/api/digests/weekly/run", "schedule": "0 14 * * 1" },
-    { "path": "/api/cron/jira-sync", "schedule": "*/2 * * * *" },
-    { "path": "/api/cron/jira-retry-failures", "schedule": "*/5 * * * *" }
+    { "path": "/api/cron/jira-sync", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/jira-retry-failures", "schedule": "0 5 * * *" }
   ]
 }
