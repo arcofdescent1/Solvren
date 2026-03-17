@@ -1,0 +1,20 @@
+import { NextResponse } from "next/server";
+
+/**
+ * Minimal middleware for Vercel Edge. Auth and verify-pending redirect
+ * are enforced in (app) layout and API routes instead.
+ *
+ * Do NOT create a Supabase client here: Edge runtime can lack env or
+ * @supabase/ssr can throw "URL and Key are required", causing
+ * MIDDLEWARE_INVOCATION_FAILED. Empty matcher = middleware never runs.
+ *
+ * DISABLED: Renamed to .disabled to stop MIDDLEWARE_INVOCATION_FAILED on Vercel.
+ * Restore by renaming back to middleware.ts once root cause is fixed.
+ */
+export async function middleware() {
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [],
+};
