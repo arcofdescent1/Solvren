@@ -165,7 +165,7 @@ export default function InviteAcceptPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={`/login?mode=signup&next=${encodeURIComponent(`/invite/accept?token=${encodeURIComponent(token ?? "")}`)}`}>
+                  <Link href={`/signup?next=${encodeURIComponent(`/invite/accept?token=${encodeURIComponent(token ?? "")}`)}`}>
                     Create account
                   </Link>
                 </Button>

@@ -240,7 +240,10 @@ export default function LoginPage() {
                 type="button"
                 variant="link"
                 className="w-full"
-                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                onClick={() => {
+                if (mode === "login") router.push("/signup");
+                else setMode("login");
+              }}
               >
                 {mode === "login" ? "Need an account? Sign up" : "Have an account? Login"}
               </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardBody, PageHeader } from "@/ui";
@@ -8,6 +8,7 @@ import { Button, Card, CardBody, PageHeader } from "@/ui";
 export default function VerifiedPage() {
   const supabase = createClient();
   const router = useRouter();
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -18,12 +19,33 @@ export default function VerifiedPage() {
       const confirmed = (user as { email_confirmed_at?: string | null }).email_confirmed_at;
       if (!confirmed) {
         router.replace("/auth/verify-pending");
+        return;
       }
+      supabase
+        .from("organization_members")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .then(({ data }) => {
+          if (!data?.length) {
+            router.replace("/signup/organization");
+            return;
+          }
+          setChecked(true);
+        });
     });
   }, [router, supabase.auth]);
 
   function continueToApp() {
     router.push("/dashboard");
+  }
+
+  if (!checked) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center p-6">
+        <p className="text-sm text-slate-400">Loading…</p>
+      </div>
+    );
   }
 
   return (

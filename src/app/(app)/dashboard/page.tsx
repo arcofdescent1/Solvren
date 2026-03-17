@@ -32,6 +32,10 @@ export default async function DashboardPage() {
 
   const hasOrg = (memberships?.length ?? 0) > 0;
 
+  if (!hasOrg) {
+    redirect("/signup/organization");
+  }
+
   const orgIds = (memberships ?? []).map((m) => m.org_id);
 
   const [{ activeOrgId, memberships: fullMemberships }] = await Promise.all([

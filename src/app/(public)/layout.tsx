@@ -24,7 +24,8 @@ export default async function PublicLayout({
   const pathname = h.get("x-pathname") ?? "";
 
   const isAuthFlow = pathname.startsWith("/auth/reset-password");
-  if (state.isAuthenticated && state.isVerified && !isAuthFlow) {
+  const isSignupFlow = pathname === "/signup" || pathname.startsWith("/signup/");
+  if (state.isAuthenticated && state.isVerified && !isAuthFlow && !isSignupFlow) {
     redirect("/dashboard");
   }
 

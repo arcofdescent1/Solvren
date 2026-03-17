@@ -23,7 +23,7 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
         eyebrow="Revenue risk intelligence"
         title="Protect Revenue From Uncontrolled System Changes"
         subtitle="Solvren detects, governs, and audits revenue-impacting changes across your systems."
-        primaryCta={{ href: "/login?mode=signup", label: "Start Free Trial" }}
+        primaryCta={{ href: "/signup", label: "Start Free Trial" }}
         secondaryCta={{ href: "/how-it-works", label: "Watch Demo" }}
       />
       <V1ValueCardsSection />
