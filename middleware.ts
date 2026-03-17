@@ -11,6 +11,6 @@ export async function middleware(_req: NextRequest) {
 }
 
 export const config = {
-  // Disabled: empty matcher = middleware never runs (diagnose MIDDLEWARE_INVOCATION_FAILED)
-  matcher: [] as string[],
+  // Empty matcher = middleware never runs (avoids Edge/Supabase failures on Vercel)
+  matcher: [],
 };
