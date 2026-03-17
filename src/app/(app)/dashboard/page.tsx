@@ -136,7 +136,7 @@ export default async function DashboardPage() {
     myApprovalsCount + failedOutboxCount + visibleOverdueRows.length;
 
   // Experience 1 & 2 — Revenue Exposure + Recent Risk Events (last 7 days)
-  let exposure: { totalExposure: number; highRiskEvents: number; unapprovedChanges: number; complianceRate: number } = {
+  const exposure: { totalExposure: number; highRiskEvents: number; unapprovedChanges: number; complianceRate: number } = {
     totalExposure: 0,
     highRiskEvents: 0,
     unapprovedChanges: 0,

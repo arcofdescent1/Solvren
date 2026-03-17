@@ -7,13 +7,18 @@ declare global {
   }
 }
 
+function validUrlOrKey(v: string | undefined): boolean {
+  const s = (v ?? "").trim();
+  return s.length > 0 && s !== "undefined";
+}
+
 function getSupabaseEnv() {
-  if (typeof window !== "undefined" && window.__SUPABASE_ENV__?.url && window.__SUPABASE_ENV__?.key) {
-    return { url: window.__SUPABASE_ENV__.url, key: window.__SUPABASE_ENV__.key };
+  if (typeof window !== "undefined" && validUrlOrKey(window.__SUPABASE_ENV__?.url) && validUrlOrKey(window.__SUPABASE_ENV__?.key)) {
+    return { url: window.__SUPABASE_ENV__!.url!.trim(), key: window.__SUPABASE_ENV__!.key!.trim() };
   }
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  return { url: url ?? "", key: key ?? "" };
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+  const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+  return { url: url === "undefined" ? "" : url, key: key === "undefined" ? "" : key };
 }
 
 /** Stub when env is missing so we never call real SDK (avoids MIDDLEWARE_INVOCATION_FAILED on Vercel Edge). */

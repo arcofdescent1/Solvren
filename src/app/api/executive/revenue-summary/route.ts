@@ -43,7 +43,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
 
   const changeIds = (rows ?? []).map((r: { id: string }) => r.id);
-  let riskByChange = new Map<string, number>();
+  const riskByChange = new Map<string, number>();
 
   if (changeIds.length > 0) {
     const { data: outputs } = await supabase

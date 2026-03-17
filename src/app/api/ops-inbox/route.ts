@@ -131,7 +131,7 @@ export async function GET() {
     .order("due_at", { ascending: true });
 
   const inReviewIds = (inReviewChanges ?? []).map((c) => c.id);
-  let assessByChange = new Map<
+  const assessByChange = new Map<
     string,
     { riskBucket: string | null; riskScore: number | null }
   >();
