@@ -32,6 +32,11 @@ function createStubClient(): SupabaseClient {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       signOut: () => Promise.resolve({ error: null }),
       signInWithPassword: () => Promise.resolve(empty),
+      signUp: () =>
+        Promise.resolve({
+          data: { user: null, session: null },
+          error: { message: "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY." },
+        }),
       signInWithOtp: () => Promise.resolve(empty),
       signInWithOAuth: () => Promise.resolve(empty),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),

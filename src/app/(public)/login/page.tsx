@@ -122,10 +122,17 @@ export default function LoginPage() {
 
     setLoading(true);
 
+    const emailRedirectTo =
+      typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+
     const { error } =
       mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+        : await supabase.auth.signUp({
+            email: email.trim().toLowerCase(),
+            password,
+            options: { emailRedirectTo },
+          });
 
     setLoading(false);
 

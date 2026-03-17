@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/ui";
-import ThemeToggle from "@/components/theme/ThemeToggle";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -47,8 +46,7 @@ export function PublicHeader() {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <ThemeToggle />
-          <Link href="/login" className="text-sm font-medium text-slate-300 transition hover:text-white">
+          <Link href="/login" className="whitespace-nowrap text-sm font-medium text-slate-300 transition hover:text-white">
             Sign in
           </Link>
           <Link href="/login?mode=signup">
@@ -57,7 +55,6 @@ export function PublicHeader() {
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
-          <ThemeToggle />
           <button
             type="button"
             className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white"
@@ -82,7 +79,7 @@ export function PublicHeader() {
             </Link>
           ))}
           <div className="mt-2 flex items-center gap-2">
-            <Link href="/login" className="flex-1">
+            <Link href="/login" className="flex-1 whitespace-nowrap">
               <Button variant="outline" className="w-full border-white/15 text-white hover:bg-white/5">
                 Sign in
               </Button>
