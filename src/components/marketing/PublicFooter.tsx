@@ -14,8 +14,8 @@ export function PublicFooter() {
           <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
             <div className="mb-12 max-w-[380px] lg:mb-16">
               <Link href="/" className="mb-8 inline-flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-600 text-sm font-black text-white shadow-lg shadow-cyan-500/30">
-                  RG
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-600 shadow-lg shadow-cyan-500/30">
+                  <img src="/images/Solvren.svg" alt="Solvren" className="h-7 w-7 object-contain" />
                 </div>
                 <div>
                   <div className="text-base font-semibold text-white">Solvren</div>

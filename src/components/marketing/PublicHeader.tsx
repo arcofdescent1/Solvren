@@ -23,8 +23,8 @@ export function PublicHeader() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-600 text-sm font-black tracking-tight text-white shadow-lg shadow-cyan-500/30">
-              RG
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-600 shadow-lg shadow-cyan-500/30">
+              <img src="/images/Solvren.svg" alt="Solvren" className="h-6 w-6 object-contain" />
             </div>
             <div>
               <div className="text-sm font-semibold tracking-tight text-white">Solvren</div>
