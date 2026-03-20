@@ -334,7 +334,7 @@ async function main() {
   }
 
   // 10. Bootstrap org (signals, mitigations, approval requirements)
-  const { enableDomainForOrg: _ } = await import("../src/services/domains/enableDomainForOrg");
+  await import("../src/services/domains/enableDomainForOrg");
   // Already enabled REVENUE; bootstrap API seeds approval_requirements - we can call it or seed manually
   // For simplicity we rely on enableDomainForOrg and manual approval_requirements
   const { data: bs } = await supabase

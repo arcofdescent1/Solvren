@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const runIds = (runs ?? []).map((r) => r.id);
-  let playbookMap = new Map<string, { playbook_key: string; display_name: string }>();
+  const playbookMap = new Map<string, { playbook_key: string; display_name: string }>();
   if (runIds.length > 0) {
     const { data: wrWithPb } = await supabase
       .from("workflow_runs")

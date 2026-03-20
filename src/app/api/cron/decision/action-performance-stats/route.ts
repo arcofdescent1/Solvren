@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   }>;
 
   const issueIds = [...new Set(rows.map((r) => r.issue_id).filter(Boolean))] as string[];
-  let issueFamilyMap = new Map<string, string>();
+  const issueFamilyMap = new Map<string, string>();
   if (issueIds.length > 0) {
     const { data: issues } = await admin
       .from("issues")

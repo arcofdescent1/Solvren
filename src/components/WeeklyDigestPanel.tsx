@@ -267,7 +267,7 @@ export default function WeeklyDigestPanel({
                   disabled={!isAdmin || !enabled}
                 />
                 <div className="text-xs opacity-70">
-                  v1 tip: keep UTC; we'll make this auto-detect later.
+                  v1 tip: keep UTC; we&apos;ll make this auto-detect later.
                 </div>
               </div>
             </div>

@@ -9,13 +9,12 @@ export const ts = (daysOffset: number, hoursOffset = 0) =>
 
 // Deterministic UUID v4-ish from seed string (for stable references across resets)
 export function seededUuid(seed: string): string {
-  const hex = "0123456789abcdef";
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
   }
   const h = (n: number) => {
-    let v = Math.abs((hash * (n + 1) * 31) % 0xffffffff);
+    const v = Math.abs((hash * (n + 1) * 31) % 0xffffffff);
     return v.toString(16).padStart(8, "0").slice(-8);
   };
   return `${h(1)}-${h(2).slice(0, 4)}-4${h(3).slice(1, 4)}-8${h(4).slice(1, 4)}-${h(5)}${h(6)}`;
