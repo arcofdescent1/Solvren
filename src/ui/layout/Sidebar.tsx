@@ -9,6 +9,8 @@ import {
   Shield,
   BarChart3,
   Building2,
+  AlertCircle,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -56,8 +58,10 @@ function SidebarNavLink({
   );
 }
 
-/** Gap 1: Primary nav is exactly five items — Overview, Changes, Risks, Reports, Settings. */
+/** Phase 0: Issues-first nav — Issues, Overview, Changes, Risks, Reports, Settings. */
 const PRIMARY_NAV_ITEMS = [
+  { href: "/issues", label: "Issues", icon: <AlertCircle /> },
+  { href: "/actions", label: "Actions", icon: <Zap /> },
   { href: "/dashboard", label: "Overview", icon: <LayoutDashboard /> },
   { href: "/changes", label: "Changes", icon: <FileCheck /> },
   { href: "/risk/audit", label: "Risks", icon: <Shield /> },

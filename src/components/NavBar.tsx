@@ -77,6 +77,7 @@ export default async function NavBar() {
 
           <nav className="hidden lg:flex items-center gap-1">
             <NavLink href="/dashboard">Overview</NavLink>
+            <NavLink href="/actions">Actions</NavLink>
             <NavLink href="/changes">Changes</NavLink>
             <NavLink href="/risk/audit">Risks</NavLink>
             <NavLink href="/reports/revenue-governance">Reports</NavLink>

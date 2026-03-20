@@ -1,0 +1,28 @@
+/**
+ * Phase 3 — GET /api/admin/approval-requests (list pending).
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listPendingApprovals } from "@/modules/policy/repositories/approval-requests.repository";
+
+export async function GET(req: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+  const { data: userRes } = await supabase.auth.getUser();
+  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("org_id")
+    .eq("user_id", userRes.user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (!membership?.org_id) return NextResponse.json({ error: "No org" }, { status: 403 });
+
+  const orgId = (membership as { org_id: string }).org_id;
+  const { data, error } = await listPendingApprovals(supabase, orgId);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ approvalRequests: data ?? [] });
+}

@@ -6,6 +6,10 @@
     { "path": "/api/inbox/daily/run", "schedule": "0 13 * * *" },
     { "path": "/api/digests/weekly/run", "schedule": "0 14 * * 1" },
     { "path": "/api/cron/jira-sync", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/jira-retry-failures", "schedule": "0 5 * * *" }
+    { "path": "/api/cron/jira-retry-failures", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/decision/action-performance-stats", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/benchmarks/build-snapshots", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/playbook-performance/build-snapshots", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/timeline/refresh-aggregates", "schedule": "*/5 * * * *" }
   ]
 }

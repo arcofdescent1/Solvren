@@ -1,0 +1,10 @@
+export * from "./domain";
+export * from "./repositories/autonomy-mode-configs.repository";
+export * from "./repositories/autonomy-pause-controls.repository";
+export * from "./repositories/autonomy-decision-states.repository";
+export * from "./repositories/automation-execution-envelopes.repository";
+export { computeAutonomyConfidence } from "./services/autonomy-confidence.service";
+export { resolvePauseEffect } from "./services/automation-pause.service";
+export { applyDowngrades } from "./services/downgrade-engine.service";
+export { resolveExecutionMode } from "./services/execution-mode-resolver.service";
+export { recordExecutionEnvelope } from "./services/automation-envelope.service";

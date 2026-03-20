@@ -152,8 +152,9 @@ export default function SignupOrganizationPage() {
         />
         <Card className="border-white/10 bg-slate-900/50">
           <CardBody className="space-y-4">
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form data-testid="signup-org-form" onSubmit={onSubmit} className="space-y-4">
               <Input
+                data-testid="signup-org-name"
                 placeholder="Organization name"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
@@ -188,6 +189,7 @@ export default function SignupOrganizationPage() {
                 ))}
               </select>
               <Button
+                data-testid="signup-org-submit"
                 type="submit"
                 className="w-full"
                 disabled={loading || !orgName.trim()}

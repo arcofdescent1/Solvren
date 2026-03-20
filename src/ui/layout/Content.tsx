@@ -4,6 +4,7 @@ import * as React from "react";
 import { Container } from "./container";
 import { useLayout } from "./LayoutContext";
 import { cn } from "@/lib/cn";
+import { DemoEnvironmentBanner } from "@/components/demo";
 
 export function Content({
   className,
@@ -20,6 +21,7 @@ export function Content({
       )}
       {...props}
     >
+      <DemoEnvironmentBanner />
       <Container className="py-6">{children}</Container>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Search, GitBranch, Server, CheckSquare, FileText } from "lucide-react";
+import { Search, GitBranch, Server, CheckSquare, FileText, AlertCircle } from "lucide-react";
 import { Input } from "@/ui/primitives/input";
 import { cn } from "@/lib/cn";
 
@@ -36,8 +36,22 @@ type SearchEvidenceItem = {
   href?: string;
 };
 
+type SearchIssueItem = {
+  id: string;
+  type: "issue";
+  title: string;
+  subtitle: string;
+  href: string;
+  issueKey: string;
+  sourceType: string;
+  severity: string;
+  status: string;
+  verificationStatus: string;
+};
+
 export type SearchResult = {
   changes: SearchChangeItem[];
+  issues: SearchIssueItem[];
   systems: SearchSystemItem[];
   approvals: SearchApprovalItem[];
   evidence: SearchEvidenceItem[];
@@ -75,12 +89,15 @@ export function GlobalSearchBar({
 
   // Build flat list of clickable items for keyboard nav
   const items = React.useMemo(() => {
-    type Item = { type: "change" | "system" | "approval" | "evidence"; href: string; label: string; id?: string };
+    type Item = { type: "change" | "issue" | "system" | "approval" | "evidence"; href: string; label: string; id?: string };
     const out: Item[] = [];
     if (!results) return out;
     for (const c of results.changes) {
       const ch = c as { id: string; title?: string; href?: string };
       out.push({ type: "change", href: ch.href ?? `/changes/${ch.id}`, label: ch.title ?? ch.id });
+    }
+    for (const i of results.issues ?? []) {
+      out.push({ type: "issue", href: i.href ?? `/issues/${i.id}`, label: i.title ?? i.issueKey, id: i.id });
     }
     for (const s of results.systems) {
       const sys = typeof s === "string" ? { id: s, title: s, href: `/search?q=${encodeURIComponent(s)}&system=${encodeURIComponent(s)}` } : s;
@@ -110,9 +127,10 @@ export function GlobalSearchBar({
       .then((res) => res.json())
       .then((data: { ok?: boolean; changes?: unknown[]; systems?: string[]; approvals?: unknown[]; evidence?: unknown[] }) => {
         if (cancelled) return;
-        const d = data as { changes?: SearchChangeItem[]; systems?: SearchSystemItem[]; approvals?: SearchApprovalItem[]; evidence?: SearchEvidenceItem[] };
+        const d = data as { changes?: SearchChangeItem[]; issues?: SearchIssueItem[]; systems?: SearchSystemItem[]; approvals?: SearchApprovalItem[]; evidence?: SearchEvidenceItem[] };
         setResults({
           changes: d.changes ?? [],
+          issues: d.issues ?? [],
           systems: d.systems ?? [],
           approvals: d.approvals ?? [],
           evidence: d.evidence ?? [],
@@ -134,6 +152,7 @@ export function GlobalSearchBar({
   const hasResults =
     results &&
     (results.changes.length > 0 ||
+      (results.issues?.length ?? 0) > 0 ||
       results.systems.length > 0 ||
       results.approvals.length > 0 ||
       results.evidence.length > 0);
@@ -245,6 +264,44 @@ export function GlobalSearchBar({
             </div>
           ) : (
             <>
+              {(results!.issues?.length ?? 0) > 0 && (
+                <div className="border-b border-[var(--border)] p-1">
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    Issues
+                  </div>
+                  {(results!.issues ?? []).map((i) => {
+                    const issueHref = i.href ?? `/issues/${i.id}`;
+                    const idx = items.findIndex((it) => it.type === "issue" && it.id === i.id);
+                    const sel = idx >= 0 && idx === selectedIdx;
+                    return (
+                      <a
+                        key={i.id}
+                        href={issueHref}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          router.push(issueHref);
+                          setOpen(false);
+                          setQuery("");
+                        }}
+                        className={cn(
+                          "flex flex-col gap-0.5 rounded px-3 py-2 text-left transition-colors",
+                          sel ? "bg-[var(--bg-muted)]" : "hover:bg-[var(--bg-muted)]"
+                        )}
+                        role="option"
+                        aria-selected={sel}
+                      >
+                        <span className="truncate text-sm font-medium text-[var(--text)]">
+                          {i.issueKey} — {i.title}
+                        </span>
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {[i.status, i.severity, i.sourceType].filter(Boolean).join(" · ")}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
               {results!.changes.length > 0 && (
                 <div className="border-b border-[var(--border)] p-1">
                   <div className="flex items-center gap-2 px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">

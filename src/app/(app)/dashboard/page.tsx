@@ -15,6 +15,7 @@ import {
   MetricTrendCard,
   IntegrationStatusPanel,
 } from "@/components/dashboard";
+import { FirstValueBanner, OnboardingChecklist, ActivationRecommendationsPanel } from "@/components/onboarding";
 import { parseOrgRole } from "@/lib/rbac/roles";
 import { canRole } from "@/lib/rbac/permissions";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
@@ -183,6 +184,17 @@ export default async function DashboardPage() {
     exposure.complianceRate = riskEvents.length > 0 ? Math.round((approved / riskEvents.length) * 100) : 100;
   }
 
+  // Phase 0 — Open issues count (canonical issue model)
+  let openIssuesCount = 0;
+  if (hasOrg && activeOrgId) {
+    const { count, error: issuesErr } = await supabase
+      .from("issues")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", activeOrgId)
+      .in("status", ["open", "triaged", "assigned", "in_progress"]);
+    if (!issuesErr && count != null) openIssuesCount = count;
+  }
+
   // Narrative: highest-priority issue from top risk by score
   const topRiskForNarrative = [...riskEvents].sort((a, b) => (b.risk_score ?? 0) - (a.risk_score ?? 0))[0];
   let narrativeHeadline: string | null = null;
@@ -213,6 +225,8 @@ export default async function DashboardPage() {
   return (
     <div className="flex gap-6">
       <div className="min-w-0 flex-1 space-y-4">
+        <FirstValueBanner />
+        <OnboardingChecklist />
         <PageHeader
           breadcrumbs={[{ label: "Overview" }]}
           title="Revenue Overview"
@@ -230,6 +244,17 @@ export default async function DashboardPage() {
                       Declare Revenue Change
                     </Link>
                   ) : null}
+                  <Link
+                    href="/issues"
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
+                  >
+                    Issues
+                    {openIssuesCount > 0 ? (
+                      <span className="ml-1.5 rounded-full bg-[var(--primary)]/20 px-1.5 py-0.5 text-xs font-medium text-[var(--primary)]">
+                        {openIssuesCount}
+                      </span>
+                    ) : null}
+                  </Link>
                   <Link
                     href="/changes"
                     className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
@@ -335,6 +360,11 @@ export default async function DashboardPage() {
         {/* Integration health (Gap 7) */}
         {hasOrg && activeOrgId && (
           <IntegrationStatusPanel orgId={activeOrgId} />
+        )}
+
+        {/* Phase 10 — Activation recommendations */}
+        {hasOrg && activeOrgId && (
+          <ActivationRecommendationsPanel />
         )}
 
         {/* Below the fold: queue summary and links */}

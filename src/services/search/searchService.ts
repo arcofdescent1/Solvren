@@ -4,8 +4,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
 
+export type SearchIssue = {
+  id: string;
+  type: "issue";
+  title: string;
+  subtitle: string;
+  href: string;
+  matchContext?: string;
+  issueKey: string;
+  sourceType: string;
+  domainKey: string;
+  severity: string;
+  status: string;
+  verificationStatus: string;
+};
+
 export type SearchResultGroup = {
   changes: SearchChange[];
+  issues: SearchIssue[];
   systems: SearchSystem[];
   approvals: SearchApproval[];
   evidence: SearchEvidence[];
@@ -117,6 +133,7 @@ export async function executeSearch(
 
   const result: SearchResultGroup = {
     changes: [],
+    issues: [],
     systems: [],
     approvals: [],
     evidence: [],
@@ -126,6 +143,49 @@ export async function executeSearch(
   if (!orgIds.length || q.length < 2) return result;
 
   const accessibleChangeIds = new Set<string>();
+
+  // Issues (Phase 0): org-scoped, ILIKE on title/summary/description/issue_key/source_type/domain_key
+  if (entityTypes.includes("issues")) {
+    const orClause = [
+      `title.ilike.%${safeQ}%`,
+      `summary.ilike.%${safeQ}%`,
+      `description.ilike.%${safeQ}%`,
+      `issue_key.ilike.%${safeQ}%`,
+      `source_type.ilike.%${safeQ}%`,
+      `domain_key.ilike.%${safeQ}%`,
+    ].join(",");
+    const { data: issueRows } = await supabase
+      .from("issues")
+      .select("id, issue_key, title, summary, source_type, domain_key, severity, status, verification_status")
+      .in("org_id", orgIds)
+      .or(orClause)
+      .order("opened_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+    for (const r of issueRows ?? []) {
+      const status = r.status ?? "";
+      const severity = r.severity ?? "";
+      const sourceType = r.source_type ?? "";
+      const domainKey = r.domain_key ?? "";
+      const verificationStatus = r.verification_status ?? "";
+      const issueKey = r.issue_key ?? "";
+      const matchContext = [status, severity, sourceType, domainKey].filter(Boolean).join(" · ");
+      result.issues.push({
+        id: r.id,
+        type: "issue",
+        title: r.title ?? issueKey,
+        subtitle: matchContext || issueKey,
+        href: `/issues/${r.id}`,
+        matchContext: matchContext || undefined,
+        issueKey,
+        sourceType,
+        domainKey,
+        severity,
+        status,
+        verificationStatus,
+      });
+    }
+  }
+
 
   async function addAccessible(changeIds: string[]) {
     const deduped = [...new Set(changeIds.filter(Boolean))];

@@ -1,16 +1,16 @@
 /**
  * SAML 2.0: AuthnRequest build and SAMLResponse parse/verify
  */
-import { parseStringPromise } from "xml2js";
 import * as crypto from "crypto";
+import { deflateRawSync } from "zlib";
+import { parseStringPromise } from "xml2js";
 import type { NormalizedIdentity } from "./claimMapper";
 
 const SAML_NS = "urn:oasis:names:tc:SAML:2.0:assertion";
 const PROTOCOL_NS = "urn:oasis:names:tc:SAML:2.0:protocol";
 
 function deflateBase64(s: string): string {
-  const zlib = require("zlib") as typeof import("zlib");
-  const deflated = zlib.deflateRawSync(Buffer.from(s, "utf8"), { level: 9 });
+  const deflated = deflateRawSync(Buffer.from(s, "utf8"), { level: 9 });
   return deflated.toString("base64");
 }
 
@@ -158,6 +158,7 @@ function stripNs(name: string): string {
  */
 export function verifySamlResponseSignature(
   samlResponseBase64: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for future IdP cert verification
   idpCertificatePem: string
 ): boolean {
   const raw = Buffer.from(samlResponseBase64, "base64").toString("utf8");

@@ -110,6 +110,22 @@ const GITHUB_META: IntegrationReadinessMeta = {
   docsPath: "integrations/github",
 };
 
+const STRIPE_META: IntegrationReadinessMeta = {
+  tier: "beta",
+  name: "Stripe",
+  shortDescription: "Identify failed payment patterns and at-risk subscription revenue.",
+  whatWeMonitor: [
+    "Customers and subscriptions",
+    "Invoices and payment intents",
+    "Failed charges and disputes",
+  ],
+  whatWeDoNotMonitor: [
+    "Full transaction history",
+    "Product and price catalog changes",
+  ],
+  docsPath: "integrations/stripe",
+};
+
 export type IntegrationProvider = keyof typeof INTEGRATION_READINESS;
 
 export const INTEGRATION_READINESS: Record<string, IntegrationReadinessMeta> = {
@@ -119,6 +135,7 @@ export const INTEGRATION_READINESS: Record<string, IntegrationReadinessMeta> = {
   hubspot: HUBSPOT_META,
   netsuite: NETSUITE_META,
   github: GITHUB_META,
+  stripe: STRIPE_META,
 };
 
 export function getReadinessMeta(provider: string): IntegrationReadinessMeta | null {

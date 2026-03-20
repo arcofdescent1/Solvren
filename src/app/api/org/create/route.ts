@@ -2,27 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authStateFromUser, requireVerifiedResponse } from "@/lib/auth";
-
-function slugify(name: string): string {
-  const base = name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return base.length > 0 ? base : "org";
-}
-
-function extractPrimaryDomain(website: string | null | undefined): string | null {
-  if (!website || typeof website !== "string") return null;
-  const trimmed = website.trim();
-  if (!trimmed) return null;
-  try {
-    const url = new URL(trimmed.startsWith("http") ? trimmed : `https://${trimmed}`);
-    return url.hostname.replace(/^www\./, "").toLowerCase();
-  } catch {
-    return null;
-  }
-}
+import { slugify, extractPrimaryDomain } from "@/lib/org/slug";
 
 /**
  * Create organization for authenticated, verified user.
@@ -114,6 +94,10 @@ export async function POST(req: NextRequest) {
   if (memErr) {
     return NextResponse.json({ error: memErr.message }, { status: 500 });
   }
+
+  // Phase 10 — Initialize onboarding for new org
+  const { initializeOnboarding } = await import("@/modules/onboarding/services/onboarding-engine.service");
+  await initializeOnboarding(admin, org.id);
 
   return NextResponse.json({ ok: true, org });
 }

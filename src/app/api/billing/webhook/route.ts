@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { getStripe } from "@/lib/stripe";
+import { persistWebhookToRawEvents } from "@/modules/signals/ingestion/webhook-to-raw-event.bridge";
 
 function planKeyFromPriceId(priceId: string | null): "FREE" | "TEAM" | "BUSINESS" {
   if (!priceId) return "FREE";
@@ -72,6 +73,19 @@ export async function POST(req: Request) {
       }
 
       if (orgId) {
+        await persistWebhookToRawEvents(admin, {
+          orgId,
+          integrationAccountId: null,
+          provider: "stripe",
+          sourceChannel: "webhook",
+          externalEventId: event.id,
+          externalObjectType: "customer.subscription",
+          externalObjectId: subId,
+          eventType: event.type,
+          eventTime: event.created ? new Date(event.created * 1000).toISOString() : null,
+          payload: event as unknown as Record<string, unknown>,
+          headers: null,
+        });
         const planKey = planKeyFromPriceId(priceId);
         await admin.from("billing_accounts").upsert(
           {

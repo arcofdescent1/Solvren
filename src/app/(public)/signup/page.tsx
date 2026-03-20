@@ -84,14 +84,16 @@ export default function SignupPage() {
         />
         <Card className="border-white/10 bg-slate-900/50">
           <CardBody className="space-y-4">
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form data-testid="signup-form" onSubmit={onSubmit} className="space-y-4">
               <Input
+                data-testid="signup-full-name"
                 placeholder="Full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 autoComplete="name"
               />
               <Input
+                data-testid="signup-email"
                 placeholder="Work email"
                 type="email"
                 value={email}
@@ -99,6 +101,7 @@ export default function SignupPage() {
                 autoComplete="email"
               />
               <Input
+                data-testid="signup-password"
                 placeholder="Password"
                 type="password"
                 value={password}
@@ -109,7 +112,7 @@ export default function SignupPage() {
               <p className="text-xs text-slate-400">
                 At least {PASSWORD_MIN_LENGTH} characters
               </p>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button data-testid="signup-submit" type="submit" className="w-full" disabled={loading}>
                 {loading ? "Creating account…" : "Continue"}
               </Button>
               <p className="text-center text-sm text-slate-400">

@@ -1,0 +1,9 @@
+/**
+ * Phase 9 — Automation pause types (§10.3).
+ */
+export enum AutomationPauseType {
+  HARD_STOP = "HARD_STOP",
+  DOWNGRADE_TO_APPROVAL = "DOWNGRADE_TO_APPROVAL",
+  DOWNGRADE_TO_SUGGEST = "DOWNGRADE_TO_SUGGEST",
+  DOWNGRADE_TO_DRY_RUN = "DOWNGRADE_TO_DRY_RUN",
+}

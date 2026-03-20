@@ -25,6 +25,7 @@ import SubmitForReviewButton from "@/components/SubmitForReviewButton";
 import RunSlaTickButton from "@/components/RunSlaTickButton";
 import LinkIncidentButton from "@/components/incidents/LinkIncidentButton";
 import IncidentsPanel from "@/components/incidents/IncidentsPanel";
+import { LinkIssueButton } from "@/components/changes/LinkIssueButton";
 import { getRequiredEvidenceAndApprovalAreas } from "@/services/domains/approvalRequirements";
 import { getGovernanceTemplate } from "@/services/risk/governance";
 import { EVIDENCE_KIND_LABEL } from "@/services/risk/requirements";
@@ -132,6 +133,33 @@ export default async function ChangeDetailPage({
     .or(`change_event_id.eq.${id},and(entity_type.eq.change,entity_id.eq.${id})`)
     .order("created_at", { ascending: false })
     .limit(200);
+
+  const { data: changeIssueLinks } = await supabase
+    .from("change_issue_links")
+    .select("id, issue_id, link_type")
+    .eq("change_id", id);
+  const linkedIssueIds = (changeIssueLinks ?? []).map((l: { issue_id: string }) => l.issue_id);
+  type IssueRow = { id: string; issue_key: string; title: string; status: string };
+  let linkedIssues: Array<{ id: string; issue_key: string; title: string; status: string; link_type: string }> = [];
+  if (linkedIssueIds.length > 0) {
+    const { data: issuesRows } = await supabase
+      .from("issues")
+      .select("id, issue_key, title, status")
+      .in("id", linkedIssueIds);
+    const issueMap = new Map<string, IssueRow>(
+      (issuesRows ?? []).map((r: IssueRow) => [r.id, r])
+    );
+    linkedIssues = (changeIssueLinks ?? []).map((l: { issue_id: string; link_type: string }) => {
+      const issue = issueMap.get(l.issue_id);
+      return {
+        id: l.issue_id,
+        issue_key: issue?.issue_key ?? l.issue_id.slice(0, 8),
+        title: issue?.title ?? "—",
+        status: issue?.status ?? "—",
+        link_type: l.link_type,
+      };
+    });
+  }
 
   const currentUserId = userRes.user.id;
 
@@ -340,6 +368,39 @@ export default async function ChangeDetailPage({
       )}
 
       <IncidentsPanel changeEventId={change.id} />
+
+      <Card>
+        <CardBody>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-2">
+            Linked issues
+          </h2>
+          {linkedIssues.length > 0 ? (
+            <ul className="space-y-2">
+              {linkedIssues.map((li) => (
+                <li key={li.id} className="flex items-center gap-2 text-sm">
+                  <span className="inline-flex rounded border border-[var(--border)] px-1.5 py-0.5 text-xs font-medium">
+                    {li.link_type}
+                  </span>
+                  <Link
+                    href={`/issues/${li.id}`}
+                    className="font-mono text-[var(--primary)] hover:underline"
+                  >
+                    {li.issue_key}
+                  </Link>
+                  <span className="text-[var(--text-muted)]">—</span>
+                  <span>{li.title}</span>
+                  <span className="text-[var(--text-muted)]">({li.status})</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">No linked issues.</p>
+          )}
+          <div className="mt-2">
+            <LinkIssueButton changeId={id} />
+          </div>
+        </CardBody>
+      </Card>
 
       <RevenueExposureCard
         changeId={id}

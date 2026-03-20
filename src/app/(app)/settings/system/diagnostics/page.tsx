@@ -87,6 +87,34 @@ export default async function SystemDiagnosticsPage() {
               Domain Builder
             </Link>
             <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/identity" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Identity
+            </Link>
+            <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/detectors" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Detectors
+            </Link>
+            <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/signals" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Signals
+            </Link>
+            <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/policy" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Policy Center
+            </Link>
+            <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/autonomy/playbooks" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Playbooks
+            </Link>
+            <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/simulation" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Simulation Studio
+            </Link>
+            <span className="text-[var(--border)]">·</span>
+            <Link href="/admin/integrations/reliability" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              Integration Reliability
+            </Link>
+            <span className="text-[var(--border)]">·</span>
             <Link href="/settings/domains" className="text-sm font-medium text-[var(--primary)] hover:underline">
               Domains
             </Link>

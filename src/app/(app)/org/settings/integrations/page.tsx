@@ -43,6 +43,10 @@ const PROVIDER_ROUTES: Record<
     href: "/org/settings/integrations/github",
     setupHref: "/org/settings/integrations/github",
   },
+  stripe: {
+    href: "/org/settings/integrations/stripe",
+    setupHref: "/org/settings/integrations/stripe",
+  },
 };
 
 function ReadinessBadge({ tier }: { tier: ReadinessTier }) {
@@ -105,6 +109,7 @@ export default async function IntegrationsMarketplacePage() {
     "slack",
     "salesforce",
     "hubspot",
+    "stripe",
     "netsuite",
     "github",
   ] as const;

@@ -1,0 +1,13 @@
+/**
+ * Phase 4 — Connector health state (§7).
+ */
+export enum ConnectorHealthState {
+  HEALTHY = "HEALTHY",
+  DEGRADED = "DEGRADED",
+  STALE = "STALE",
+  RATE_LIMITED = "RATE_LIMITED",
+  AUTH_FAILED = "AUTH_FAILED",
+  WEBHOOK_FAILED = "WEBHOOK_FAILED",
+  WRITEBACK_FAILED = "WRITEBACK_FAILED",
+  DISCONNECTED = "DISCONNECTED",
+}

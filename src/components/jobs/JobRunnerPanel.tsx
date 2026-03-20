@@ -8,7 +8,9 @@ type JobKey =
   | "slack_deliveries_process"
   | "sla_tick"
   | "inbox_daily"
-  | "digests_weekly";
+  | "digests_weekly"
+  | "impact_recalculate"
+  | "impact_backfill";
 
 const JOBS: Array<{ key: JobKey; label: string }> = [
   { key: "notifications_process", label: "Run Notifications Processor" },
@@ -16,6 +18,8 @@ const JOBS: Array<{ key: JobKey; label: string }> = [
   { key: "sla_tick", label: "Run SLA Tick" },
   { key: "inbox_daily", label: "Run Daily Inbox Job" },
   { key: "digests_weekly", label: "Run Weekly Digest Job" },
+  { key: "impact_recalculate", label: "Process Impact Recalculation Queue" },
+  { key: "impact_backfill", label: "Backfill Impact Assessments" },
 ];
 
 export default function JobRunnerPanel({ orgId }: { orgId: string }) {

@@ -5,7 +5,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type IntegrationListEntry = {
-  provider: "jira" | "github" | "netsuite" | "salesforce" | "hubspot" | "slack";
+  provider: "jira" | "github" | "netsuite" | "salesforce" | "hubspot" | "slack" | "stripe";
   connected: boolean;
   meta?: Record<string, unknown>;
 };
@@ -17,6 +17,7 @@ export type IntegrationsList = {
   salesforce: IntegrationListEntry & { provider: "salesforce" };
   hubspot: IntegrationListEntry & { provider: "hubspot" };
   slack: IntegrationListEntry & { provider: "slack" };
+  stripe: IntegrationListEntry & { provider: "stripe" };
 };
 
 export async function getIntegrationsList(
@@ -60,6 +61,7 @@ export async function getIntegrationsList(
   const hsConn = connByProvider.get("hubspot");
   const nsConn = connByProvider.get("netsuite");
 
+  const stripeConn = connByProvider.get("stripe") ?? null;
   return {
     jira: { provider: "jira", connected: jc?.status === "connected", meta: jiraMeta },
     github: { provider: "github", connected: !!githubInst, meta: { accountLogin: gi?.github_account_login, health_status: githubConn?.health_status, last_success_at: githubConn?.last_success_at } },
@@ -67,5 +69,6 @@ export async function getIntegrationsList(
     salesforce: { provider: "salesforce", connected: !!salesforceOrg, meta: { sfOrgId: so?.sf_org_id, health_status: sfConn?.health_status, last_success_at: sfConn?.last_success_at } },
     hubspot: { provider: "hubspot", connected: !!hubspotAccount, meta: { hubId: ha?.hub_id, health_status: hsConn?.health_status, last_success_at: hsConn?.last_success_at } },
     slack: { provider: "slack", connected: Boolean(si ?? slackInstall), meta: { teamName: si?.team_name, health_status: slackConn?.health_status, last_success_at: slackConn?.last_success_at } },
+    stripe: { provider: "stripe", connected: stripeConn?.status === "connected", meta: stripeConn ? { health_status: stripeConn.health_status, last_success_at: stripeConn.last_success_at } : undefined },
   };
 }

@@ -79,6 +79,12 @@ export default async function ExecutivePage() {
         description={`Last ${data.rangeDays} days`}
         right={
           <div className="flex flex-wrap gap-3">
+            <Link href="/executive/roi" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              ROI Dashboard →
+            </Link>
+            <Link href="/executive/impact" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Impact Dashboard →
+            </Link>
             <Link href="/changes" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               Revenue Changes →
             </Link>

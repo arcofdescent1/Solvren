@@ -15,7 +15,7 @@ describe("validateChangeIntake", () => {
       backfill_required: null,
       customer_impact_expected: null,
       planned_release_at: null,
-    } as any);
+    } as Record<string, unknown>);
 
     expect(res.ok).toBe(false);
     if (!res.ok) {
@@ -36,7 +36,7 @@ describe("validateChangeIntake", () => {
       revenue_surface: "checkout",
       estimated_mrr_affected: 0,
       percent_customer_base_affected: 0,
-    } as any);
+    } as Record<string, unknown>);
 
     expect(res.ok).toBe(true);
   });
