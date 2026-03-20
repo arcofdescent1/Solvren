@@ -39,10 +39,13 @@ export async function reviewMatchCandidate(
     await insertResolutionEvent(supabase, {
       org_id: orgId,
       event_type: "candidate_rejected",
+      canonical_entity_id: null,
+      related_entity_id: null,
+      link_id: null,
       candidate_id: params.candidateId,
       actor_type: "user",
       actor_ref: params.userId,
-      event_payload_json: { notes: params.notes },
+      event_payload_json: { notes: params.notes ?? null },
     });
     return { ok: true };
   }
@@ -76,11 +79,12 @@ export async function reviewMatchCandidate(
       org_id: orgId,
       event_type: "candidate_accepted",
       canonical_entity_id: params.canonicalEntityId,
+      related_entity_id: null,
       candidate_id: params.candidateId,
       link_id: link?.id ?? null,
       actor_type: "user",
       actor_ref: params.userId,
-      event_payload_json: { notes: params.notes },
+      event_payload_json: { notes: params.notes ?? null },
     });
     return { ok: true, canonicalEntityId: params.canonicalEntityId };
   }
@@ -131,10 +135,12 @@ export async function reviewMatchCandidate(
       org_id: orgId,
       event_type: "candidate_accepted_new_entity",
       canonical_entity_id: newEntity.id,
+      related_entity_id: null,
+      link_id: null,
       candidate_id: params.candidateId,
       actor_type: "user",
       actor_ref: params.userId,
-      event_payload_json: { notes: params.notes },
+      event_payload_json: { notes: params.notes ?? null },
     });
     return { ok: true, canonicalEntityId: newEntity.id };
   }

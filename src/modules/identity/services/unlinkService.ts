@@ -31,10 +31,12 @@ export async function unlinkExternalObject(
     org_id: params.orgId,
     event_type: "link_unlinked",
     canonical_entity_id: (link as { canonical_entity_id: string }).canonical_entity_id,
+    related_entity_id: null,
     link_id: params.linkId,
+    candidate_id: null,
     actor_type: "user",
     actor_ref: params.userId,
-    event_payload_json: { reason: params.reason },
+    event_payload_json: { reason: params.reason ?? null },
   });
   return { ok: true };
 }

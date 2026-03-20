@@ -58,9 +58,11 @@ export async function mergeEntities(
     event_type: "entities_merged",
     canonical_entity_id: params.targetEntityId,
     related_entity_id: null,
+    link_id: null,
+    candidate_id: null,
     actor_type: "user",
     actor_ref: params.userId,
-    event_payload_json: { sourceEntityIds: params.sourceEntityIds, notes: params.notes },
+    event_payload_json: { sourceEntityIds: params.sourceEntityIds, notes: params.notes ?? null },
   });
   return { ok: true };
 }

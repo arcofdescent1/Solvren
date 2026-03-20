@@ -53,7 +53,11 @@ export async function processRawEvent(
         failure_code: "unknown_signal_key",
         failure_message: `Signal key ${result.signalKey} has no definition`,
         retry_count: 0,
+        last_retry_at: null,
         status: "pending",
+        resolution: null,
+        resolved_at: null,
+        resolved_by: null,
       });
       await updateRawEventProcessing(supabase, rawEvent.id, {
         processing_status: "dead_letter",

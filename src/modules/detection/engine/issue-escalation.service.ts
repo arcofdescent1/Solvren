@@ -43,8 +43,12 @@ export async function escalateFindingToIssue(
   supabase: SupabaseClient,
   payload: DetectorIssuePayload
 ): Promise<IssueEscalationResult> {
+  const signalsWithKey = (payload.signals ?? []).filter(
+    (s): s is { id: string; signal_key: string; primary_canonical_entity_id?: string | null } =>
+      typeof s.signal_key === "string"
+  );
   const entitiesResult = resolveEntities({
-    signals: payload.signals ?? [],
+    signals: signalsWithKey,
     extractedEntities: (payload.evidenceBundle.entities as Array<{ entityType: string; entityId?: string; displayName?: string }>) ?? [],
     primaryCanonicalEntityId: payload.primaryCanonicalEntityId,
     secondaryEntityIds: payload.secondaryEntityIds,

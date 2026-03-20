@@ -94,7 +94,10 @@ export async function getEffectiveAssumptionsWithMetadata(
     let value: number | string | boolean;
     if (typeof v === "number" || typeof v === "string" || typeof v === "boolean") value = v;
     else if (v != null && typeof v === "object" && "value" in (v as object)) value = (v as { value: number | string | boolean }).value;
-    else value = (v as Record<string, unknown>)?.value ?? (v as Record<string, unknown>)?.number ?? DEFAULT_VALUES[row.assumption_key] ?? 0;
+    else {
+      const raw = (v as Record<string, unknown>)?.value ?? (v as Record<string, unknown>)?.number ?? DEFAULT_VALUES[row.assumption_key] ?? 0;
+      value = typeof raw === "number" || typeof raw === "string" || typeof raw === "boolean" ? raw : 0;
+    }
     byKey.set(row.assumption_key, {
       key: row.assumption_key,
       value,

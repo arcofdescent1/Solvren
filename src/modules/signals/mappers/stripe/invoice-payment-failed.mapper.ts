@@ -21,10 +21,13 @@ export class StripeInvoicePaymentFailedMapper implements IMapper {
 
   async map(ctx: MapperContext): Promise<import("../../domain/types").MapperResult | null> {
     const p = ctx.payload as Record<string, unknown>;
-    const invoice = (p.invoice ?? p.data?.object ?? p) as Record<string, unknown>;
+    const data = p.data as Record<string, unknown> | undefined;
+    const invoice = (p.invoice ?? data?.object ?? p) as Record<string, unknown>;
     const invoiceId = String(invoice?.id ?? ctx.externalObjectId ?? "");
     const amount = (invoice?.amount_due ?? invoice?.amount_paid ?? 0) as number;
-    const failureCode = (invoice?.last_finalization_error?.code ?? p.last_payment_error?.code ?? "unknown") as string;
+    const lastErr = invoice?.last_finalization_error as Record<string, unknown> | undefined;
+    const payErr = p.last_payment_error as Record<string, unknown> | undefined;
+    const failureCode = (lastErr?.code ?? payErr?.code ?? "unknown") as string;
     const customerId = (invoice?.customer ?? p.customer) as string | undefined;
 
     const entityCandidates = [];

@@ -3,6 +3,7 @@
  * Invoke detectors when a new normalized signal is created.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { NormalizedSignalRow } from "@/modules/signals/domain/types";
 import { getNormalizedSignalById } from "@/modules/signals/persistence/normalized-signals.repository";
 import { listNormalizedSignals } from "@/modules/signals/persistence/normalized-signals.repository";
 import { getDetectorKeysForSignal } from "./detector-subscription.service";
@@ -46,7 +47,7 @@ async function triggerDetectorsForNewSignalAsync(
     const requiredKeys = (def.required_signal_keys_json ?? []) as string[];
     const signalKeys = [...new Set([signal.signal_key, ...requiredKeys])];
     const seen = new Set<string>();
-    const allSignals: typeof signal[] = [];
+    const allSignals: NormalizedSignalRow[] = [];
     for (const sk of signalKeys) {
       const { data: sigs } = await listNormalizedSignals(supabase, {
         orgId,

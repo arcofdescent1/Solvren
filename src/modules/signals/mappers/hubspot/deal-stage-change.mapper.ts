@@ -26,7 +26,8 @@ export class HubSpotDealStageChangeMapper implements IMapper {
     const props = (p.properties ?? p) as Record<string, unknown>;
     const dealId = String(ctx.externalObjectId ?? p.objectId ?? props.dealId ?? "");
     const stage = (props.dealstage ?? props.stage ?? props.hs_deal_stage) as string | undefined;
-    const prevStage = (p.changeSource?.propertyMeta?.previousValue ?? (p as Record<string, unknown>).previousValue) as string | undefined;
+    const changeSource = p.changeSource as Record<string, unknown> | undefined;
+    const prevStage = ((changeSource?.propertyMeta as Record<string, unknown>)?.previousValue ?? p.previousValue) as string | undefined;
     const amount = Number(props.amount ?? props.hs_deal_amount ?? 0);
     const companyId = (props.associatedcompanyid ?? props.hs_object_id) as string | undefined;
 

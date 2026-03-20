@@ -125,6 +125,7 @@ export type IssueStatusUpdate = {
   status?: string;
   verification_status?: string;
   severity?: string;
+  confidence_score?: number | null;
   domain_key?: string;
   summary?: string | null;
   priority_score?: number | null;

@@ -1,10 +1,10 @@
 /**
  * Phase 2 Gap 2 — Policy preview/test (§8.9). Simulates evaluation without persistence.
  */
-import type { PolicyEvaluationContext } from "../domain";
+import type { PolicyEvaluationContext, PolicyRuleMatch } from "../domain";
 import type { PolicyDefinition, PolicyRule } from "../domain";
 import { evaluateConditionGroup } from "./policy-condition-evaluator";
-import { resolveConflict } from "./policy-conflict-resolver";
+import { resolveConflict } from "./policy-conflict-resolver.service";
 
 export type PolicyPreviewDraft = {
   displayName?: string;
@@ -103,25 +103,26 @@ export function previewPolicy(
   }
 
   const requestedMode = evaluationContext.requestedMode ?? "approve_then_execute";
+  const defaultDisp = policyDef.defaultDisposition === "REQUIRE_APPROVAL" ? "BLOCK" : policyDef.defaultDisposition;
   const resolved = resolveConflict(
     matchedRules as never,
     requestedMode,
-    policyDef.defaultDisposition
+    defaultDisp
   );
 
   return {
     finalDisposition: resolved.finalDisposition,
     requiresApproval: resolved.finalDisposition === "REQUIRE_APPROVAL",
     blocked: resolved.finalDisposition === "BLOCK",
-    matchedRules: resolved.matchedRules.map((m) => ({
+    matchedRules: resolved.matchedRules.map((m: { policyKey: string; ruleKey: string; effect: string; reasonCode: string; message: string }) => ({
       policyKey: m.policyKey,
       ruleKey: m.ruleKey,
       effect: m.effect,
       reasonCode: m.reasonCode,
       message: m.message,
     })),
-    blockedRules: resolved.blockedByRules.map((r) => ({ ruleKey: r.ruleKey, reasonCode: r.reasonCode })),
-    approvalRules: resolved.approvalRules.map((r) => {
+    blockedRules: resolved.blockedByRules.map((r: PolicyRuleMatch) => ({ ruleKey: r.ruleKey, reasonCode: r.reasonCode })),
+    approvalRules: resolved.approvalRules.map((r: PolicyRuleMatch) => {
       const rule = matchedRules.find((m) => m.match.ruleKey === r.ruleKey)?.rule;
       const eff = rule?.effect;
       return {

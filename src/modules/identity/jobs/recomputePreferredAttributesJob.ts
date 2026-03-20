@@ -23,7 +23,7 @@ function mergePreferredFromAttributeValues(
   const byKey = new Map<string, { value: unknown; rank: number; preferred: boolean }>();
   for (const r of rows) {
     const existing = byKey.get(r.attribute_key);
-    const rank = r.preferred ? 0 : r.precedence_rank;
+    const rank = r.is_preferred ? 0 : r.precedence_rank;
     if (!existing || (r.is_preferred && !existing.preferred) || (rank < existing.rank && !existing.preferred))
       byKey.set(r.attribute_key, { value: r.attribute_value_json, rank, preferred: r.is_preferred });
   }

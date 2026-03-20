@@ -110,7 +110,7 @@ export async function handleCallback(
   const result = await runtime.handleCallback({
     orgId: session.org_id,
     provider: params.provider,
-    stateToken: params.state_token,
+    stateToken: params.stateToken,
     code: params.code,
     error: params.error,
     errorDescription: params.errorDescription,

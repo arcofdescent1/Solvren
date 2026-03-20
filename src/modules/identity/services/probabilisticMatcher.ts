@@ -95,8 +95,9 @@ export async function findProbabilisticCompanyCandidates(
   orgId: string,
   payload: Record<string, unknown>
 ): Promise<ProbabilisticCandidate[]> {
-  const companyName = (payload.name ?? payload.company_name ?? payload.properties?.name) as string | undefined;
-  const domain = (payload.domain ?? payload.website ?? payload.properties?.domain) as string | undefined;
+  const props = (payload["properties"] ?? undefined) as Record<string, unknown> | undefined;
+  const companyName = (payload["name"] ?? payload["company_name"] ?? props?.["name"]) as string | undefined;
+  const domain = (payload["domain"] ?? payload["website"] ?? props?.["domain"]) as string | undefined;
   const normDomain = domain ? normalizeDomain(domain) : null;
   const normName = companyName
     ? String(companyName)

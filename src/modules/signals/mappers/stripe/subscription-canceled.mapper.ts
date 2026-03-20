@@ -21,7 +21,8 @@ export class StripeSubscriptionCanceledMapper implements IMapper {
 
   async map(ctx: MapperContext): Promise<import("../../domain/types").MapperResult | null> {
     const p = ctx.payload as Record<string, unknown>;
-    const sub = (p.data?.object ?? p.object ?? p) as Record<string, unknown>;
+    const data = p.data as Record<string, unknown> | undefined;
+    const sub = (data?.object ?? (p as Record<string, unknown>).object ?? p) as Record<string, unknown>;
     const subId = String(sub?.id ?? ctx.externalObjectId ?? "");
     const customerId = sub?.customer as string | undefined;
     const status = (sub?.status ?? "") as string;
@@ -33,7 +34,8 @@ export class StripeSubscriptionCanceledMapper implements IMapper {
     const entityCandidates = [entityCandidate("stripe", "subscription", subId, "subscription", 1)];
     if (customerId) entityCandidates.push(entityCandidate("stripe", "customer", String(customerId), "person", 0.9));
 
-    const cancelReason = (sub?.cancellation_details?.reason ?? sub?.cancel_at_period_end) as string | undefined;
+    const cancelDetails = sub?.cancellation_details as Record<string, unknown> | undefined;
+    const cancelReason = (cancelDetails?.reason ?? sub?.cancel_at_period_end) as string | undefined;
 
     return baseMapperResult("subscription_canceled", ctx, {
       dimensions: { cancel_reason: cancelReason ?? (status === "canceled" ? "canceled" : "unknown") },

@@ -1,11 +1,11 @@
-export * from "./types";
+export * from "./contracts";
+export type { ConnectionStatus, HealthStatus, IntegrationCapability, TestCheck, ProviderDiagnostics } from "./types";
 export * from "./IntegrationRegistry";
 export * from "./IntegrationConnectionService";
 export * from "./IntegrationHealthService";
 export * from "./IntegrationRetryService";
 
 /** Phase 1 — Integration platform */
-export * from "./contracts";
 export * from "./registry";
 export * from "./core";
 export { deriveIntegrationStatus } from "./health/healthEvaluator";

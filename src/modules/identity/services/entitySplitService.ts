@@ -66,9 +66,11 @@ export async function splitEntity(
     event_type: "entity_split",
     canonical_entity_id: newEntity.id,
     related_entity_id: params.entityId,
+    link_id: null,
+    candidate_id: null,
     actor_type: "user",
     actor_ref: params.userId,
-    event_payload_json: { linkIdsToMove: params.linkIdsToMove, notes: params.notes },
+    event_payload_json: { linkIdsToMove: params.linkIdsToMove, notes: params.notes ?? null },
   });
   return { ok: true, newEntityId: newEntity.id };
 }

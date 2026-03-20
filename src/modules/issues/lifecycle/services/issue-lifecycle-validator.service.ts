@@ -199,7 +199,7 @@ export async function validateClosureInvariant(
     requiresApproval?: boolean;
   }
 ): Promise<LifecycleValidationResult> {
-  if (!CLOSABLE_FROM.includes(fromState)) {
+  if (!CLOSABLE_FROM.includes(fromState as typeof CLOSABLE_FROM[number])) {
     return {
       allowed: false,
       reasonCode: "invalid_transition",
@@ -307,7 +307,7 @@ export function getMissingClosureRequirements(
 
   if (fromState === IssueLifecycleState.CLOSED) return [];
 
-  if (CLOSABLE_FROM.includes(fromState)) {
+  if (CLOSABLE_FROM.includes(fromState as typeof CLOSABLE_FROM[number])) {
     if (!checks.hasTerminalClassification) {
       missing.push("Terminal classification missing");
     }

@@ -22,11 +22,11 @@ export class SalesforceOpportunityStageChangeMapper implements IMapper {
   }
 
   async map(ctx: MapperContext): Promise<import("../../domain/types").MapperResult | null> {
-    const p = ctx.payload as Record<string, unknown>;
-    const oppId = String(ctx.externalObjectId ?? p.Id ?? p.id ?? "");
-    const stage = (p.StageName ?? p.Stage ?? p.Stage__c) as string | undefined;
-    const amount = Number(p.Amount ?? p.Total_Value__c ?? 0);
-    const accountId = (p.AccountId ?? p.Account?.Id) as string | undefined;
+    const p: Record<string, unknown> = ctx.payload;
+    const oppId = String(ctx.externalObjectId ?? p["Id"] ?? p["id"] ?? "");
+    const stage = (p["StageName"] ?? p["Stage"] ?? p["Stage__c"]) as string | undefined;
+    const amount = Number(p["Amount"] ?? p["Total_Value__c"] ?? 0);
+    const accountId = ((p["AccountId"] ?? (p["Account"] as Record<string, unknown>)?.["Id"]) ?? undefined) as string | undefined;
 
     const entityCandidates = [entityCandidate("salesforce", "opportunity", oppId, "opportunity", 1)];
     if (accountId) entityCandidates.push(entityCandidate("salesforce", "account", String(accountId), "company", 0.9));
