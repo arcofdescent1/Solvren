@@ -27,7 +27,9 @@ export function FirstValueBanner() {
   }, []);
 
   useEffect(() => {
-    fetchState();
+    queueMicrotask(() => {
+      void fetchState();
+    });
   }, [fetchState]);
 
   if (!data?.firstValueReached) return null;

@@ -35,7 +35,9 @@ export function AutomationPauseBanner({ orgId, onDismiss }: Props) {
   }, []);
 
   useEffect(() => {
-    fetchPauses();
+    queueMicrotask(() => {
+      void fetchPauses();
+    });
   }, [fetchPauses]);
 
   if (pauses.length === 0) return null;

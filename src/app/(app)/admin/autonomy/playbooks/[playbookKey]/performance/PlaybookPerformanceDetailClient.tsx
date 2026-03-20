@@ -39,7 +39,9 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
   }, [playbookKey]);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      void fetchData();
+    });
   }, [fetchData]);
 
   if (!data) {

@@ -74,7 +74,7 @@ export function DocsCommandBar() {
   const [apiResults, setApiResults] = useState<ResultItem[]>([]);
   useEffect(() => {
     if (!open || !q || docs.length > 0) {
-      setApiResults([]);
+      queueMicrotask(() => setApiResults([]));
       return;
     }
     const ac = new AbortController();

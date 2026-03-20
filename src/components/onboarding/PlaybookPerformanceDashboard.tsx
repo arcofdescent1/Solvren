@@ -37,7 +37,9 @@ export function PlaybookPerformanceDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      void fetchData();
+    });
   }, [fetchData]);
 
   const sorted = [...playbooks].sort((a, b) => {

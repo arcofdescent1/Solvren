@@ -47,7 +47,9 @@ export function OnboardingChecklist() {
   }, []);
 
   useEffect(() => {
-    fetchState();
+    queueMicrotask(() => {
+      void fetchState();
+    });
   }, [fetchState]);
 
   if (!data || data.onboardingState === "ACTIVATED" || data.firstValueReached) {

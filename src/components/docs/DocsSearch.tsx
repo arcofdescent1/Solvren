@@ -21,8 +21,10 @@ export function DocsSearch({ placeholder = "Search docs..." }: { placeholder?: s
 
   useEffect(() => {
     if (!trimmed) {
-      setResults([]);
-      setOpen(false);
+      queueMicrotask(() => {
+        setResults([]);
+        setOpen(false);
+      });
       return;
     }
     const controller = new AbortController();

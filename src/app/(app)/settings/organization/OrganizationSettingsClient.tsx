@@ -124,7 +124,9 @@ export default function OrganizationSettingsClient({ orgId, isAdmin }: Props) {
   }, [orgId]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   async function put(partial: Partial<{ organization: OrgSettingsPayload["organization"]; notifications: OrgSettingsPayload["notifications"]; approvals: OrgSettingsPayload["approvals"] }>) {

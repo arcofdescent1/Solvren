@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { Button, Input } from "@/ui";
 
 import { useEffect, useState } from "react";
@@ -27,7 +27,7 @@ export default function SlackLinkPanel({
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setSlackUserId(initialSlackUserId ?? "");
+    queueMicrotask(() => setSlackUserId(initialSlackUserId ?? ""));
   }, [initialSlackUserId]);
 
   async function save() {

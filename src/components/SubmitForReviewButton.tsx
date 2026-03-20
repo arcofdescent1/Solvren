@@ -1,4 +1,4 @@
-"use client";;
+"use client";
 import { Button } from "@/ui";
 
 import { useState, useEffect } from "react";
@@ -27,7 +27,7 @@ export default function SubmitForReviewButton({
 
   useEffect(() => {
     if (!canSubmit) {
-      setReadyForSubmit(null);
+      queueMicrotask(() => setReadyForSubmit(null));
       return;
     }
     let cancelled = false;

@@ -24,7 +24,7 @@ export function IntegrationStatusPanel({ orgId }: IntegrationStatusPanelProps) {
 
   useEffect(() => {
     if (!orgId) {
-      setIntegrations([]);
+      queueMicrotask(() => setIntegrations([]));
       return;
     }
     fetch(`/api/integrations/list?orgId=${encodeURIComponent(orgId)}`)

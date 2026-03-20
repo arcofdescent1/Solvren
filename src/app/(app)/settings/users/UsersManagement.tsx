@@ -100,10 +100,14 @@ export default function UsersManagement({ orgId, orgName, currentUserId }: Props
   }, [orgId]);
 
   useEffect(() => {
-    loadMembers();
+    queueMicrotask(() => {
+      loadMembers();
+    });
   }, [loadMembers]);
   useEffect(() => {
-    loadInvites();
+    queueMicrotask(() => {
+      loadInvites();
+    });
   }, [loadInvites]);
 
   const ownerCount = members.filter((m) => m.role === "owner").length;

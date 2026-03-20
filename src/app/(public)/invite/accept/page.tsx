@@ -24,7 +24,9 @@ export default function InviteAcceptPage() {
 
   useEffect(() => {
     if (!token || token.length < 16) {
-      setLookup({ status: "invalid", message: "Invalid or missing invitation link." });
+      queueMicrotask(() =>
+        setLookup({ status: "invalid", message: "Invalid or missing invitation link." })
+      );
       return;
     }
 

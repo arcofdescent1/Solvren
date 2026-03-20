@@ -52,8 +52,10 @@ export function MetricExplanationModal({
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
-    setProvenance(null);
+    queueMicrotask(() => {
+      setLoading(true);
+      setProvenance(null);
+    });
     fetch("/api/metrics/executive?provenance=1")
       .then((r) => r.json())
       .then((j) => setProvenance(j.provenance ?? null))

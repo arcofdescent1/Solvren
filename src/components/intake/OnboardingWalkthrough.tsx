@@ -18,11 +18,13 @@ export function OnboardingWalkthrough() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    try {
-      setVisible(!localStorage.getItem(STORAGE_KEY));
-    } catch {
-      setVisible(true);
-    }
+    queueMicrotask(() => {
+      try {
+        setVisible(!localStorage.getItem(STORAGE_KEY));
+      } catch {
+        setVisible(true);
+      }
+    });
   }, []);
 
   function dismiss() {

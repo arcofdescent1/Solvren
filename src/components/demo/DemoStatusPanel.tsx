@@ -23,7 +23,9 @@ export function DemoStatusPanel() {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
+    queueMicrotask(() => {
+      void fetchStatus();
+    });
   }, [fetchStatus]);
 
   if (!status?.isDemoOrg) return null;

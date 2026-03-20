@@ -23,7 +23,7 @@ export function ImpactAssumptionsDrawer({
 
   useEffect(() => {
     if (!open || !issueId) return;
-    setLoading(true);
+    queueMicrotask(() => setLoading(true));
     fetch(`/api/issues/${issueId}/impact?expand=breakdown,assumptions`)
       .then((r) => r.json())
       .then((d) => setAssumptions(d.assumptionsSnapshot ?? null))

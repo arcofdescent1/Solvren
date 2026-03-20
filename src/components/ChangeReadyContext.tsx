@@ -33,7 +33,11 @@ export function ChangeReadyProvider({
 
   useEffect(() => {
     let cancelled = false;
-    setStatus((s) => ({ ...s, loading: true, error: null }));
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setStatus((s) => ({ ...s, loading: true, error: null }));
+      }
+    });
 
     fetch(`/api/changes/ready-status?changeId=${encodeURIComponent(changeId)}`)
       .then((r) => r.json())

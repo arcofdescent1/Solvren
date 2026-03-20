@@ -39,7 +39,7 @@ export function TableOfContents({ enabled = true }: { enabled?: boolean }) {
       };
     });
 
-    setHeadings(parsed);
+    queueMicrotask(() => setHeadings(parsed));
 
     const observer = new IntersectionObserver(
       (entries) => {

@@ -47,7 +47,9 @@ export function OnboardingWizard() {
   }, []);
 
   useEffect(() => {
-    fetchState();
+    queueMicrotask(() => {
+      void fetchState();
+    });
   }, [fetchState]);
 
   const markInProgress = async (stepKey: string) => {

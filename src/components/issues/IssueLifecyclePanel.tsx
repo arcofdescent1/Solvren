@@ -82,7 +82,9 @@ export function IssueLifecyclePanel({
   };
 
   useEffect(() => {
-    fetchLifecycle();
+    queueMicrotask(() => {
+      fetchLifecycle();
+    });
   }, [issueId]);
 
   const canClose = data && ["VERIFIED_SUCCESS", "VERIFIED_FAILURE", "NO_ACTION_TAKEN"].includes(data.currentState);

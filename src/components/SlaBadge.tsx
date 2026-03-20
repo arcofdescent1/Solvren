@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-function formatRemaining(dueAt: string | null, slaStatus: string | null): string {
+function formatRemaining(dueAt: string | null): string {
   if (!dueAt) return "Not submitted";
   const due = new Date(dueAt);
   const now = new Date();
@@ -34,20 +34,19 @@ export default function SlaBadge({
   slaStatus: string | null;
   escalatedAt: string | null;
 }) {
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
+    const tick = () => setNow(Date.now());
+    queueMicrotask(tick);
     if (!dueAt) return;
-    const t = setInterval(() => setNow(Date.now()), 60000);
+    const t = setInterval(tick, 60000);
     return () => clearInterval(t);
   }, [dueAt]);
 
-  const text = useMemo(
-    () => formatRemaining(dueAt, slaStatus),
-    [dueAt, slaStatus, now]
-  );
+  const text = formatRemaining(dueAt);
 
-  const isOverdue = dueAt && new Date(dueAt).getTime() < now;
+  const isOverdue = now != null && dueAt && new Date(dueAt).getTime() < now;
   const isDueSoon = slaStatus === "DUE_SOON";
 
   if (!dueAt) {

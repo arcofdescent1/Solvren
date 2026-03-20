@@ -33,7 +33,9 @@ export function ActivationRecommendationsPanel() {
   }, []);
 
   useEffect(() => {
-    fetchRecs();
+    queueMicrotask(() => {
+      void fetchRecs();
+    });
   }, [fetchRecs]);
 
   if (recommendations.length === 0) return null;

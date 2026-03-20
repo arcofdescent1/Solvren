@@ -16,8 +16,12 @@ export function RiskExplanationPanel({ riskEventId }: RiskExplanationPanelProps)
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setLoading(true);
+        setError(false);
+      }
+    });
     fetch("/api/ai/risk-explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -21,16 +21,18 @@ export function RevenueRiskBriefingPanel({ orgId }: { orgId: string | null }) {
 
   useEffect(() => {
     if (!orgId) {
-      setBriefing({
-        mode: "demo",
-        topRiskId: null,
-        headline: "Example risk detected (demo)",
-        summary: "Connect an organization to see real revenue risks.",
-        estimatedExposure: 275000,
-        source: "-",
-        recommendedAction: "Create or join an organization to get started.",
+      queueMicrotask(() => {
+        setBriefing({
+          mode: "demo",
+          topRiskId: null,
+          headline: "Example risk detected (demo)",
+          summary: "Connect an organization to see real revenue risks.",
+          estimatedExposure: 275000,
+          source: "-",
+          recommendedAction: "Create or join an organization to get started.",
+        });
+        setLoading(false);
       });
-      setLoading(false);
       return;
     }
     const c = new AbortController();
