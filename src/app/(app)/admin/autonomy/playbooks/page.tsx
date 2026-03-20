@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader, Card, CardBody, Stack } from "@/ui";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { PlaybookCatalogClient } from "@/components/autonomy/PlaybookCatalogClient";
 
@@ -21,7 +21,7 @@ export default async function PlaybookCatalogPage() {
   const isAdmin = isAdminLikeRole(parseOrgRole(membership.role ?? null));
   if (!isAdmin) {
     return (
-      <div className="space-y-4">
+      <Stack gap={4}>
         <PageHeader
           title="Playbook Catalog"
           breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Admin" }, { label: "Playbooks" }]}
@@ -29,17 +29,17 @@ export default async function PlaybookCatalogPage() {
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">Only org admins can access the Playbook catalog.</p>
-            <Link href="/dashboard" className="mt-2 inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
+            <Link href="/dashboard" className="inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
               ← Dashboard
             </Link>
           </CardBody>
         </Card>
-      </div>
+      </Stack>
     );
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <Stack gap={6} className="max-w-5xl">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
@@ -55,6 +55,6 @@ export default async function PlaybookCatalogPage() {
         }
       />
       <PlaybookCatalogClient orgId={activeOrgId} />
-    </div>
+    </Stack>
   );
 }

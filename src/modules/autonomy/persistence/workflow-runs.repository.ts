@@ -8,9 +8,13 @@ export type WorkflowRunRow = {
   org_id: string;
   playbook_definition_id: string;
   issue_id: string | null;
+  finding_id: string | null;
+  entry_signal_id: string | null;
   run_status: string;
   current_step_key: string | null;
   autonomy_mode: string;
+  policy_snapshot_json: Record<string, unknown>;
+  input_snapshot_json: Record<string, unknown>;
   started_at: string;
   completed_at: string | null;
   created_at: string;
@@ -22,6 +26,8 @@ export type WorkflowStepRunRow = {
   step_key: string;
   step_type: string;
   status: string;
+  decision_log_id: string | null;
+  action_execution_id: string | null;
   input_json: Record<string, unknown>;
   output_json: Record<string, unknown>;
   started_at: string | null;

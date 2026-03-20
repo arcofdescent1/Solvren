@@ -53,7 +53,7 @@ export async function resolveExecutionMode(
     { scopeType: "org", scopeRef: null },
   ];
   for (const scope of scopeOrder) {
-    const { data: configMode } = await getEffectiveRequestedMode(supabase, context.orgId, scope);
+    const { mode: configMode } = await getEffectiveRequestedMode(supabase, context.orgId, scope);
     if (configMode) {
       requestedMode = configMode;
       break;

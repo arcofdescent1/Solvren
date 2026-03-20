@@ -17,7 +17,7 @@ export type LaunchScenarioInput = {
 export async function launchDemoScenario(
   supabase: SupabaseClient,
   input: LaunchScenarioInput
-): Promise<{ status: "completed" | "failed"; scenarioKey: string; error?: string }> {
+): Promise<{ status: "completed" | "failed" | "queued"; scenarioKey: string; error?: string }> {
   const safe = await assertDemoOrg(supabase, input.orgId);
   if (!safe.ok) return { status: "failed", scenarioKey: input.scenarioKey, error: safe.error };
 

@@ -56,6 +56,7 @@ export async function startWorkflow(
     policy_snapshot_json: {},
     input_snapshot_json: input.inputSnapshot ?? {},
     started_at: new Date().toISOString(),
+    completed_at: null,
   });
 
   if (runErr || !run) return { ok: false, error: (runErr as Error)?.message ?? "Failed to create workflow run" };
@@ -70,6 +71,8 @@ export async function startWorkflow(
       action_execution_id: null,
       input_json: {},
       output_json: {},
+      started_at: null,
+      completed_at: null,
     });
   }
 

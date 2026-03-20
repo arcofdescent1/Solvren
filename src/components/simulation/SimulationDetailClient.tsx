@@ -62,7 +62,7 @@ export function SimulationDetailClient({
               <dt>Status</dt>
               <dd className="font-medium">{run.status}</dd>
             </div>
-            {(summary?.projectedRecoveredAmount as number) != null && (
+            {summary && (summary.projectedRecoveredAmount as number) != null && (
               <>
                 <div className="flex justify-between">
                   <dt>Projected recovered</dt>

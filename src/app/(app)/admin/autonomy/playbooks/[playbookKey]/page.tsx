@@ -72,7 +72,7 @@ export default async function PlaybookDetailPage({
         <CardBody>
           <Stack gap={2}>
             <h2 className="text-lg font-semibold">Workflow steps</h2>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col list-none p-0 m-0">
             {steps
               .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
               .map((s) => (

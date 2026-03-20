@@ -4,7 +4,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader } from "@/ui";
+import { PageHeader, Stack } from "@/ui";
 import { PlaybookPerformanceDetailClient } from "./PlaybookPerformanceDetailClient";
 
 export default async function PlaybookPerformanceDetailPage({
@@ -21,7 +21,7 @@ export default async function PlaybookPerformanceDetailPage({
   if (!activeOrgId) redirect("/dashboard");
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <Stack gap={6} className="max-w-4xl">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
@@ -33,6 +33,6 @@ export default async function PlaybookPerformanceDetailPage({
         description="Detailed performance metrics and trend"
       />
       <PlaybookPerformanceDetailClient playbookKey={playbookKey} />
-    </div>
+    </Stack>
   );
 }

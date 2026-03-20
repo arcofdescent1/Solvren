@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader, Card, CardBody, Stack } from "@/ui";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { PolicyCenterClient } from "@/components/autonomy/PolicyCenterClient";
 
@@ -21,7 +21,7 @@ export default async function PolicyCenterPage() {
   const isAdmin = isAdminLikeRole(parseOrgRole(membership.role ?? null));
   if (!isAdmin) {
     return (
-      <div className="space-y-4">
+      <Stack gap={4}>
         <PageHeader
           title="Policy Center"
           breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Admin" }, { label: "Policy Center" }]}
@@ -34,12 +34,12 @@ export default async function PolicyCenterPage() {
             </Link>
           </CardBody>
         </Card>
-      </div>
+      </Stack>
     );
   }
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <Stack gap={6} className="max-w-5xl">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
@@ -55,6 +55,6 @@ export default async function PolicyCenterPage() {
         }
       />
       <PolicyCenterClient orgId={activeOrgId} />
-    </div>
+    </Stack>
   );
 }
