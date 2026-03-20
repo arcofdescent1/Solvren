@@ -5,9 +5,9 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listIssueImpactSummariesForOrg } from "@/modules/impact/persistence/issue-impact-summaries.repository";
-import { selectIssues } from "@/modules/issues";
+import { selectIssues, type IssueStatus } from "@/modules/issues";
 
-const OPEN_STATUSES = ["open", "triaged", "assigned", "in_progress"];
+const OPEN_STATUSES: IssueStatus[] = ["open", "triaged", "assigned", "in_progress"];
 
 export async function GET() {
   const supabase = await createServerSupabaseClient();

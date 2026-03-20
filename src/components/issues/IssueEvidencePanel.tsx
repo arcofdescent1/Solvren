@@ -53,12 +53,12 @@ export function IssueEvidencePanel({
               {ruleMatches.map((r, i) => (
                 <li key={`${r.evidenceKey}-${i}`} className="text-sm rounded bg-[var(--bg-surface-2)] p-2">
                   <span className="font-medium">{formatEvidenceKey(r.evidenceKey)}</span>
-                  {r.payload.headline && (
-                    <p className="mt-0.5 text-[var(--text-muted)]">{(r.payload.headline as string)}</p>
+                  {r.payload.headline != null && (
+                    <p className="mt-0.5 text-[var(--text-muted)]">{String(r.payload.headline)}</p>
                   )}
-                  {r.payload.threshold && (
+                  {r.payload.threshold != null && (
                     <p className="text-xs mt-0.5">
-                      {r.payload.threshold}: {String(r.payload.actual)} (limit: {String(r.payload.limit ?? "—")})
+                      {String(r.payload.threshold)}: {String(r.payload.actual)} (limit: {String(r.payload.limit ?? "—")})
                     </p>
                   )}
                 </li>

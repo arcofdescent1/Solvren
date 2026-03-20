@@ -21,6 +21,21 @@ type PolicyRow = {
 };
 
 export function PolicyDetailClient({ policy }: { policy: PolicyRow }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  async function runAction(action: string, url: string) {
+    setLoading(action);
+    try {
+      const res = await fetch(url, { method: "POST" });
+      const json = await res.json();
+      if (res.ok) router.refresh();
+      else alert(json.error ?? `${action} failed`);
+    } finally {
+      setLoading(null);
+    }
+  }
+
   const rules = (policy.rules_json ?? []) as Array<{
     ruleKey?: string;
     description?: string;

@@ -39,6 +39,7 @@ const iconMap = {
   BrainCircuit,
   Zap,
   BarChart3,
+  CheckCircle2,
 } as const;
 
 type IconName = keyof typeof iconMap;

@@ -58,7 +58,7 @@ export function PolicyCenterClient({
               + Create policy
             </Link>
           </div>
-          <PolicyListTable policies={policies} />
+          <PolicyListTable policies={policies.map((p) => ({ ...p, scope_ref: p.scope_ref ?? null, updated_at: p.updated_at ?? "" }))} />
         </CardBody>
       </Card>
 
