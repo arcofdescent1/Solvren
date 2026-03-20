@@ -2,12 +2,12 @@ import { getAllDocs } from "./getAllDocs";
 import type { DocsRoleShortcut } from "./docTypes";
 
 const LABELS: Record<DocsRoleShortcut["role"], { title: string; description: string }> = {
-  owner: { title: "Owner essentials", description: "Organization setup, governance controls, and executive visibility." },
-  admin: { title: "Admin essentials", description: "Users, mappings, permissions, and operational configuration." },
-  submitter: { title: "Submitter essentials", description: "Create, coordinate, and submit revenue-impacting changes." },
-  reviewer: { title: "Reviewer essentials", description: "Queues, evidence, approvals, and risk review." },
-  viewer: { title: "Viewer essentials", description: "Read-only visibility into dashboards, changes, and context." },
-  executive: { title: "Executive essentials", description: "Risk visibility, blocked work, and high-level decision support." },
+  owner: { title: "Admin / Platform Owner", description: "Organization setup, Policy Center, and executive visibility." },
+  admin: { title: "Admin essentials", description: "Integrations, playbooks, policies, and operational configuration." },
+  submitter: { title: "RevOps / Finance", description: "Issues, playbooks, verification, and ROI." },
+  reviewer: { title: "Engineering / IT", description: "Issues inbox, approvals, and action execution." },
+  viewer: { title: "Viewer essentials", description: "Read-only visibility into dashboards, issues, and ROI." },
+  executive: { title: "Executives", description: "ROI dashboard, recovered value, and high-level decision support." },
 };
 
 export function getRoleShortcuts(): DocsRoleShortcut[] {

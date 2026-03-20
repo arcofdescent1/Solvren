@@ -20,6 +20,13 @@ type OnboardingData = {
   onboardingState: string;
   firstValueReached: boolean;
   currentStepKey: string | null;
+  stage?: string;
+  percentComplete?: number;
+  integrationsConnected?: boolean;
+  firstSignalReceived?: boolean;
+  firstIssueDetected?: boolean;
+  firstActionExecuted?: boolean;
+  firstValueVerified?: boolean;
   steps: Step[];
   milestones: Array<{ milestoneKey: string; reached: boolean }>;
 };
@@ -50,12 +57,20 @@ export function OnboardingChecklist() {
   const completedCount = data.steps.filter((s) => s.stepStatus === "COMPLETED").length;
   const totalRequired = data.steps.filter((s) => s.required).length;
 
+  const percent = data.percentComplete ?? (totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 0);
+
   return (
     <Card>
       <CardBody>
         <h3 className="mb-3 text-sm font-semibold text-[color:var(--rg-text)]">Getting Started</h3>
+        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--rg-border)]">
+          <div
+            className="h-full bg-[color:var(--rg-primary)] transition-all"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
         <p className="mb-4 text-xs text-[color:var(--rg-text-muted)]">
-          {completedCount} of {totalRequired} required steps completed
+          {percent}% complete • {data.stage ?? data.onboardingState}
         </p>
         <ul className="space-y-2">
           {data.steps.map((step) => (

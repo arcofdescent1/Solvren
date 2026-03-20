@@ -17,11 +17,11 @@ export function PublicFooter() {
                 <img src="/images/Solvren.svg" alt="Solvren" className="h-11 w-11 shrink-0 object-contain" />
                 <div>
                   <div className="text-base font-semibold text-white">Solvren</div>
-                  <div className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Revenue risk intelligence</div>
+                  <div className="text-xs uppercase tracking-[0.24em] text-cyan-200/80">Revenue protection platform</div>
                 </div>
               </Link>
               <p className="mb-9 text-base leading-relaxed text-slate-300">
-                Know the financial risk of every pricing, billing, and revenue-impacting system change before it ships.
+                Solvren connects to your systems, detects revenue-impacting issues, quantifies impact, takes action, verifies outcomes, and proves ROI.
               </p>
               <div className="flex items-center gap-5 text-sm">
                 {socialLinks.map((link) => (
@@ -111,8 +111,7 @@ export function PublicFooter() {
         <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
         <div className="py-8">
           <p className="text-center text-base text-slate-400">
-            Solvren helps teams govern revenue-impacting changes with risk intelligence, automated coordination,
-            and executive visibility.
+            Solvren is a revenue protection platform that detects issues, automates resolution, and proves ROI.
           </p>
         </div>
       </div>

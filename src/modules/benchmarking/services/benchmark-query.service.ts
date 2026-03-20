@@ -4,19 +4,29 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BenchmarkResult } from "../domain/benchmark-result";
 import { BenchmarkConfidenceBand } from "../domain/benchmark-confidence-band";
-import { getBenchmarkMetric } from "../repositories/benchmark-metrics.repository";
+import {
+  getBenchmarkMetric,
+  listBenchmarkMetrics,
+} from "../repositories/benchmark-metrics.repository";
 import { getBenchmarkCohort } from "../repositories/benchmark-cohorts.repository";
 import { getLatestSnapshot } from "../repositories/benchmark-snapshots.repository";
 import { insertBenchmarkResultLog } from "../repositories/benchmark-result-logs.repository";
 import { shouldDisplayBenchmark } from "./benchmark-surfacing.service";
+
+export type GetBenchmarkResultOptions = {
+  /** When false, skips benchmark_result_logs insert (e.g. batch list endpoint). Default true. */
+  persistLog?: boolean;
+};
 
 export async function getBenchmarkResult(
   supabase: SupabaseClient,
   orgId: string,
   metricKey: string,
   cohortKey = "default",
-  customerValue: number | null = null
+  customerValue: number | null = null,
+  options?: GetBenchmarkResultOptions
 ): Promise<{ data: BenchmarkResult; error: Error | null }> {
+  const persistLog = options?.persistLog !== false;
   const { data: metric, error: metricErr } = await getBenchmarkMetric(
     supabase,
     metricKey
@@ -51,19 +61,21 @@ export async function getBenchmarkResult(
       metric.display_name,
       "insufficient_org_count"
     );
-    await insertBenchmarkResultLog(supabase, {
-      org_id: orgId,
-      metric_key: metricKey,
-      cohort_key: cohortKey,
-      snapshot_id: null,
-      customer_value: customerValue,
-      percentile_rank: null,
-      normalized_gap: null,
-      confidence_score: 0,
-      confidence_band: "VERY_LOW",
-      safe_to_display: false,
-      hidden_reason_code: "insufficient_org_count",
-    });
+    if (persistLog) {
+      await insertBenchmarkResultLog(supabase, {
+        org_id: orgId,
+        metric_key: metricKey,
+        cohort_key: cohortKey,
+        snapshot_id: null,
+        customer_value: customerValue,
+        percentile_rank: null,
+        normalized_gap: null,
+        confidence_score: 0,
+        confidence_band: "VERY_LOW",
+        safe_to_display: false,
+        hidden_reason_code: "insufficient_org_count",
+      });
+    }
     return { data: result, error: null };
   }
 
@@ -126,21 +138,59 @@ export async function getBenchmarkResult(
     explanationText,
   };
 
-  await insertBenchmarkResultLog(supabase, {
-    org_id: orgId,
-    metric_key: metricKey,
-    cohort_key: cohortKey,
-    snapshot_id: snapshot.id,
-    customer_value: customerValue,
-    percentile_rank: percentileRank,
-    normalized_gap: normalizedGap,
-    confidence_score: snapshot.confidence_score,
-    confidence_band: snapshot.confidence_band,
-    safe_to_display: surfacing.safeToDisplay,
-    hidden_reason_code: surfacing.hiddenReasonCode,
-  });
+  if (persistLog) {
+    await insertBenchmarkResultLog(supabase, {
+      org_id: orgId,
+      metric_key: metricKey,
+      cohort_key: cohortKey,
+      snapshot_id: snapshot.id,
+      customer_value: customerValue,
+      percentile_rank: percentileRank,
+      normalized_gap: normalizedGap,
+      confidence_score: snapshot.confidence_score,
+      confidence_band: snapshot.confidence_band,
+      safe_to_display: surfacing.safeToDisplay,
+      hidden_reason_code: surfacing.hiddenReasonCode,
+    });
+  }
 
   return { data: result, error: null };
+}
+
+/**
+ * Batch benchmark results for customer-visible metrics (e.g. GET /api/benchmarks).
+ * Does not write benchmark_result_logs per metric to avoid write amplification.
+ */
+export async function listCustomerVisibleBenchmarkResults(
+  supabase: SupabaseClient,
+  orgId: string,
+  cohortKey = "default",
+  customerValuesByMetricKey?: Record<string, number | null>
+): Promise<{ data: BenchmarkResult[]; error: Error | null }> {
+  const { data: metrics, error: listErr } = await listBenchmarkMetrics(supabase, {
+    customerVisibleOnly: true,
+  });
+  if (listErr) {
+    return { data: [], error: listErr };
+  }
+  const results: BenchmarkResult[] = [];
+  for (const m of metrics) {
+    const cv =
+      customerValuesByMetricKey?.[m.metric_key] ??
+      customerValuesByMetricKey?.[m.metric_key.trim()] ??
+      null;
+    const { data, error } = await getBenchmarkResult(
+      supabase,
+      orgId,
+      m.metric_key,
+      cohortKey,
+      cv,
+      { persistLog: false }
+    );
+    if (error) continue;
+    results.push(data);
+  }
+  return { data: results, error: null };
 }
 
 function buildHiddenResult(

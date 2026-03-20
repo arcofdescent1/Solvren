@@ -80,6 +80,12 @@ export type CreateIssueInput = {
   confidence_score?: number | null;
   impact_score?: number | null;
   created_by?: string | null;
+  /** Phase 1 Gap 1 — detector explainability */
+  detector_key?: string | null;
+  primary_entity_id?: string | null;
+  issue_type?: string | null;
+  issue_subtype?: string | null;
+  issue_confidence?: number | null;
 };
 
 export type IssueListParams = {

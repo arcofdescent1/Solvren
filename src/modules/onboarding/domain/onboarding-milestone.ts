@@ -12,6 +12,7 @@ export const ONBOARDING_MILESTONE_KEYS = [
   "first_verification_completed",
   "first_recovered_revenue",
   "first_avoided_loss",
+  "first_value",
   "onboarding_activated",
 ] as const;
 

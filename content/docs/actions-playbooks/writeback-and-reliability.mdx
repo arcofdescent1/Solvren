@@ -1,0 +1,36 @@
+---
+title: Writeback and Reliability
+description: Execution, failure handling, and reliability.
+section: Actions & Playbooks
+order: 4
+toc: true
+lastUpdated: 2026-03-17
+---
+
+## Overview
+
+**Write-back** sends changes from Solvren to external systems (billing, CRM, etc.). Reliability measures ensure actions complete or fail safely.
+
+---
+
+## Execution Flow
+
+1. Playbook triggers for an issue
+2. Policy checks (approvals, confidence)
+3. Action executes against external API
+4. Result logged; verification runs if applicable
+
+---
+
+## Failure Handling
+
+- **Retries** — Transient failures may be retried
+- **Rollback** — Where supported, failed actions can be reverted
+- **Audit** — All attempts are logged for troubleshooting
+
+---
+
+## Related
+
+- [Action Registry](/docs/actions-playbooks/action-registry)
+- [Verification & ROI](/docs/verification-roi)

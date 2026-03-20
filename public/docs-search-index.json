@@ -1,10 +1,38 @@
 [
   {
     "title": "Solvren Documentation",
-    "description": "Learn how to safely manage revenue-impacting operational changes.",
+    "description": "Revenue protection platform — detect, quantify, act, verify, and prove value.",
     "section": "Documentation",
     "href": "/docs/index",
-    "content": "Solvren Documentation Solvren helps organizations safely manage operational changes that impact revenue systems. The platform provides structured workflows for: • evaluating operational risk • coordinating approvals • documenting safeguards • maintaining audit history Start Here If you're new to Solvren, begin with these guides. | Guide | Description | | | | | Get Started | Learn how to set up your organization | | Create Your First Change | Walk through a full change workflow | | User Guide | Understand how the platform works | Core Concepts Understanding these concepts will help you use Solvren effectively. | Concept | Description | | | | | What is a Change | The core unit of governance | | Domains | Functional areas affected by changes | | Systems | Platforms where changes occur | | Evidence | Safeguards required for operational readiness | Operating the Platform Learn how to manage operational changes. | Guide | Description | | | | | Change Lifecycle | How changes progress through the system | | Approvals Workflow | How reviewers evaluate changes | | Governance Best Practices | Recommended operational policies | Administration Administrators configure governance policies. | Admin Guide | Description | | | | | Organization Settings | Configure organization wide settings | | User Management | Manage users and roles | | Approval Role Mapping | Configure approval routing | | Evidence Enforcement | Define required safeguards | Architecture These pages explain how the system works internally. | Architecture Guide | Description | | | | | System Overview | Platform architecture | | AI Risk Engine | Risk analysis model | | Coordination Autopilot | Automated governance planning | Operational Playbooks These guides help teams operate Solvren effectively. | Playbook | Description | | | | | Governance Playbook | Recommended governance structure | | Change Review Runbook | Step by step review process | Examples Real examples demonstrate how governance workflows operate. | Example | Description | | | | | Pricing Change | Pricing configuration governance | | Billing Change | Managing billing system updates | Releases Track product improvements and updates. | Page | Description | | | | | Release Notes | Major feature updates | | Changelog | Detailed version history |"
+    "content": "Solvren Documentation Solvren is a revenue protection platform that helps you detect issues, quantify impact, execute actions, verify results, and prove value across your revenue systems. The closed loop: Signals → Detectors → Impact → Actions → Verification → ROI Start Here | Guide | Description | | | | | | Connect systems, detect your first issue, enable your first playbook, and view your first value | | | What Solvren is and how it works | Fast Path to Value | Step | Page | | | | | Connect your first system | | | Detect your first issue | | | Enable your first playbook | | | View your first value | | Core Product Areas | Area | Description | | | | | | Connect systems and understand how signals flow | | | How detectors find issues and how issues are created | | | Impact models, confidence, and prioritization logic | | | Action registry, playbooks, and write back reliability | | | How verification works and recovered vs avoided value | | | Policies, approvals, safe mode, and simulations | | | Getting to first value and playbook performance | Architecture & Admin | Guide | Description | | | | | | System layers, data flow, security | | | Policy Center, integration health, demo orgs | | | Product updates and platform evolution | Need Help? | Page | Description | | | | | | Common questions and troubleshooting |"
+  },
+  {
+    "title": "Action Registry",
+    "description": "Available actions and their capabilities.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks/action-registry",
+    "content": "Overview The action registry lists actions Solvren can take. Actions can be read only (recommend, notify) or write back (update billing, fix pricing, etc.). Action Types | Type | Description | | | | | Recommend | Suggest a fix; human executes | | Notify | Alert stakeholders | | Simulate | Run in dry run mode | | Execute | Apply changes via write back (when policies allow) | Configuration Actions are configured per playbook. Policies control when execution is allowed. Related"
+  },
+  {
+    "title": "Actions & Playbooks",
+    "description": "Action registry, playbooks, and write-back reliability.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks",
+    "content": "Overview Playbooks define what Solvren does when an issue is detected. They orchestrate actions that recommend, simulate, or execute fixes. Write back delivers changes to external systems. What You'll Find Here | Page | Description | | | | | | Available actions and their capabilities | | | Playbook structure and configuration | | | Execution and failure handling | Related — Policies and approvals — Proving value from actions"
+  },
+  {
+    "title": "Playbooks",
+    "description": "Playbook structure and configuration.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks/playbooks",
+    "content": "Overview Playbooks map issue types to actions. When an issue is detected, the matching playbook determines what Solvren recommends or executes. Structure A playbook typically includes: Trigger — Issue type or detector Actions — Steps to take (recommend, notify, simulate, execute) Policy — Approval requirements, safe mode settings Enabling Playbooks Admins enable playbooks per environment. Policies (approvals, confidence thresholds) control automation level. Related"
+  },
+  {
+    "title": "Writeback and Reliability",
+    "description": "Execution, failure handling, and reliability.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks/writeback-and-reliability",
+    "content": "Overview Write back sends changes from Solvren to external systems (billing, CRM, etc.). Reliability measures ensure actions complete or fail safely. Execution Flow 1. Playbook triggers for an issue 2. Policy checks (approvals, confidence) 3. Action executes against external API 4. Result logged; verification runs if applicable Failure Handling Retries — Transient failures may be retried Rollback — Where supported, failed actions can be reverted Audit — All attempts are logged for troubleshooting Related"
   },
   {
     "title": "Approval Mappings",
@@ -112,6 +140,20 @@
     "content": "Overview Operational changes often require coordination across multiple teams. Coordination Autopilot analyzes change metadata and automatically recommends the governance steps required to safely implement a change. These recommendations ensure the right stakeholders are involved. What Coordination Autopilot Generates The system produces three types of recommendations. Required Approvals Based on change metadata, the system determines which roles should review the change. Example: | Domain | Suggested Approvers | | | | | Pricing | Finance + Product | | Billing | Engineering + Finance | | CRM | RevOps | These recommendations are derived from the organization's configured approval mappings. Evidence Requirements The system may recommend operational safeguards such as: • rollback procedures • monitoring plans • testing documentation • revenue validation checks These safeguards reduce the likelihood and impact of operational failures. Coordination Tasks Some changes require coordination across multiple teams. Examples: • notify finance of pricing updates • validate CRM field mappings • confirm billing rule compatibility Coordination Autopilot highlights these dependencies. Applying Recommendations Users can apply recommended governance steps with a single action. This dramatically reduces the time required to prepare a change for review. Why Coordination Matters Revenue systems are complex and interconnected. Changes to one system can affect multiple others. Coordination Autopilot helps teams ensure that: • stakeholders are aware of changes • dependencies are validated • safeguards are implemented"
   },
   {
+    "title": "Data Flow",
+    "description": "How data moves through the platform.",
+    "section": "Architecture",
+    "href": "/docs/architecture/data-flow",
+    "content": "Overview Data flows from external systems through integrations into signals, then through detectors to issues, and finally through actions to verification and ROI. Flow Summary 1. Ingestion — Integrations pull or receive data → signals 2. Detection — Detectors analyze signals → issues 3. Prioritization — Impact engine scores issues 4. Action — Playbooks execute (recommend, simulate, or write back) 5. Verification — Outcomes checked → value attributed 6. Reporting — ROI dashboard and metrics updated Related"
+  },
+  {
+    "title": "Architecture",
+    "description": "System layers, data flow, and security.",
+    "section": "Architecture",
+    "href": "/docs/architecture",
+    "content": "Overview Solvren's architecture reflects the full revenue protection loop: integrations, signals, detectors, impact, execution, verification, and safe automation. What You'll Find Here | Page | Description | | | | | | High level platform architecture | | | Platform layers and components | | | How data moves through the system | | | Security, auth, and audit | Platform Layers Integrations — Connect to revenue systems Identity graph — Entity resolution across systems Signals — Ingested data streams Detectors — Issue detection logic Impact engine — Revenue at risk quantification Execution / write back — Action execution Verification / ROI — Value attribution Safe automation — Policies and approvals Onboarding / performance — Getting to value and playbook metrics Related"
+  },
+  {
     "title": "Notifications and Jobs",
     "description": "Understand how background jobs, notifications, and operational processing support the Solvren workflow.",
     "section": "Architecture",
@@ -120,10 +162,10 @@
   },
   {
     "title": "Architecture Overview",
-    "description": "Platform architecture and key concepts.",
+    "description": "High-level architecture of Solvren's revenue protection platform.",
     "section": "Architecture",
     "href": "/docs/architecture/overview",
-    "content": "Overview Solvren is built on Next.js with Supabase for data and auth. Key concepts include changes, approval workflows, evidence enforcement, and revenue impact reporting. Core Concepts Changes A change represents a revenue impacting modification (pricing, billing, integration, etc.). Each change has status, risk, and coordination metadata. Approval Workflow Approvals flow from approval roles and mappings. The system suggests approvers and tracks decisions. Evidence Evidence (screenshots, test results, docs) is required before submission. The platform enforces requirements by change type. Revenue Impact Report The Revenue Impact Report summarizes exposure, risk drivers, and mitigations. It powers executive views and SLA tracking. Tech Stack Frontend : Next.js 16, React 19 Backend : Next.js API routes, Supabase Auth : Supabase Auth Database : Supabase (PostgreSQL)"
+    "content": "Overview Solvren is a revenue protection platform built on Next.js with Supabase for data and auth. The architecture supports the full closed loop: detect, quantify, act, verify, and prove value. Core Platform Layers Integrations Connect to billing, CRM, pricing, and other revenue systems. Integrations produce signals that flow into the platform. Identity Graph Entity resolution across systems — accounts, subscriptions, customers — so signals and issues can be correlated correctly. Signals Ingested data streams from integrations. Normalized and stored for detector processing. Detectors Logic that analyzes signals and creates issues when potential revenue impact is found. Packaged as detector packs. Impact Engine Quantifies revenue at risk for each issue. Uses models and signal data to estimate impact. Feeds prioritization and policy decisions. Execution / Write back Playbooks orchestrate actions . Write back sends changes to external systems when policies allow. Includes retry, rollback, and audit. Verification / ROI Confirms action outcomes and attributes recovered revenue and avoided loss . Powers the ROI dashboard and executive visibility. Safe Automation Policies, approvals, safe mode, and confidence thresholds govern when automation can run. Keeps humans in control where risk is higher. Onboarding / Performance Metrics and guidance for getting to first value and optimizing playbook performance. Tech Stack Frontend : Next.js 16, React 19 Backend : Next.js API routes, Supabase Auth : Supabase Auth Database : Supabase (PostgreSQL) Related"
   },
   {
     "title": "Revenue Impact Report",
@@ -133,6 +175,20 @@
     "content": "Purpose The Revenue Impact Report helps teams understand the financial and operational risk of a change before it ships. What it includes Typical report outputs include risk level, failure modes, impact areas, safeguards, and executive summary. Design model The report combines deterministic baseline signals, structured report generation, persisted report versions, and stale detection after material edits. Why versioning matters A report should reflect the current change state. If material fields change, the report may become stale and should be regenerated."
   },
   {
+    "title": "Security and Trust",
+    "description": "Security, authentication, and audit.",
+    "section": "Architecture",
+    "href": "/docs/architecture/security-and-trust",
+    "content": "Overview Solvren uses Supabase Auth, role based access control, and audit logging to ensure security and trust. Security Layers Authentication — Supabase Auth (email, SSO) Authorization — RBAC by role (owner, admin, submitter, reviewer, viewer, executive) Audit — Actions logged for compliance and troubleshooting Trust Edit links point to real repo paths No placeholder URLs in customer facing docs Integration credentials secured per best practices Related"
+  },
+  {
+    "title": "System Layers",
+    "description": "Platform layers and components.",
+    "section": "Architecture",
+    "href": "/docs/architecture/system-layers",
+    "content": "Overview Solvren's system is organized into layers that map to the product flow. Layer Diagram 1. Integrations — External system connectors 2. Identity graph — Entity resolution 3. Signals — Data ingestion and storage 4. Detectors — Issue detection 5. Impact engine — Revenue quantification 6. Execution — Playbook and action execution 7. Verification — Value attribution 8. Safe automation — Policy and approval layer 9. Onboarding / performance — Metrics and guidance Component Interaction Signals flow from integrations through the pipeline. Detectors consume signals and produce issues. The impact engine scores issues. Playbooks execute actions when policies allow. Verification closes the loop and attributes value. Related"
+  },
+  {
     "title": "System Overview",
     "description": "High-level architecture of Solvren.",
     "section": "Architecture",
@@ -140,11 +196,32 @@
     "content": "Overview Solvren is a governance platform designed to manage operational changes that impact revenue systems. The platform coordinates change workflows across multiple systems and teams. Core Components The system consists of several major components. Change Management Engine Tracks the lifecycle of operational changes. Handles: • intake workflows • lifecycle state transitions • coordination tracking Coordination Autopilot Analyzes change metadata and recommends: • required approvers • evidence requirements • operational safeguards Risk Analysis Engine Evaluates the potential financial impact of a change. Generates: • risk scores • failure mode analysis • mitigation recommendations Audit and Compliance Layer Tracks system actions and governance decisions. Provides a complete historical record of operational changes."
   },
   {
-    "title": "Screenshot Guidelines",
-    "description": "Consistent screenshot patterns for Solvren documentation.",
-    "section": "Contributing",
-    "href": "/docs/contributing/screenshot-guidelines",
-    "content": "Overview Elite documentation uses consistent screenshot patterns. Follow these guidelines to maintain visual consistency across Solvren docs. Pattern 1 — Interface Overview Use for introducing a screen or feature. Structure: 1. Step explanation 2. Full UI screenshot 3. Caption explaining the interface Example MDX: Pattern 2 — Annotated UI Use when highlighting specific elements. Structure: 1. Numbered list describing each element 2. Annotated screenshot with callouts Example MDX: Pattern 3 — Workflow Screens Use for multi step flows. Structure: One screenshot per step Clear step headers Example MDX: Folder Structure Store screenshots in: Style Guidelines | Rule | Recommendation | | | | | Resolution | 1440px wide | | Format | PNG | | Theme | Use light mode | | Callouts | Simple numbered circles | | Cropping | Remove browser UI | Reference These patterns follow conventions used by Stripe, Vercel, and Supabase documentation."
+    "title": "Demo Orgs and Safe Environments",
+    "description": "Safe environments for demos and testing.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/demo-orgs-and-safe-environments",
+    "content": "Overview Demo orgs and safe environments let you test Solvren without affecting production data. Use them for demos, UAT, and training. Best Practices Use read only or sandbox integrations where possible Enable simulation mode for playbooks in demo Isolate demo data from production Related — Test data and scripts"
+  },
+  {
+    "title": "Admin & Governance",
+    "description": "Policy Center, integration health, and demo environments.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance",
+    "content": "Overview Admins configure policies, monitor integration health, and manage demo or safe environments. What You'll Find Here | Page | Description | | | | | | Configure approval and automation policies | | | Monitor signal pipelines and connections | | | Safe environments for demos and testing | Related — Policy concepts — Signal health — Full org setup"
+  },
+  {
+    "title": "Integration Health",
+    "description": "Monitor signal pipelines and connections.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/integration-health",
+    "content": "Overview Integration health dashboards show connection status, signal flow, and any issues with your connected systems. What to Monitor Connection status — Green/red per integration Last sync — When data was last received Error rate — Failed syncs or auth issues Signal volume — Expected vs actual Troubleshooting When health is degraded: Check authentication and tokens Verify API quotas and rate limits Review Related"
+  },
+  {
+    "title": "Policy Center",
+    "description": "Configure approval and automation policies.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/policy-center",
+    "content": "Overview The Policy Center is where admins configure approval gates, automation rules, and safe mode settings. What You Configure Approval requirements — Who must approve what Confidence thresholds — When to auto execute vs require approval Impact thresholds — Require approval above certain impact levels Role mappings — Map approvers to playbooks or issue types Related — Legacy approval docs"
   },
   {
     "title": "What is a Change?",
@@ -189,6 +266,13 @@
     "content": "Overview Solvren tracks which systems are affected by a change. These systems represent the platforms where operational logic is implemented. Understanding system dependencies helps reviewers evaluate risk. Examples of Systems Organizations commonly integrate with multiple revenue systems. Examples include: Billing Platforms Systems responsible for customer billing. Examples: • Stripe • Chargebee • Recurly Changes to billing platforms can affect invoices, payments, and subscriptions. CRM Platforms Customer relationship management systems. Examples: • Salesforce • HubSpot CRM changes may affect lead routing, account ownership, or opportunity tracking. Financial Systems Systems responsible for accounting and revenue reporting. Examples: • NetSuite • QuickBooks • custom financial reporting pipelines Changes affecting financial systems may require finance approval. Marketing Platforms Marketing automation systems responsible for customer communication. Examples: • marketing automation tools • campaign platforms • email engagement systems Changes may affect lead capture or promotional campaigns. Internal Systems Many organizations operate internal services that support their revenue operations. Examples: • pricing microservices • internal billing APIs • custom reporting pipelines Changes to these systems may introduce hidden dependencies. Why Systems Matter Identifying systems involved in a change helps the platform: • recommend appropriate approvers • identify operational dependencies • estimate risk exposure For example, a change affecting both Stripe and Salesforce may require coordination between finance and revenue operations teams."
   },
   {
+    "title": "Screenshot Guidelines",
+    "description": "Consistent screenshot patterns for Solvren documentation.",
+    "section": "Contributing",
+    "href": "/docs/contributing/screenshot-guidelines",
+    "content": "Overview Elite documentation uses consistent screenshot patterns. Follow these guidelines to maintain visual consistency across Solvren docs. Pattern 1 — Interface Overview Use for introducing a screen or feature. Structure: 1. Step explanation 2. Full UI screenshot 3. Caption explaining the interface Example MDX: Pattern 2 — Annotated UI Use when highlighting specific elements. Structure: 1. Numbered list describing each element 2. Annotated screenshot with callouts Example MDX: Pattern 3 — Workflow Screens Use for multi step flows. Structure: One screenshot per step Clear step headers Example MDX: Folder Structure Store screenshots in: Style Guidelines | Rule | Recommendation | | | | | Resolution | 1440px wide | | Format | PNG | | Theme | Use light mode | | Callouts | Simple numbered circles | | Cropping | Remove browser UI | Reference These patterns follow conventions used by Stripe, Vercel, and Supabase documentation."
+  },
+  {
     "title": "Example: Billing Logic Change",
     "description": "Governance workflow for billing system updates.",
     "section": "Examples",
@@ -203,6 +287,55 @@
     "content": "Overview This example demonstrates how a pricing configuration change is managed through Solvren. Pricing changes are high impact because they directly affect customer billing and revenue generation. Scenario An organization wants to introduce a new pricing tier for a product. The change involves: • updating pricing logic in the billing platform • updating pricing documentation • verifying invoice generation Step 1 — Create the Change Example change configuration: | Field | Value | | | | | Title | Add new Pro pricing tier | | Domain | Pricing | | Systems | Stripe | | Change Type | Pricing configuration | Step 2 — Coordination Autopilot The system generates recommended governance steps. Suggested approvals: • Finance • Product Suggested evidence: • pricing rule validation tests • invoice simulation • rollback procedure Step 3 — Revenue Impact Report The system identifies potential risks: Failure modes: • incorrect pricing applied to existing customers • invoice calculation errors Risk score: Medium Recommended safeguards: • test invoice generation • verify billing tier mapping Step 4 — Submit for Review Approvers review: • change description • risk report • evidence checklist Finance verifies pricing logic before approval. Outcome After approvals are complete, the change is approved and recorded in the audit history. This example demonstrates how governance workflows reduce pricing configuration risk."
   },
   {
+    "title": "Detector Packs",
+    "description": "Available detector packs and what they find.",
+    "section": "Detectors & Issues",
+    "href": "/docs/detectors-issues/detector-packs",
+    "content": "Overview Detector packs bundle detection logic for specific problem domains. They run against incoming signals and create issues when anomalies or risks are found. Example Pack Types | Pack | Purpose | | | | | Billing anomalies | Duplicate charges, failed payments, subscription mismatches | | Pricing drift | Rule changes, discount inconsistencies | | CRM data quality | Missing fields, invalid mappings | | Revenue attribution | Gaps in attribution logic | (Exact packs vary by deployment.) Enabling Packs Admins enable detector packs per environment. Once enabled, packs run on a schedule or in near real time, depending on configuration. Related"
+  },
+  {
+    "title": "How Issues Are Created",
+    "description": "Flow from detector run to issue creation.",
+    "section": "Detectors & Issues",
+    "href": "/docs/detectors-issues/how-issues-are-created",
+    "content": "Overview Issues are created when detector packs find problems in signals. The flow is: 1. Signals arrive and are stored 2. Detector packs run (scheduled or triggered) 3. Detectors evaluate signals against rules/models 4. When a problem is found, an issue is created 5. Impact engine estimates revenue at risk (if configured) 6. Issue appears in the ops inbox Issue Attributes Each issue typically has: Source detector and signal Impact estimate Confidence score Recommended playbook(s) Related"
+  },
+  {
+    "title": "Detectors & Issues",
+    "description": "How detectors find issues and what issues represent.",
+    "section": "Detectors & Issues",
+    "href": "/docs/detectors-issues",
+    "content": "Overview Detectors analyze signals and create issues when they find potential revenue impact. Issues are the core unit of work in Solvren's value loop. What You'll Find Here | Page | Description | | | | | | Available detector packs and what they find | | | Detector to issue flow | | | Anatomy of an issue | Related — Signals feed detectors — Issues get impact scores"
+  },
+  {
+    "title": "Issue Explainer",
+    "description": "Anatomy of an issue in Solvren.",
+    "section": "Detectors & Issues",
+    "href": "/docs/detectors-issues/issue-explainer",
+    "content": "Overview An issue is a detected problem that may impact revenue. It is the core unit of work in the value loop. Issue Anatomy | Field | Description | | | | | Source | Detector and signal that produced the issue | | Impact | Estimated revenue at risk | | Confidence | How confident the system is in the finding | | Status | Open, in progress, resolved, etc. | | Verification | Whether the fix was verified and value attributed | | Recommended playbooks | Actions that can address the issue | Lifecycle Issues move through states: created → triaged → action taken → verified. Verification attributes recovered revenue or avoided loss. Related"
+  },
+  {
+    "title": "Connect Your First System",
+    "description": "Connect an integration so Solvren can receive signals and detect issues.",
+    "section": "Get Started",
+    "href": "/docs/get-started/connect-your-first-system",
+    "content": "Overview Before Solvren can detect issues, it needs data from your revenue systems. Integrations connect those systems and produce signals that detectors consume. What You'll Do 1. Navigate to the Integrations area in the admin or platform UI 2. Choose a supported integration (e.g., billing, CRM, pricing) 3. Authenticate and authorize Solvren to read the required data 4. Confirm that signals are flowing (check integration health) Supported Integrations Solvren supports connections to: Billing systems — Subscriptions, invoices, usage CRM platforms — Accounts, opportunities, revenue attribution Pricing engines — Rules, discounts, entitlements Other revenue related systems — Per your deployment See for the full list. After Connecting Once signals are flowing: Detector packs can run against incoming data Issues will appear in the Issues inbox when detectors find problems You can move to Related"
+  },
+  {
+    "title": "Detect Your First Issue",
+    "description": "See how detectors surface issues from signals and what to do next.",
+    "section": "Get Started",
+    "href": "/docs/get-started/detect-your-first-issue",
+    "content": "Overview Detectors analyze incoming signals and create issues when they find potential revenue impact. Your first detected issue is the starting point for the rest of the value loop. What You'll Do 1. Ensure at least one integration is connected and producing signals 2. Enable one or more detector packs for your environment 3. Wait for detectors to run (or trigger a run if supported) 4. Open the Issues inbox and inspect your first issue Understanding Issues An issue typically includes: Source — Which detector and signal produced it Impact — Estimated revenue impact (if quantified) Confidence — How confident the system is in the finding Recommended actions — Playbooks that can address it After Detecting Once you see an issue: Review its impact and confidence Decide whether to act manually or enable a playbook Proceed to to automate resolution Related"
+  },
+  {
+    "title": "Enable Your First Playbook",
+    "description": "Turn on a playbook to act on issues and start recovering or avoiding revenue loss.",
+    "section": "Get Started",
+    "href": "/docs/get-started/enable-your-first-playbook",
+    "content": "Overview Playbooks define what Solvren does when an issue is detected. They can recommend actions, run semi automated workflows, or (with safe automation) execute fixes automatically when policies allow. What You'll Do 1. Open the Playbooks or Policy Center area 2. Choose a playbook that matches your first issue type 3. Configure policies (e.g., approval gates, safe mode thresholds) 4. Enable the playbook for your environment 5. Let it run on the next matching issue (or trigger it) Safe Automation Before enabling full automation: Set policies — Who approves what, and when Use safe mode — Start with recommendations or simulation Understand confidence thresholds — Higher confidence may allow more automation See for details. After Enabling Once a playbook runs: Actions may be recommended, simulated, or executed You can verify outcomes in the Verification & ROI area Proceed to Related"
+  },
+  {
     "title": "Create Your First Change",
     "description": "Walk through the complete Solvren workflow.",
     "section": "Get Started",
@@ -211,10 +344,10 @@
   },
   {
     "title": "Get Started",
-    "description": "Learn how to set up Solvren and govern your first revenue-impacting change.",
+    "description": "Connect your systems, detect your first issue, enable your first playbook, and verify your first value.",
     "section": "Get Started",
     "href": "/docs/get-started",
-    "content": "Welcome to Solvren Solvren is a governance platform for revenue impacting operational changes . Modern revenue systems span many tools—billing systems, CRM platforms, marketing automation, pricing logic, and reporting infrastructure. Changes to any of these systems can introduce financial risk if they are not coordinated correctly. Solvren helps teams: • Identify revenue risk before deployment • Coordinate cross functional approvals • Enforce operational safeguards • Document change decisions and evidence • Provide executive visibility into revenue risk How Solvren Works Solvren introduces a structured workflow for managing high impact operational changes. The workflow consists of five phases: 1️⃣ Draft the change Define what is being modified and which systems are involved. 2️⃣ Guided intake Capture structured information about rollout plans, customer impact, and operational dependencies. 3️⃣ Coordination Autopilot Solvren suggests approvers, evidence requirements, and coordination tasks. 4️⃣ Revenue Impact Analysis Generate a structured report identifying failure modes and risk exposure. 5️⃣ Approval and release Submit the change for cross functional review. Typical Changes Managed in Solvren Examples include: • Pricing or discount rule updates • Billing logic changes • CRM routing or lead assignment updates • Revenue recognition configuration changes • Contract structure changes • Payment processor configuration changes • Revenue reporting pipeline updates Steps to First Value If you're new to Solvren, follow this path: 1️⃣ Set up your organization Configure users, roles, and approval mappings. 2️⃣ Create your first change Walk through the intake workflow and generate a risk report. 3️⃣ Submit for review Experience the full approval workflow. Next Steps"
+    "content": "Welcome to Solvren Solvren is a revenue protection platform that closes the loop between detecting issues and proving value. You will: 1. Connect your revenue systems 2. Detect your first issue 3. Enable your first playbook 4. View your first value Path to First Value | Step | Page | What you do | | | | | | 1 | | Connect an integration so Solvren can receive signals | | 2 | | See how detectors surface issues from signals | | 3 | | Turn on a playbook to act on issues | | 4 | | Verify results and see recovered or avoided value | Key Concepts Signal — Data from your connected systems (e.g., billing, CRM, pricing) that Solvren ingests Detector — Logic that identifies potential issues from signals Issue — A detected problem that may impact revenue Playbook — Automated or semi automated actions that resolve issues Verification — Confirmation that an action succeeded and value was recovered or loss avoided Next Steps — Understand how Solvren works end to end — Deep dive on terminology — Full organization setup (users, roles, policies)"
   },
   {
     "title": "Set Up Your Organization",
@@ -224,11 +357,46 @@
     "content": "Overview Before teams can manage changes in Solvren, the organization must be configured. The setup process establishes: • user access • approval roles • governance policies • evidence enforcement rules This typically takes 10–15 minutes . Step 1 — Create Your Organization When you first sign in, you will be prompted to create an organization. Provide: • Organization name • Primary administrator • Default timezone Organizations are the security boundary for data, approvals, and policies. Step 2 — Invite Your Team Solvren works best when all stakeholders involved in revenue systems are included. Typical roles include: Engineering Finance Revenue Operations Product Analytics To invite users: 1. Open Settings → Users 2. Click Invite User 3. Enter email addresses 4. Assign a role Users will receive an email invitation. Step 3 — Configure User Roles Roles control what actions users can perform. Typical roles include: Owner Full system access. Can configure organization settings, roles, and governance policies. Admin Operational administrators responsible for maintaining governance configuration. Submitter Can create and submit changes. Reviewer Responsible for reviewing and approving changes. Step 4 — Configure Approval Roles Approval roles represent organizational responsibility , not individuals. Examples: Engineering Lead Finance Product Revenue Operations Security Users are assigned to these roles so the system can route approvals automatically. Step 5 — Configure Approval Mappings Approval mappings determine which roles must approve which changes . Mappings are based on: • change type • domain • systems involved Example: | Change Type | Required Approvers | | | | | Pricing change | Finance + Product | | Billing logic change | Engineering + Finance | | CRM routing change | RevOps | Solvren uses these mappings when generating Coordination Autopilot plans. Step 6 — Configure Evidence Enforcement Solvren ensures operational safeguards are documented. Examples of required evidence: Rollback plan Test scenarios Monitoring plan Revenue validation checks Evidence requirements can be configured by: • domain • system • change type Setup Complete Once setup is complete, your team can begin creating changes. Next: ➡"
   },
   {
+    "title": "View Your First Value",
+    "description": "Verify results and see recovered revenue or avoided loss in the ROI dashboard.",
+    "section": "Get Started",
+    "href": "/docs/get-started/view-your-first-value",
+    "content": "Overview The final step in the value loop is verification . Solvren tracks which actions succeeded and quantifies the recovered revenue or avoided loss they produced. What You'll Do 1. Open the Verification or ROI area in the dashboard 2. Find issues where actions have been executed and verified 3. Review recovered vs avoided value 4. Use the ROI dashboard for executive visibility Recovered vs Avoided Value Recovered revenue — Value that was lost (e.g., churn, billing error) and restored by an action Avoided loss — Value that would have been lost if the issue had not been addressed Both contribute to the total ROI Solvren proves. After Viewing You now have: A connected system A detected issue An enabled playbook Verified value From here, expand to more integrations, detectors, and playbooks. See . Related"
+  },
+  {
     "title": "Frequently Asked Questions",
     "description": "Common questions about Solvren.",
     "section": "FAQ",
     "href": "/docs/faq",
     "content": "What types of changes should be tracked? Solvren is designed for revenue impacting operational changes . Examples include: • pricing rule updates • billing configuration changes • CRM routing changes • revenue recognition updates Do all operational changes need approval? Not necessarily. Organizations can configure which domains require formal approvals. High risk domains such as billing or pricing typically require multiple reviewers. Can approvals be customized? Yes. Administrators can configure: • approval roles • approval mappings • domain specific requirements Can we integrate with Slack? Yes. Solvren can deliver notifications and approval alerts through Slack. Why is evidence required? Evidence ensures that operational safeguards exist before a change is implemented. This reduces operational risk and improves incident response readiness."
+  },
+  {
+    "title": "Confidence and Impact Score",
+    "description": "Understanding confidence levels and impact scores.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization/confidence-and-impact-score",
+    "content": "Overview Each issue has an impact (revenue at risk) and a confidence (how certain the system is). Together they drive prioritization and safe automation. Confidence Levels Higher confidence means the detector and impact model are more certain. Low confidence may require manual review before automation. Impact Score Impact can be expressed as a dollar amount or severity band. It helps operators and playbooks decide urgency and which actions to take. Safe Automation Policies often gate automation by confidence. High confidence issues may be auto resolved; low confidence issues may require approval. Related"
+  },
+  {
+    "title": "Impact Models",
+    "description": "How revenue impact is calculated.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization/impact-models",
+    "content": "Overview The impact engine estimates revenue at risk for each issue. Models vary by issue type and available signal data. Model Types Direct revenue — Billing, subscription, or payment impact Churn risk — Customer or contract at risk Attribution gaps — Revenue misattributed or lost Config drift — Pricing or discount misconfigurations Inputs Impact models use signal data, historical patterns, and configurable parameters. Results feed prioritization and policy decisions. Related"
+  },
+  {
+    "title": "Impact & Prioritization",
+    "description": "Impact models, confidence scores, and prioritization logic.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization",
+    "content": "Overview Solvren quantifies impact (revenue at risk) and uses it to prioritize issues. Confidence scores indicate how certain the system is in each estimate. What You'll Find Here | Page | Description | | | | | | How impact is calculated | | | Confidence levels and score interpretation | | | How issues are ordered | Related — Confidence gates automation"
+  },
+  {
+    "title": "Prioritization Logic",
+    "description": "How issues are ordered in the ops inbox.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization/prioritization-logic",
+    "content": "Overview Issues are prioritized so high impact, high confidence items surface first. The logic combines impact, confidence, age, and policy rules. Factors | Factor | Effect | | | | | Impact | Higher impact = higher priority | | Confidence | Higher confidence = higher priority | | Age | Older issues may be elevated | | Policy | Custom rules can override default ordering | Ops Inbox The ops inbox displays issues in priority order. Operators can filter and sort as needed. Related"
   },
   {
     "title": "Approvals Workflow",
@@ -322,6 +490,83 @@
     "content": "Overview This guide walks you through connecting Jira Cloud to Solvren in about 5 minutes. No developer help required—admins can complete setup from org settings. Step 1 — Connect Jira 1. Go to Org settings → Integrations → Jira → Setup 2. Click Connect Jira 3. Solvren will request permission to: Read Jira issues and projects Sync governance status Manage webhooks for real time updates 4. Authorize the app in Atlassian 5. You'll return to Solvren with Jira connected Step 2 — Select Projects Choose the Jira projects you want Solvren to monitor. Typical projects: Platform Engineering Revenue Systems Internal Tools Billing or Payments Select only projects where changes might affect revenue, billing, or financial systems. You can add more later. Step 3 — Map Statuses Map Jira statuses to Solvren governance states so status changes sync correctly. Example mapping: | Jira Status | Solvren State | | | | | Open | Draft | | In Progress | Ready | | Ready for Review | Ready | | In Review | In Review | | Blocked | Blocked | | Done | Approved | | Rejected | Rejected | Customize mappings to match your workflow. Solvren uses these to keep governance status in sync when Jira issues change. Step 4 — Enable Features Recommended feature toggles: Webhook Sync — Real time status updates when Jira issues change (recommended) Issue Property Sync — Show governance status in Jira (status, risk score, approval progress) Comment Sync — Post governance events as Jira comments Enable all three for the best experience. Webhook Sync requires webhook registration; Solvren handles this automatically. Step 5 — Validate Click Test Connection . Solvren checks: Jira authentication API access Project permissions Webhook registration (if enabled) If any check fails, follow the on screen guidance. Common issues: Webhook not registered — Ensure the Jira admin has approved webhooks Project access — Verify your Jira user has access to selected projects Step 6 — Done After validation passes, Solvren will: Detect Jira status changes Sync governance data with linked issues Mirror approval decisions in Jira Display governance status in Jira (when Issue Property Sync is enabled) You can return to Jira integration settings anytime to add projects, adjust status mappings, or change feature toggles. Screenshots The setup wizard includes: 1. OAuth screen — Atlassian authorization 2. Project selector — Choose projects to monitor 3. Status mapping table — Map Jira → Solvren statuses 4. Feature toggle panel — Webhook, property, and comment sync 5. Validation results — Connection health checks 6. Success confirmation — Setup complete Related — Full integration reference, webhook setup, API details — How changes flow through Solvren — Initial org configuration"
   },
   {
+    "title": "Getting to First Value",
+    "description": "Path from setup to verified value.",
+    "section": "Onboarding & Playbook Performance",
+    "href": "/docs/onboarding-performance/getting-to-first-value",
+    "content": "Overview First value is the moment you see recovered revenue or avoided loss attributed to a Solvren action. This page summarizes the path. Steps 1. Connect — Integrate at least one revenue system 2. Detect — Enable detector packs; see first issue 3. Enable — Turn on a playbook for that issue type 4. Verify — Confirm action succeeded; see value in ROI dashboard See for detailed guides. Time to First Value With healthy integrations and configured detectors, first value can typically be achieved within days of setup. Related"
+  },
+  {
+    "title": "Onboarding & Playbook Performance",
+    "description": "Getting to first value and playbook performance.",
+    "section": "Onboarding & Playbook Performance",
+    "href": "/docs/onboarding-performance",
+    "content": "Overview This section helps you get to first value quickly and optimize playbook performance over time. What You'll Find Here | Page | Description | | | | | | Path from setup to verified value | | | Measuring and improving playbooks | | | Expand after first value | Related"
+  },
+  {
+    "title": "Playbook Performance",
+    "description": "Measuring and improving playbook effectiveness.",
+    "section": "Onboarding & Playbook Performance",
+    "href": "/docs/onboarding-performance/playbook-performance",
+    "content": "Overview Playbook performance metrics help you understand which playbooks drive the most value and where to optimize. Metrics Value attributed — Recovered + avoided per playbook Resolution rate — Issues resolved vs total Time to resolution — How quickly issues are addressed False positive rate — Issues that didn't need action Optimization Enable high value playbooks first Tune confidence thresholds to balance automation and accuracy Use simulations to validate before enabling Related"
+  },
+  {
+    "title": "Recommended Next Steps",
+    "description": "Expand after achieving first value.",
+    "section": "Onboarding & Playbook Performance",
+    "href": "/docs/onboarding-performance/recommended-next-steps",
+    "content": "Overview After you've seen your first verified value, expand coverage and automation. Recommended Expansion 1. More integrations — Connect additional revenue systems 2. More detector packs — Broaden issue coverage 3. More playbooks — Address more issue types 4. Tune policies — Adjust approvals and safe mode as confidence grows 5. Executive visibility — Share ROI dashboard with leadership Related"
+  },
+  {
+    "title": "How Signals Work",
+    "description": "Signal ingestion, pipelines, and flow into detectors.",
+    "section": "Integrations & Signals",
+    "href": "/docs/integrations-signals/how-signals-work",
+    "content": "Overview Signals are the raw data Solvren ingests from connected systems. They flow through pipelines into detector packs, which analyze them and create issues when problems are found. Signal Flow 1. Integration connects to an external system 2. Ingestion pulls or receives data (push/pull depending on integration) 3. Normalization converts data into a canonical format 4. Storage persists signals for detector processing 5. Detection — detector packs run against signals Signal Types Signals vary by integration. Examples: Subscription lifecycle events Billing configuration changes Pricing rule updates CRM opportunity and account changes Related"
+  },
+  {
+    "title": "Integrations & Signals",
+    "description": "Connect systems and understand how signals flow into Solvren.",
+    "section": "Integrations & Signals",
+    "href": "/docs/integrations-signals",
+    "content": "Overview Solvren needs data from your revenue systems to detect issues. Integrations connect those systems. Signals are the data streams that flow from integrations into the platform. What You'll Find Here | Page | Description | | | | | | List of available integrations | | | Signal ingestion and pipeline | | | Monitoring and troubleshooting | Related — Signals feed detectors — Integration health management"
+  },
+  {
+    "title": "Signal Quality and Health",
+    "description": "Monitoring and troubleshooting signal pipelines.",
+    "section": "Integrations & Signals",
+    "href": "/docs/integrations-signals/signal-quality-and-health",
+    "content": "Overview Healthy signals are essential for accurate detection. Solvren monitors signal quality and integration health so you can identify and fix pipeline issues. What to Monitor Ingestion rate — Are signals flowing as expected? Latency — How long from source to Solvren? Completeness — Are required fields present? Errors — Failed syncs or auth issues Integration Health The Admin & Governance area includes integration health dashboards. Use them to: See connection status per integration Identify stale or failing syncs Troubleshoot authentication problems See . Related"
+  },
+  {
+    "title": "Supported Integrations",
+    "description": "Available integrations for connecting revenue systems to Solvren.",
+    "section": "Integrations & Signals",
+    "href": "/docs/integrations-signals/supported-integrations",
+    "content": "Overview Solvren supports integrations with revenue related systems. Each integration produces signals that detectors consume. Integration Types | Category | Purpose | | | | | Billing | Subscriptions, invoices, usage, payment events | | CRM | Accounts, opportunities, revenue attribution | | Pricing | Rules, discounts, entitlements | | Other | Per deployment; contact your admin | Connecting Navigate to the Integrations area in admin or platform settings. Select an integration, authenticate, and authorize Solvren to read the required data. See . Related"
+  },
+  {
+    "title": "How Solvren Works",
+    "description": "End-to-end flow from signals to verified value.",
+    "section": "Platform Overview",
+    "href": "/docs/platform-overview/how-solvren-works",
+    "content": "End to End Flow Solvren processes data through a clear pipeline: 1. Integrations & Signals You connect revenue systems (billing, CRM, pricing, etc.). Solvren ingests data as signals . Signal quality and health are monitored. 2. Detectors & Issues Detector packs analyze signals. When they find potential problems, they create issues with impact estimates and confidence scores. 3. Impact & Prioritization The impact engine quantifies revenue at risk. Issues are prioritized by impact, confidence, and policy rules. 4. Actions & Playbooks Playbooks define what to do for each issue type. They can recommend actions, simulate fixes, or (with policy approval) execute them via write back. 5. Verification & ROI When actions run, Solvren verifies outcomes and attributes recovered revenue or avoided loss . The ROI dashboard surfaces this to executives. 6. Safe Automation Policies control who approves what. Safe mode and confidence thresholds govern when automation can run. Simulations allow testing without execution. Related"
+  },
+  {
+    "title": "Platform Overview",
+    "description": "What Solvren is and how it works as a revenue protection platform.",
+    "section": "Platform Overview",
+    "href": "/docs/platform-overview",
+    "content": "What Solvren Is Solvren is a revenue protection platform . It helps organizations detect issues in revenue systems, quantify impact, take action, verify results, and prove value. It is not just a change governance tool. It closes the full loop from detection to verification and ROI. The Closed Loop Solvren operates as a closed loop: 1. Signals — Data from connected systems (billing, CRM, pricing, etc.) 2. Detectors — Logic that identifies potential issues from signals 3. Impact — Quantification of revenue at risk 4. Actions — Playbooks that recommend or execute fixes 5. Verification — Confirmation that actions succeeded 6. ROI — Recovered revenue and avoided loss, visible in dashboards Key Concepts | Concept | Description | | | | | | A detected problem that may impact revenue | | | Data ingested from connected systems | | | Logic that creates issues from signals | | | Automated or semi automated actions to resolve issues | | | Estimated revenue at risk | | | Confirmation that an action produced value | | | Revenue restored by an action | | | Revenue that would have been lost without the action | | | Policies and controls that govern automated actions | Next Steps — End to end flow — Deep dive on terminology — Path to first value"
+  },
+  {
+    "title": "Key Concepts",
+    "description": "Terminology for Solvren's revenue protection platform.",
+    "section": "Platform Overview",
+    "href": "/docs/platform-overview/key-concepts",
+    "content": "Core Terms Issue A detected problem that may impact revenue. Issues are created by detectors from signals. Each issue has status, impact estimate, confidence, and optional recommended actions. Signal Data ingested from connected systems. Signals flow from integrations into Solvren's pipelines. Examples: subscription events, billing changes, pricing rule updates. Detector Logic that analyzes signals and creates issues when problems are found. Detectors are packaged as detector packs (e.g., billing anomalies, pricing drift). Playbook A set of actions that can be taken for a given issue type. Playbooks can be recommendation only, semi automated (require approval), or fully automated when policies allow. Impact Estimated revenue at risk from an issue. The impact engine uses models to quantify exposure. Impact feeds prioritization and policy decisions. Verification The process of confirming that an action succeeded and produced value. Verification attributes recovered revenue or avoided loss to actions. Recovered Revenue Value that was lost (e.g., churn, billing error) and restored by an action. Avoided Loss Value that would have been lost if the issue had not been addressed. Prevention of future loss. Safe Automation Policies, approvals, safe mode, and confidence thresholds that govern when and how automated actions run. Ensures humans stay in control where risk is higher. First Value The moment a user sees their first verified recovered or avoided value. The goal of the get started path. Related"
+  },
+  {
     "title": "Governance Playbook",
     "description": "Recommended governance structure for revenue operations.",
     "section": "Playbooks",
@@ -334,6 +579,62 @@
     "section": "Playbooks",
     "href": "/docs/playbooks/operational-maturity",
     "content": "Overview Organizations vary widely in how they manage operational changes. Solvren supports teams at different stages of operational maturity. Level 1 — Ad Hoc Changes are implemented without structured governance. Characteristics: • informal approvals • minimal documentation • reactive incident management Risk level: High Level 2 — Documented Organizations begin documenting changes. Characteristics: • written change descriptions • some approval processes • limited safeguards Risk level: Moderate Level 3 — Governed Organizations implement structured governance workflows. Characteristics: • formal approval policies • evidence requirements • cross team coordination Risk level: Low Level 4 — Automated Governance Governance workflows are automated and integrated into operational systems. Characteristics: • automated risk analysis • automated approval routing • structured audit history Risk level: Very Low Level 5 — Predictive Operations Advanced organizations use predictive systems to prevent operational failures. Characteristics: • predictive risk analysis • automated safeguards • continuous operational monitoring Risk level: Minimal"
+  },
+  {
+    "title": "Changelog",
+    "description": "Detailed list of product changes.",
+    "section": "Releases",
+    "href": "/docs/releases/changelog",
+    "content": "Version 1.0 Initial platform release. Added • Change lifecycle tracking • Risk analysis engine • Coordination Autopilot • Evidence enforcement system • Approval workflows • Notification system Infrastructure • secure organization isolation • audit logging • role based access control Future entries will track all changes to the platform."
+  },
+  {
+    "title": "Release Notes",
+    "description": "Product updates and platform evolution.",
+    "section": "Releases",
+    "href": "/docs/releases",
+    "content": "Overview Solvren has evolved from change governance to a full revenue protection platform . Release notes reflect this evolution: detectors, impact engine, policy center, execution reliability, verification/ROI, safe automation, and onboarding/playbook performance. Platform Evolution Detectors & Impact Detector packs — Analyze signals and create issues Impact engine — Quantify revenue at risk Prioritization — Impact and confidence drive ordering Policy & Safe Automation Policy Center — Configure approval and automation policies Safe mode — Confidence thresholds govern automation Simulations — Dry run playbooks without execution Execution & Verification Write back — Execute actions against external systems Verification — Attribute recovered revenue and avoided loss ROI dashboard — Executive visibility into value Onboarding & Performance Path to first value — Connect, detect, enable playbook, view value Playbook performance — Metrics and optimization guidance Version 1.x Core Platform Structured change intake (legacy) Coordination Autopilot recommendations Revenue Impact Report generation Approval routing and evidence enforcement Audit history and search Integrations Billing, CRM, and pricing integrations Signal ingestion and normalization Governance Role based access control Organization governance settings Slack and email notifications Future releases will continue to expand detection coverage, automation, and verification capabilities."
+  },
+  {
+    "title": "Change Review Runbook",
+    "description": "Step-by-step guide for reviewing operational changes.",
+    "section": "Runbooks",
+    "href": "/docs/runbooks/change-review-runbook",
+    "content": "Overview This runbook provides guidance for reviewers evaluating operational changes. Following a consistent review process improves governance quality. Step 1 — Review Change Summary Review the change description to understand: • what is being modified • which systems are affected • expected outcomes Ensure the change description clearly explains the purpose. Step 2 — Evaluate the Risk Report Review the Revenue Impact Report. Check: • risk score • identified failure modes • recommended safeguards Ensure potential risks are clearly understood. Step 3 — Review Evidence Verify that operational safeguards are documented. Check for: • rollback procedures • testing documentation • monitoring plans Ensure the organization can detect and recover from failures. Step 4 — Evaluate Dependencies Review the systems involved in the change. Determine whether additional stakeholders should be consulted. Examples: • finance review for billing changes • engineering review for system logic changes Step 5 — Approve or Request Changes If safeguards are sufficient, approve the change. If issues remain, request additional evidence or clarification. Key Principle Reviewers should ensure that every change answers two questions: What could go wrong? How will we detect and recover if it does?"
+  },
+  {
+    "title": "Troubleshooting Playbook",
+    "description": "Operational troubleshooting guidance.",
+    "section": "Runbooks",
+    "href": "/docs/runbooks/troubleshooting-playbook",
+    "content": "Change Stuck in Review Possible causes: • missing approvals • incomplete evidence • reviewer unavailable Resolution steps: 1. Check approval status 2. Verify evidence checklist 3. notify pending reviewers Missing Evidence If evidence requirements are not satisfied: 1. review required evidence types 2. upload missing documentation 3. update change submission Incorrect Approval Routing If incorrect reviewers appear: 1. verify approval role mappings 2. check domain configuration 3. update governance policies"
+  },
+  {
+    "title": "Safe Automation",
+    "description": "Policies, approvals, safe mode, and simulations.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation",
+    "content": "Overview Safe automation ensures humans stay in control. Policies, approvals, safe mode, and confidence thresholds govern when and how automated actions run. What You'll Find Here | Page | Description | | | | | | Approval gates and policy configuration | | | Confidence thresholds and safe mode | | | Dry run and simulation modes | Related — Policy Center"
+  },
+  {
+    "title": "Policies and Approvals",
+    "description": "Approval gates and policy configuration.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation/policies-and-approvals",
+    "content": "Overview Policies define who must approve actions and under what conditions. Approval gates ensure high risk or low confidence actions get human review. Policy Types | Type | Purpose | | | | | Approval required | Action needs explicit approval before execution | | Confidence threshold | Auto approve above a confidence level | | Impact threshold | Require approval above an impact amount | | Role based | Certain roles must approve | Policy Center The Policy Center (Admin & Governance) is where admins configure policies. See . Related"
+  },
+  {
+    "title": "Safe Mode and Confidence",
+    "description": "Confidence thresholds and safe mode behavior.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation/safe-mode-and-confidence",
+    "content": "Overview Safe mode restricts automation based on confidence. Low confidence issues may only get recommendations; high confidence issues may be auto resolved when policies allow. Confidence Thresholds Admins set thresholds (e.g., 80% confidence for auto execute). Below the threshold, actions may be: Recommendation only Require approval Simulation only Safe Mode Levels | Level | Behavior | | | | | Recommend only | No execution; humans act | | Simulate | Dry run; no write back | | Approve then execute | Human approval required | | Auto execute | Execute when confidence and policy allow | Related"
+  },
+  {
+    "title": "Simulations",
+    "description": "Dry-run and simulation modes.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation/simulations",
+    "content": "Overview Simulations let you test playbooks without executing write back. Actions run in dry run mode and report what would happen. Use Cases Validate playbook logic before enabling Train operators on expected behavior Debug detector to action flow How It Works When simulation is enabled, actions: Evaluate inputs and produce a \"would do\" report Do not call external APIs for write back Log results for review Related"
   },
   {
     "title": "Auditability",
@@ -371,34 +672,6 @@
     "content": "What restricted visibility means Some changes are too sensitive for broad org visibility. Examples include security sensitive billing changes and confidential legal changes. For these cases, Solvren supports restricted visibility. Who can typically access restricted changes Depending on policy, access may be limited to owners, admins, the change creator, assigned reviewers, and explicitly granted users. Why this matters Restricted visibility prevents sensitive work from leaking through queues, search, timeline activity, result counts, and notifications. Best practice Use restricted visibility intentionally for high sensitivity workflows, but do not overuse it for normal operational changes."
   },
   {
-    "title": "Changelog",
-    "description": "Detailed list of product changes.",
-    "section": "Releases",
-    "href": "/docs/releases/changelog",
-    "content": "Version 1.0 Initial platform release. Added • Change lifecycle tracking • Risk analysis engine • Coordination Autopilot • Evidence enforcement system • Approval workflows • Notification system Infrastructure • secure organization isolation • audit logging • role based access control Future entries will track all changes to the platform."
-  },
-  {
-    "title": "Release Notes",
-    "description": "Track new features and improvements in Solvren.",
-    "section": "Releases",
-    "href": "/docs/releases",
-    "content": "Overview The Release Notes provide a history of product improvements and new features. Each release documents: • new capabilities • performance improvements • bug fixes • security updates Version 1.0 Initial public release of Solvren. Core Features • Structured change intake workflows • Coordination Autopilot recommendations • Revenue Impact Report generation • Approval routing system • Evidence enforcement • Audit history and search Platform Capabilities • role based access control • organization governance settings • Slack and email notifications • operational change lifecycle tracking Future releases will continue to expand automation and governance capabilities."
-  },
-  {
-    "title": "Change Review Runbook",
-    "description": "Step-by-step guide for reviewing operational changes.",
-    "section": "Runbooks",
-    "href": "/docs/runbooks/change-review-runbook",
-    "content": "Overview This runbook provides guidance for reviewers evaluating operational changes. Following a consistent review process improves governance quality. Step 1 — Review Change Summary Review the change description to understand: • what is being modified • which systems are affected • expected outcomes Ensure the change description clearly explains the purpose. Step 2 — Evaluate the Risk Report Review the Revenue Impact Report. Check: • risk score • identified failure modes • recommended safeguards Ensure potential risks are clearly understood. Step 3 — Review Evidence Verify that operational safeguards are documented. Check for: • rollback procedures • testing documentation • monitoring plans Ensure the organization can detect and recover from failures. Step 4 — Evaluate Dependencies Review the systems involved in the change. Determine whether additional stakeholders should be consulted. Examples: • finance review for billing changes • engineering review for system logic changes Step 5 — Approve or Request Changes If safeguards are sufficient, approve the change. If issues remain, request additional evidence or clarification. Key Principle Reviewers should ensure that every change answers two questions: What could go wrong? How will we detect and recover if it does?"
-  },
-  {
-    "title": "Troubleshooting Playbook",
-    "description": "Operational troubleshooting guidance.",
-    "section": "Runbooks",
-    "href": "/docs/runbooks/troubleshooting-playbook",
-    "content": "Change Stuck in Review Possible causes: • missing approvals • incomplete evidence • reviewer unavailable Resolution steps: 1. Check approval status 2. Verify evidence checklist 3. notify pending reviewers Missing Evidence If evidence requirements are not satisfied: 1. review required evidence types 2. upload missing documentation 3. update change submission Incorrect Approval Routing If incorrect reviewers appear: 1. verify approval role mappings 2. check domain configuration 3. update governance policies"
-  },
-  {
     "title": "Seeded Personas and Data",
     "description": "Understand the seeded users, roles, systems, and sample changes used for UAT and demos.",
     "section": "UAT",
@@ -411,5 +684,33 @@
     "section": "UAT",
     "href": "/docs/uat/test-scripts",
     "content": "UAT goals User Acceptance Testing should confirm that the product works for real users in realistic workflows. Core test groups Recommended UAT coverage includes owner and admin setup, submitter workflow, reviewer workflow, evidence enforcement, restricted visibility, search and queues, notifications, dashboard correctness. Typical UAT structure Each test should include persona, prerequisites, steps, expected outcomes, pass/fail result, and notes. Example scenario: Submitter creates and submits a high risk change 1. Log in as the submitter 2. Create a draft 3. Complete guided intake 4. Generate Coordination Plan 5. Generate Revenue Impact Report 6. Apply approvers and evidence 7. Submit for review Expected outcomes: readiness becomes satisfied, report and plan appear, review status updates, approval request becomes visible to the assigned reviewer. Use seeded personas and sample changes for UAT so every run is comparable and easier to debug."
+  },
+  {
+    "title": "How Verification Works",
+    "description": "Verification flow and value attribution.",
+    "section": "Verification & ROI",
+    "href": "/docs/verification-roi/how-verification-works",
+    "content": "Overview When an action runs, Solvren verifies the outcome and attributes value. Verification closes the loop from detection to proved ROI. Flow 1. Action executes (recommend, simulate, or write back) 2. Outcome is checked (e.g., billing fix confirmed, churn prevented) 3. Value is attributed: recovered revenue or avoided loss 4. ROI dashboard and reports are updated Attribution Value is attributed to the action and linked to the original issue. This enables tracking by playbook, detector, or time period. Related"
+  },
+  {
+    "title": "Verification & ROI",
+    "description": "How verification works and recovered vs avoided value.",
+    "section": "Verification & ROI",
+    "href": "/docs/verification-roi",
+    "content": "Overview Verification confirms that actions succeeded and produced value. Recovered revenue and avoided loss are attributed to actions and surfaced in the ROI dashboard. What You'll Find Here | Page | Description | | | | | | Verification flow and attribution | | | Value types and how they're calculated | | | Executive visibility and metrics | Related — Verification in the platform layers"
+  },
+  {
+    "title": "Recovered vs Avoided Value",
+    "description": "Value types and how they're calculated.",
+    "section": "Verification & ROI",
+    "href": "/docs/verification-roi/recovered-vs-avoided-value",
+    "content": "Overview Solvren attributes two types of value to actions: recovered revenue and avoided loss . Recovered Revenue Value that was lost and restored by an action. Examples: Billing error fixed → revenue collected Churned customer recovered Misapplied discount corrected Avoided Loss Value that would have been lost if the issue had not been addressed. Examples: Pricing drift caught before deployment Subscription at risk — intervention prevented churn Duplicate charge prevented Total ROI Total ROI = Recovered revenue + Avoided loss. Both contribute to the value Solvren proves. Related"
+  },
+  {
+    "title": "ROI Dashboard",
+    "description": "Executive visibility and value metrics.",
+    "section": "Verification & ROI",
+    "href": "/docs/verification-roi/roi-dashboard",
+    "content": "Overview The ROI dashboard surfaces verified value to executives. It shows recovered revenue, avoided loss, and trends over time. Metrics Total recovered — Revenue restored by actions Total avoided — Loss prevented By playbook — Value attributed per playbook By period — Trends over time Use Cases Prove platform value to leadership Compare playbook performance Track time to value and ramp Related"
   }
 ]

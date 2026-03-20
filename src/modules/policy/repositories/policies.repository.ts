@@ -21,6 +21,10 @@ export type PolicyRow = {
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
+  version?: number;
+  is_system_policy?: boolean;
+  archived_at?: string | null;
+  updated_by_user_id?: string | null;
 };
 
 function rowToDefinition(row: PolicyRow): PolicyDefinition {
@@ -63,11 +67,12 @@ export async function listPoliciesForEvaluation(
 export async function listPolicies(
   supabase: SupabaseClient,
   orgId: string | null,
-  options?: { status?: string; scope?: string }
-): Promise<{ data: PolicyRow[]; error: Error | null }> {
+  options?: { status?: string; scope?: string; includeArchived?: boolean; search?: string; page?: number; pageSize?: number }
+): Promise<{ data: PolicyRow[]; total?: number; error: Error | null }> {
+  const usePagination = options?.page != null && options.page >= 1;
   let q = supabase
     .from("policies")
-    .select("*")
+    .select("*", usePagination ? { count: "exact" } : undefined)
     .order("priority_order", { ascending: true });
 
   if (orgId !== null) {
@@ -77,9 +82,23 @@ export async function listPolicies(
   }
   if (options?.status) q = q.eq("status", options.status);
   if (options?.scope) q = q.eq("scope", options.scope);
+  if (!options?.includeArchived) q = q.is("archived_at", null);
+  if (options?.search?.trim()) {
+    q = q.or(`display_name.ilike.%${options.search.trim()}%,policy_key.ilike.%${options.search.trim()}%`);
+  }
 
-  const { data, error } = await q;
-  return { data: (data ?? []) as PolicyRow[], error: error as Error | null };
+  const page = options?.page ?? 1;
+  const pageSize = Math.min(options?.pageSize ?? 25, 100);
+  if (usePagination) {
+    q = q.range((page - 1) * pageSize, page * pageSize - 1);
+  }
+
+  const { data, error, count } = await q;
+  return {
+    data: (data ?? []) as PolicyRow[],
+    total: count ?? undefined,
+    error: error as Error | null,
+  };
 }
 
 export async function getPolicyById(
@@ -145,14 +164,90 @@ export async function insertPolicy(
 export async function updatePolicy(
   supabase: SupabaseClient,
   id: string,
-  updates: Partial<InsertPolicyInput>
+  updates: Partial<InsertPolicyInput & { updated_by_user_id?: string | null; archived_at?: string | null }>
 ): Promise<{ data: PolicyRow | null; error: Error | null }> {
+  const { data: existing } = await getPolicyById(supabase, id);
+  if (!existing) return { data: null, error: new Error("Policy not found") };
+
+  const nextVersion = (existing.version ?? 1) + 1;
+  const snapshot = {
+    policy_key: existing.policy_key,
+    display_name: existing.display_name,
+    description: existing.description,
+    scope: existing.scope,
+    scope_ref: existing.scope_ref,
+    priority_order: existing.priority_order,
+    status: existing.status,
+    default_disposition: existing.default_disposition,
+    rules_json: existing.rules_json,
+    effective_from: existing.effective_from,
+    effective_to: existing.effective_to,
+  };
+
+  const { error: verError } = await supabase.from("policy_versions").insert({
+    policy_id: id,
+    version: existing.version ?? 1,
+    snapshot_json: snapshot,
+    created_by_user_id: updates.updated_by_user_id ?? null,
+  });
+  if (verError) return { data: null, error: verError as Error };
+
+  const updateRow: Record<string, unknown> = {
+    ...updates,
+    version: nextVersion,
+    updated_at: new Date().toISOString(),
+    updated_by_user_id: updates.updated_by_user_id ?? null,
+  };
+  if ("archived_at" in updates) updateRow.archived_at = updates.archived_at;
+
   const { data, error } = await supabase
     .from("policies")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updateRow)
     .eq("id", id)
     .select()
     .single();
   if (error) return { data: null, error: error as Error };
   return { data: data as PolicyRow, error: null };
+}
+
+export async function duplicatePolicy(
+  supabase: SupabaseClient,
+  id: string,
+  options: { org_id?: string | null; policy_key: string; display_name: string; created_by_user_id?: string | null }
+): Promise<{ data: PolicyRow | null; error: Error | null }> {
+  const { data: existing } = await getPolicyById(supabase, id);
+  if (!existing) return { data: null, error: new Error("Policy not found") };
+
+  return insertPolicy(supabase, {
+    org_id: options.org_id ?? existing.org_id,
+    policy_key: options.policy_key,
+    display_name: options.display_name,
+    description: existing.description,
+    scope: existing.scope,
+    scope_ref: existing.scope_ref,
+    priority_order: existing.priority_order,
+    status: "draft",
+    default_disposition: existing.default_disposition,
+    rules_json: existing.rules_json,
+    effective_from: existing.effective_from,
+    effective_to: existing.effective_to,
+    created_by_user_id: options.created_by_user_id ?? null,
+  });
+}
+
+export async function archivePolicy(
+  supabase: SupabaseClient,
+  id: string
+): Promise<{ data: PolicyRow | null; error: Error | null }> {
+  const { data: existing } = await getPolicyById(supabase, id);
+  if (!existing) return { data: null, error: new Error("Policy not found") };
+  if ((existing as PolicyRow).is_system_policy) {
+    return { data: null, error: new Error("System policies cannot be archived") };
+  }
+
+  return updatePolicy(supabase, id, {
+    status: "inactive",
+    archived_at: new Date().toISOString(),
+    updated_by_user_id: null,
+  });
 }

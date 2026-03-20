@@ -63,7 +63,7 @@ export async function ensureActionExecutionRecord(
     request_payload_json: input.requestPayload,
     idempotency_key: idempotencyKey,
     risk_level: input.riskLevel,
-    max_attempts: input.maxAttempts ?? 4,
+    max_attempts: input.maxAttempts ?? 5,
     reconciliation_required: input.reconciliationRequired ?? false,
   });
 

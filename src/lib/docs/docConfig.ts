@@ -1,16 +1,15 @@
 export const DOCS_CONTENT_BASE = "content/docs";
 
 /**
- * Update this to your actual repo edit URL when ready.
- * Example: https://github.com/your-org/solvren/edit/main/
+ * Edit URL base for docs. Links to the repo edit view.
  */
 export const DOCS_EDIT_BASE_URL =
   process.env.NEXT_PUBLIC_DOCS_EDIT_BASE_URL ||
-  "https://github.com/your-org/solvren/edit/main/";
+  "https://github.com/arcofdescent1/Solvren/edit/main/";
 
 /**
- * Update this to your issue/new discussion form if desired.
+ * Feedback URL for docs. Used in page actions.
  */
 export const DOCS_FEEDBACK_URL =
   process.env.NEXT_PUBLIC_DOCS_FEEDBACK_URL ||
-  "mailto:docs@solvren.com";
+  "mailto:support@solvren.com?subject=Docs%20Feedback";

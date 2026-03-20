@@ -26,7 +26,7 @@ export function PublicHeader() {
             <img src="/images/Solvren.svg" alt="Solvren" className="h-10 w-10 shrink-0 object-contain" />
             <div>
               <div className="text-sm font-semibold tracking-tight text-white">Solvren</div>
-              <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-200/80">Revenue risk intelligence</div>
+              <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-200/80">Revenue protection platform</div>
             </div>
           </Link>
 

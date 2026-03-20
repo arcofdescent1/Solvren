@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { Card, CardBody } from "@/ui";
+import { PolicyListTable } from "./PolicyListTable";
 
 type PolicyRow = {
   id: string;
   policy_key: string;
   display_name: string;
   scope: string;
+  scope_ref?: string | null;
   status: string;
   default_disposition: string;
   priority_order: number;
+  rules_json?: unknown[];
+  updated_at?: string;
 };
 
 type ApprovalRow = {
@@ -48,26 +52,13 @@ export function PolicyCenterClient({
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardBody>
-          <h3 className="text-sm font-medium text-[var(--text-muted)] mb-3">Policies</h3>
-          {policies.length === 0 ? (
-            <p className="text-sm text-[var(--text-muted)]">No policies yet.</p>
-          ) : (
-            <ul className="space-y-2">
-              {policies.slice(0, 15).map((p) => (
-                <li key={p.id} className="flex items-center justify-between text-sm">
-                  <Link href={`/admin/policy/${p.id}`} className="text-[var(--primary)] hover:underline">
-                    {p.display_name}
-                  </Link>
-                  <span className="rounded px-1.5 py-0.5 text-xs bg-[var(--bg-muted)]">
-                    {p.scope} · {p.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link href="/admin/policy/new" className="mt-3 inline-block text-sm font-medium text-[var(--primary)] hover:underline">
-            + Create policy
-          </Link>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-[var(--text-muted)]">Policies</h3>
+            <Link href="/admin/policy/new" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              + Create policy
+            </Link>
+          </div>
+          <PolicyListTable policies={policies} />
         </CardBody>
       </Card>
 
@@ -98,7 +89,12 @@ export function PolicyCenterClient({
 
       <Card className="md:col-span-2">
         <CardBody>
-          <h3 className="text-sm font-medium text-[var(--text-muted)] mb-3">Recent decision logs</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-[var(--text-muted)]">Recent decision logs</h3>
+            <Link href="/admin/policy/decisions" className="text-sm font-medium text-[var(--primary)] hover:underline">
+              View all →
+            </Link>
+          </div>
           {decisionLogs.length === 0 ? (
             <p className="text-sm text-[var(--text-muted)]">No decisions yet.</p>
           ) : (

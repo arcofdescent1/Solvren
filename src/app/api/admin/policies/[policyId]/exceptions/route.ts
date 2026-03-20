@@ -1,10 +1,36 @@
 /**
- * Phase 3 — POST /api/admin/policies/[policyId]/exceptions.
+ * Phase 3 — GET/POST /api/admin/policies/[policyId]/exceptions.
+ * Phase 2 Gap 2 — GET exceptions.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPolicyById } from "@/modules/policy/repositories/policies.repository";
-import { insertPolicyException } from "@/modules/policy/repositories/policy-exceptions.repository";
+import { listExceptionsByPolicyId, insertPolicyException } from "@/modules/policy/repositories/policy-exceptions.repository";
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ policyId: string }> }
+) {
+  const { policyId } = await params;
+  const supabase = await createServerSupabaseClient();
+  const { data: userRes } = await supabase.auth.getUser();
+  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data: policy } = await getPolicyById(supabase, policyId);
+  if (!policy) return NextResponse.json({ error: "Policy not found" }, { status: 404 });
+
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("org_id")
+    .eq("user_id", userRes.user.id)
+    .eq("org_id", policy.org_id)
+    .maybeSingle();
+  if (policy.org_id && !membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { data, error } = await listExceptionsByPolicyId(supabase, policyId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ exceptions: data ?? [] });
+}
 
 export async function POST(
   req: NextRequest,

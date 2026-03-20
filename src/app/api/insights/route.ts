@@ -1,0 +1,40 @@
+/**
+ * Phase 6 — GET /api/insights — benchmarks, recommendations, growth prompts, anomalies.
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getActiveOrg } from "@/lib/org/activeOrg";
+import { buildInsightsBundle } from "@/modules/intelligence/insights.service";
+
+export async function GET(req: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+  const { data: userRes } = await supabase.auth.getUser();
+  if (!userRes?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const orgId =
+    req.nextUrl.searchParams.get("orgId") ??
+    (await getActiveOrg(supabase, userRes.user.id)).activeOrgId;
+  if (!orgId) {
+    return NextResponse.json({ error: "No active org" }, { status: 400 });
+  }
+
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("org_id")
+    .eq("user_id", userRes.user.id)
+    .eq("org_id", orgId)
+    .maybeSingle();
+  if (!membership) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const bundle = await buildInsightsBundle(supabase, orgId);
+    return NextResponse.json({ ok: true, ...bundle });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "insights_failed";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}

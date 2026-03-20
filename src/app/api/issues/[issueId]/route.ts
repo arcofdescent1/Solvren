@@ -1,5 +1,6 @@
 /**
  * Phase 0 — Issue APIs: get by id.
+ * Phase 1 Gap 1 — Full context: entities, signals, evidence, lineage.
  */
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -38,6 +39,51 @@ export async function GET(
   if (i.org_id !== orgId)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const [entitiesRes, signalLinksRes, evidenceRes, lineageRes, changesRes, sourceRes] = await Promise.all([
+    supabase.from("issue_entities").select("entity_type, canonical_entity_id, external_system, external_id, entity_display_name, role, confidence").eq("issue_id", issueId),
+    supabase.from("issue_signal_links").select("signal_id, relevance_score").eq("issue_id", issueId),
+    supabase.from("issue_evidence").select("evidence_type, evidence_key, payload_json, confidence").eq("issue_id", issueId).order("created_at", { ascending: true }),
+    supabase.from("issue_lineage").select("source_type, source_ref, metadata_json").eq("issue_id", issueId).order("created_at", { ascending: true }),
+    supabase.from("change_issue_links").select("change_id, link_type").eq("issue_id", issueId),
+    supabase.from("issue_sources").select("evidence_json").eq("issue_id", issueId).limit(1).maybeSingle(),
+  ]);
+
+  const entities = (entitiesRes.data ?? []).map((e: { entity_type: string; canonical_entity_id: string | null; external_system: string | null; external_id: string | null; entity_display_name: string | null; role: string | null; confidence: number }) => ({
+    entityType: e.entity_type,
+    entityId: e.canonical_entity_id,
+    externalSystem: e.external_system,
+    externalId: e.external_id,
+    displayName: e.entity_display_name,
+    role: e.role ?? "related",
+    confidence: e.confidence,
+  }));
+
+  const signals = (signalLinksRes.data ?? []).map((s: { signal_id: string; relevance_score: number }) => ({
+    signalId: s.signal_id,
+    relevanceScore: s.relevance_score,
+  }));
+
+  const evidence = (evidenceRes.data ?? []).map((e: { evidence_type: string; evidence_key: string; payload_json: unknown; confidence: number | null }) => ({
+    evidenceType: e.evidence_type,
+    evidenceKey: e.evidence_key,
+    payload: e.payload_json,
+    confidence: e.confidence,
+  }));
+
+  const lineage = (lineageRes.data ?? []).map((l: { source_type: string; source_ref: string; metadata_json: unknown }) => ({
+    sourceType: l.source_type,
+    sourceRef: l.source_ref,
+    metadata: l.metadata_json,
+  }));
+
+  const changes = (changesRes.data ?? []).map((c: { change_id: string; link_type: string }) => ({
+    changeId: c.change_id,
+    linkType: c.link_type,
+  }));
+
+  const issueRow = i as { detector_key?: string | null; primary_entity_id?: string | null; issue_type?: string | null; issue_subtype?: string | null; issue_confidence?: number | null };
+  const evidenceJson = sourceRes.data?.evidence_json as Record<string, unknown> | undefined;
+
   return NextResponse.json({
     id: i.id,
     issueKey: i.issue_key,
@@ -53,12 +99,22 @@ export async function GET(
     priorityScore: i.priority_score,
     impactScore: i.impact_score,
     confidenceScore: i.confidence_score,
+    detectorKey: issueRow.detector_key ?? null,
+    primaryEntityId: issueRow.primary_entity_id ?? null,
+    issueType: issueRow.issue_type ?? null,
+    issueSubtype: issueRow.issue_subtype ?? null,
+    issueConfidence: issueRow.issue_confidence ?? null,
     owner: {
       userId: i.owner_user_id,
       teamKey: i.owner_team_key,
     },
     impact: null,
-    links: { changes: [], entities: [], tasks: [] },
+    links: { changes, entities: entities.map((e) => ({ entityType: e.entityType, externalSystem: e.externalSystem, externalId: e.externalId, displayName: e.displayName, entityId: e.entityId, role: e.role, confidence: e.confidence })), tasks: [] },
+    entities,
+    signals,
+    evidence,
+    lineage,
+    evidenceJson: evidenceJson ?? null,
     timestamps: {
       openedAt: i.opened_at,
       updatedAt: i.updated_at,

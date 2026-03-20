@@ -47,6 +47,36 @@ export type InsertPolicyExceptionInput = {
   status?: string;
 };
 
+export async function listExceptionsByPolicyId(
+  supabase: SupabaseClient,
+  policyId: string
+): Promise<{ data: PolicyExceptionRow[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("policy_exceptions")
+    .select("*")
+    .eq("policy_id", policyId)
+    .order("effective_from", { ascending: false });
+
+  if (error) return { data: [], error: error as Error };
+  return { data: (data ?? []) as PolicyExceptionRow[], error: null };
+}
+
+export async function updatePolicyException(
+  supabase: SupabaseClient,
+  id: string,
+  updates: { status?: string }
+): Promise<{ data: PolicyExceptionRow | null; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("policy_exceptions")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return { data: null, error: error as Error };
+  return { data: data as PolicyExceptionRow, error: null };
+}
+
 export async function insertPolicyException(
   supabase: SupabaseClient,
   input: InsertPolicyExceptionInput

@@ -14,6 +14,7 @@ type Rec = {
   title: string;
   description: string;
   confidenceScore: number;
+  href?: string;
 };
 
 export function ActivationRecommendationsPanel() {
@@ -45,10 +46,18 @@ export function ActivationRecommendationsPanel() {
           {recommendations.slice(0, 5).map((r, i) => (
             <li key={i} className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-medium">{r.title}</p>
+                <p className="text-sm font-medium">
+                  {r.href ? (
+                    <Link href={r.href} className="hover:underline text-[color:var(--rg-primary)]">
+                      {r.title}
+                    </Link>
+                  ) : (
+                    r.title
+                  )}
+                </p>
                 <p className="text-xs text-[color:var(--rg-text-muted)]">{r.description}</p>
               </div>
-              <Badge variant="secondary">{r.confidenceScore}%</Badge>
+              <Badge variant="secondary">{r.confidenceScore}</Badge>
             </li>
           ))}
         </ul>

@@ -1,0 +1,39 @@
+---
+title: System Layers
+description: Platform layers and components.
+section: Architecture
+order: 2
+toc: true
+lastUpdated: 2026-03-17
+---
+
+## Overview
+
+Solvren's system is organized into layers that map to the product flow.
+
+---
+
+## Layer Diagram
+
+1. **Integrations** — External system connectors
+2. **Identity graph** — Entity resolution
+3. **Signals** — Data ingestion and storage
+4. **Detectors** — Issue detection
+5. **Impact engine** — Revenue quantification
+6. **Execution** — Playbook and action execution
+7. **Verification** — Value attribution
+8. **Safe automation** — Policy and approval layer
+9. **Onboarding / performance** — Metrics and guidance
+
+---
+
+## Component Interaction
+
+Signals flow from integrations through the pipeline. Detectors consume signals and produce issues. The impact engine scores issues. Playbooks execute actions when policies allow. Verification closes the loop and attributes value.
+
+---
+
+## Related
+
+- [Architecture Overview](/docs/architecture/overview)
+- [Data Flow](/docs/architecture/data-flow)

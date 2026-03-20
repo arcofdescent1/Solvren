@@ -72,8 +72,17 @@ export async function recordOutcomeFromAction(
     await emitOperationalSavings(supabase, { orgId: input.orgId, issueId: input.issueId, amount: amt, headline, summary });
   }
 
-  // Phase 10 — First value instrumentation
+  // Phase 10 + Gap 5 — First value instrumentation + value_events
   if (input.outcomeType === "recovered_revenue" || input.outcomeType === "avoided_loss") {
+    const { recordValueEvent } = await import("@/modules/onboarding/services/value-tracking.service");
+    await recordValueEvent(supabase, {
+      orgId: input.orgId,
+      issueId: input.issueId,
+      valueType: input.outcomeType === "recovered_revenue" ? "recovered" : "avoided",
+      amount: input.amount,
+      confidence: input.confidenceScore,
+    });
+
     const { getMilestoneReached } = await import("@/modules/onboarding/repositories/org-onboarding-milestones.repository");
     const { markMilestoneReachedService } = await import("@/modules/onboarding/services/onboarding-engine.service");
     const milestoneKey = input.outcomeType === "recovered_revenue" ? "first_recovered_revenue" : "first_avoided_loss";

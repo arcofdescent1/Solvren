@@ -2,7 +2,15 @@ import Link from "next/link";
 import { Card, CardBody } from "@/ui";
 
 type ChangeLink = { changeId: string; linkType: string; title?: string | null };
-type EntityLink = { entityType: string; externalSystem: string; externalId: string; displayName?: string | null };
+type EntityLink = {
+  entityType: string;
+  externalSystem?: string | null;
+  externalId?: string | null;
+  displayName?: string | null;
+  entityId?: string | null;
+  role?: string | null;
+  confidence?: number;
+};
 
 export function IssueLinksPanel({
   changes,
@@ -23,6 +31,9 @@ export function IssueLinksPanel({
       </Card>
     );
   }
+
+  const primaryEntities = entities.filter((e) => e.role === "primary");
+  const otherEntities = entities.filter((e) => e.role !== "primary");
 
   return (
     <Card>
@@ -47,14 +58,36 @@ export function IssueLinksPanel({
         )}
         {hasEntities && (
           <div>
-            <p className="text-xs text-[var(--text-muted)] mb-1">Entities</p>
-            <ul className="space-y-1 text-sm">
-              {entities.map((e, i) => (
-                <li key={`${e.externalSystem}-${e.externalId}-${i}`}>
-                  {e.displayName ?? e.externalId} ({e.externalSystem})
-                </li>
-              ))}
-            </ul>
+            {primaryEntities.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs text-[var(--text-muted)] mb-1">Primary entity</p>
+                <ul className="space-y-1 text-sm">
+                  {primaryEntities.map((e, i) => (
+                    <li
+                      key={`primary-${e.entityId ?? e.externalId}-${i}`}
+                      className="rounded bg-[var(--primary)]/5 border border-[var(--primary)]/20 px-2 py-1"
+                    >
+                      <span className="font-medium">{e.entityType}</span> —{" "}
+                      {e.displayName ?? e.externalId ?? e.entityId?.slice(0, 8) ?? "—"}
+                      {e.externalSystem && ` (${e.externalSystem})`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {otherEntities.length > 0 && (
+              <div>
+                <p className="text-xs text-[var(--text-muted)] mb-1">Supporting entities</p>
+                <ul className="space-y-1 text-sm">
+                  {otherEntities.map((e, i) => (
+                    <li key={`${e.entityId ?? e.externalSystem}-${e.externalId ?? i}`}>
+                      {e.displayName ?? e.externalId ?? e.entityId?.slice(0, 8) ?? "—"} ({e.entityType}
+                      {e.externalSystem ? `, ${e.externalSystem}` : ""})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </CardBody>

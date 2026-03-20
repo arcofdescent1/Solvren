@@ -54,6 +54,11 @@ export async function insertIssue(
     confidence_score: input.confidence_score ?? null,
     impact_score: input.impact_score ?? null,
     created_by: input.created_by ?? null,
+    detector_key: input.detector_key ?? null,
+    primary_entity_id: input.primary_entity_id ?? null,
+    issue_type: input.issue_type ?? null,
+    issue_subtype: input.issue_subtype ?? null,
+    issue_confidence: input.issue_confidence ?? null,
   };
   const { data, error } = await supabase
     .from("issues")

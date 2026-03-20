@@ -17,6 +17,7 @@ import {
 import ExecutiveNarrativeCard from "@/components/executive/ExecutiveNarrativeCard";
 import RevenueAtRiskCard from "@/components/executive/RevenueAtRiskCard";
 import TopDriversTable from "@/components/executive/TopDriversTable";
+import ExecutiveInsightsPanel from "@/components/executive/ExecutiveInsightsPanel";
 
 function formatMoney(n: number) {
   if (!Number.isFinite(n)) return "-";
@@ -98,6 +99,7 @@ export default async function ExecutivePage() {
       <ExecutiveNarrativeCard />
       <RevenueAtRiskCard />
       <TopDriversTable />
+      <ExecutiveInsightsPanel />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

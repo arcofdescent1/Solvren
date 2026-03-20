@@ -1,0 +1,41 @@
+---
+title: How Signals Work
+description: Signal ingestion, pipelines, and flow into detectors.
+section: Integrations & Signals
+order: 3
+toc: true
+lastUpdated: 2026-03-17
+---
+
+## Overview
+
+Signals are the raw data Solvren ingests from connected systems. They flow through pipelines into detector packs, which analyze them and create issues when problems are found.
+
+---
+
+## Signal Flow
+
+1. **Integration** connects to an external system
+2. **Ingestion** pulls or receives data (push/pull depending on integration)
+3. **Normalization** converts data into a canonical format
+4. **Storage** persists signals for detector processing
+5. **Detection** — detector packs run against signals
+
+---
+
+## Signal Types
+
+Signals vary by integration. Examples:
+
+- Subscription lifecycle events
+- Billing configuration changes
+- Pricing rule updates
+- CRM opportunity and account changes
+
+---
+
+## Related
+
+- [Supported Integrations](/docs/integrations-signals/supported-integrations)
+- [Signal Quality and Health](/docs/integrations-signals/signal-quality-and-health)
+- [Detector Packs](/docs/detectors-issues/detector-packs)

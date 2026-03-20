@@ -16,6 +16,7 @@ import {
   IntegrationStatusPanel,
 } from "@/components/dashboard";
 import { FirstValueBanner, OnboardingChecklist, ActivationRecommendationsPanel } from "@/components/onboarding";
+import { GrowthPromptsBar } from "@/components/growth/GrowthPromptsBar";
 import { parseOrgRole } from "@/lib/rbac/roles";
 import { canRole } from "@/lib/rbac/permissions";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
@@ -226,6 +227,7 @@ export default async function DashboardPage() {
     <div className="flex gap-6">
       <div className="min-w-0 flex-1 space-y-4">
         <FirstValueBanner />
+        <GrowthPromptsBar />
         <OnboardingChecklist />
         <PageHeader
           breadcrumbs={[{ label: "Overview" }]}

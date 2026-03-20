@@ -1,53 +1,103 @@
 /**
- * Phase 10 — Playbook performance (§14, §15).
+ * Phase 10 + Gap 5 — Playbook performance tracking (§9, §14).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PlaybookHealthState } from "../domain";
-import { getLatestPlaybookPerformance } from "../repositories/playbook-performance-snapshots.repository";
-
-const clamp = (n: number) => Math.max(0, Math.min(100, n));
-
-export function computePerformanceScore(metrics: {
-  recoveredAmount?: number;
-  avoidedAmount?: number;
-  savingsAmount?: number;
-  verificationSuccessRate?: number;
-  runCount?: number;
-  successCount?: number;
-  failureCount?: number;
-  automationRate?: number;
-  avgTimeToResolutionSeconds?: number;
-}): number {
-  const outcomeNorm = clamp(
-    Math.min(100, ((metrics.recoveredAmount ?? 0) + (metrics.avoidedAmount ?? 0) + (metrics.savingsAmount ?? 0)) / 100)
-  );
-  const verificationNorm = ((metrics.verificationSuccessRate ?? 0.8) * 100);
-  const totalRuns = (metrics.runCount ?? 0) || 1;
-  const reliabilityNorm = totalRuns > 0 ? ((metrics.successCount ?? 0) / totalRuns) * 100 : 70;
-  const automationNorm = ((metrics.automationRate ?? 0.5) * 100);
-  const timeNorm = metrics.avgTimeToResolutionSeconds != null
-    ? clamp(100 - Math.min(100, metrics.avgTimeToResolutionSeconds / 3600))
-    : 70;
-
-  return clamp(
-    0.3 * outcomeNorm +
-      0.2 * verificationNorm +
-      0.15 * reliabilityNorm +
-      0.1 * automationNorm +
-      0.1 * 70 +
-      0.1 * timeNorm +
-      0.05 * 80
-  );
-}
 
 export function classifyHealthState(
   runCount: number,
-  verificationRate: number | null,
+  verificationSuccessRate: number | null,
   failureRate: number
-): PlaybookHealthState {
+): string {
   if (runCount < 3) return PlaybookHealthState.INSUFFICIENT_DATA;
-  if (failureRate > 0.5) return PlaybookHealthState.BLOCKED;
-  if ((verificationRate ?? 0) < 0.5) return PlaybookHealthState.DEGRADED;
-  if (failureRate > 0.2 || (verificationRate ?? 0) < 0.8) return PlaybookHealthState.DEGRADED;
+  if (failureRate > 0.2) return PlaybookHealthState.BLOCKED;
+  if ((verificationSuccessRate ?? 0) < 0.8) return PlaybookHealthState.DEGRADED;
   return PlaybookHealthState.HEALTHY;
+}
+
+export function computePerformanceScore(params: {
+  recoveredAmount: number;
+  avoidedAmount: number;
+  savingsAmount?: number;
+  runCount: number;
+  successCount: number;
+  failureCount: number;
+  verificationSuccessRate?: number;
+  avgTimeToResolutionSeconds?: number;
+}): number {
+  const { recoveredAmount, avoidedAmount, savingsAmount = 0, runCount, successCount, verificationSuccessRate } = params;
+  const valueScore = Math.min(100, (recoveredAmount + avoidedAmount + savingsAmount) / 100);
+  const successScore = runCount > 0 ? (successCount / runCount) * 50 : 0;
+  const verifyScore = (verificationSuccessRate ?? 0) * 50;
+  return Math.round(valueScore + successScore + verifyScore);
+}
+
+export type RecordPlaybookExecutionInput = {
+  orgId: string;
+  playbookDefinitionId: string;
+  success: boolean;
+  recoveredValue?: number;
+  avoidedLoss?: number;
+  executionTimeMs?: number;
+};
+
+export async function recordPlaybookExecution(
+  supabase: SupabaseClient,
+  input: RecordPlaybookExecutionInput
+): Promise<{ error: Error | null }> {
+  const now = new Date().toISOString();
+
+  const { data: existing } = await supabase
+    .from("playbook_performance")
+    .select("executions, successes, failures, total_recovered_value, total_avoided_loss, avg_execution_time_ms")
+    .eq("org_id", input.orgId)
+    .eq("playbook_definition_id", input.playbookDefinitionId)
+    .maybeSingle();
+
+  const row = existing as {
+    executions: number;
+    successes: number;
+    failures: number;
+    total_recovered_value: number;
+    total_avoided_loss: number;
+    avg_execution_time_ms: number | null;
+  } | null;
+
+  const executions = (row?.executions ?? 0) + 1;
+  const successes = (row?.successes ?? 0) + (input.success ? 1 : 0);
+  const failures = (row?.failures ?? 0) + (input.success ? 0 : 1);
+  const totalRecovered = (Number(row?.total_recovered_value) ?? 0) + (input.recoveredValue ?? 0);
+  const totalAvoided = (Number(row?.total_avoided_loss) ?? 0) + (input.avoidedLoss ?? 0);
+
+  let avgTimeMs: number | null = null;
+  if (input.executionTimeMs != null) {
+    const prevAvg = row?.avg_execution_time_ms;
+    const prevCount = row?.executions ?? 0;
+    avgTimeMs = prevAvg != null
+      ? (prevAvg * prevCount + input.executionTimeMs) / executions
+      : input.executionTimeMs;
+  } else if (row?.avg_execution_time_ms != null) {
+    avgTimeMs = row.avg_execution_time_ms;
+  }
+
+  const successRate = executions > 0 ? successes / executions : null;
+
+  const { error } = await supabase.from("playbook_performance").upsert(
+    {
+      org_id: input.orgId,
+      playbook_definition_id: input.playbookDefinitionId,
+      executions,
+      successes,
+      failures,
+      total_recovered_value: totalRecovered,
+      total_avoided_loss: totalAvoided,
+      avg_execution_time_ms: avgTimeMs,
+      success_rate: successRate,
+      last_executed_at: now,
+      updated_at: now,
+    },
+    { onConflict: "org_id,playbook_definition_id" }
+  );
+
+  return { error: error as Error | null };
 }

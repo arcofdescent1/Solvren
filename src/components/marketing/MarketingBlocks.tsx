@@ -1,5 +1,16 @@
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, BarChart3, CheckCircle2, CircleDollarSign, FileCheck2, Gauge, LockKeyhole, Search, ShieldCheck, Sparkles, TimerReset, Zap, Layers3, BrainCircuit, Bot, Users, Activity, Building2, Workflow, Eye, AlertTriangle, Receipt, Landmark, Cpu } from "lucide-react";
+import {
+  CORE_LOOP,
+  FINAL_CTA,
+  HERO,
+  HOW_IT_WORKS,
+  INTEGRATIONS,
+  ROI_SECTION,
+  TRUST_BAR,
+  USE_CASES,
+  VALUE_PROPS,
+} from "./landingCopy";
 import { Button } from "@/ui";
 import { PublicHeader } from "./PublicHeader";
 import { PublicFooter } from "./PublicFooter";
@@ -49,18 +60,21 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
 }
 
 export function HeroSection({
-  eyebrow,
+  eyebrow = "Revenue protection platform",
   title,
   subtitle,
-  primaryCta = { href: "/pricing", label: "Request beta access" },
-  secondaryCta = { href: "/how-it-works", label: "See how it works" },
+  primaryCta = { href: "/signup", label: "Get Started" },
+  secondaryCta = { href: "/demo", label: "Book Demo" },
+  trustItems,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   subtitle: string;
   primaryCta?: { href: string; label: string };
   secondaryCta?: { href: string; label: string };
+  trustItems?: string[];
 }) {
+  const items = trustItems ?? TRUST_BAR.items;
   return (
     <section className="relative overflow-hidden border-b border-white/10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.20),_transparent_32%),radial-gradient(circle_at_80%_20%,_rgba(99,102,241,0.18),_transparent_26%),linear-gradient(180deg,_rgba(15,23,42,0.9),_rgba(2,6,23,1))]" />
@@ -91,11 +105,7 @@ export function HeroSection({
             </Link>
           </div>
           <div className="mt-10 grid max-w-2xl gap-3 text-sm text-slate-300 sm:grid-cols-3">
-            {[
-              "Spot risky pricing and billing changes before they ship",
-              "Coordinate reviewers and safeguards automatically",
-              "Give leaders real-time visibility into blocked and overdue work",
-            ].map((item) => (
+            {items.map((item) => (
               <div key={item} className="flex items-start gap-2 rounded-2xl border border-white/10 bg-white/5 p-4">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" />
                 <span>{item}</span>
@@ -208,26 +218,16 @@ function MockPanel({ title, tone, children }: { title: string; tone: "cyan" | "i
 
 export function V1ValueCardsSection() {
   const cards = [
-    {
-      title: "Detect Revenue Risk",
-      body: "Automatically detect pricing and billing changes.",
-      icon: ShieldCheck,
-    },
-    {
-      title: "Govern Changes",
-      body: "Require approvals before revenue-impacting changes go live.",
-      icon: LockKeyhole,
-    },
-    {
-      title: "Prove Compliance",
-      body: "Export governance reports for finance and auditors.",
-      icon: BarChart3,
-    },
+    { title: VALUE_PROPS[0].title, body: VALUE_PROPS[0].description, icon: Search },
+    { title: VALUE_PROPS[1].title, body: VALUE_PROPS[1].description, icon: Gauge },
+    { title: VALUE_PROPS[2].title, body: VALUE_PROPS[2].description, icon: Zap },
+    { title: VALUE_PROPS[3].title, body: VALUE_PROPS[3].description, icon: CheckCircle2 },
+    { title: VALUE_PROPS[4].title, body: VALUE_PROPS[4].description, icon: BarChart3 },
   ];
   return (
     <section className="border-b border-white/10">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {cards.map((c) => (
             <div
               key={c.title}
@@ -248,30 +248,23 @@ export function V1FlowDiagramSection() {
   return (
     <section className="border-b border-white/10">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-white/10 bg-slate-900/60 p-8">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-center">
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Sources</div>
-              <div className="flex gap-2">
-                {["Jira", "Salesforce", "NetSuite"].map((s) => (
-                  <span
-                    key={s}
-                    className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200"
-                  >
-                    {s}
-                  </span>
-                ))}
+        <div className="mb-8 text-center">
+          <h2 className="text-2xl font-bold text-white sm:text-3xl">{CORE_LOOP.title}</h2>
+        </div>
+        <div className="flex flex-wrap items-stretch justify-center gap-3 sm:gap-4">
+          {CORE_LOOP.steps.map((step, i) => (
+            <div key={step.title} className="flex flex-1 flex-col items-center gap-2 sm:min-w-[140px]">
+              <div className="flex w-full flex-1 flex-col rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 text-center transition hover:border-cyan-400/30">
+                <div className="text-sm font-bold uppercase tracking-wider text-cyan-200">{step.title}</div>
+                <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-300">{step.description}</p>
               </div>
+              {i < CORE_LOOP.steps.length - 1 && (
+                <div className="hidden shrink-0 text-slate-500 sm:block">
+                  <ArrowRight className="h-5 w-5" />
+                </div>
+              )}
             </div>
-            <div className="text-2xl text-slate-500">↓</div>
-            <div className="rounded-xl border-2 border-cyan-400/30 bg-cyan-400/10 px-6 py-3">
-              <span className="font-bold text-white">Solvren</span>
-            </div>
-            <div className="text-2xl text-slate-500">↓</div>
-            <div className="rounded-xl border border-white/10 bg-white/5 px-6 py-3">
-              <span className="font-semibold text-white">Revenue Risk Dashboard</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -282,16 +275,12 @@ export function LogoStrip() {
   return (
     <section className="border-b border-white/10 bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Built for teams managing risk across the revenue stack</div>
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {[
-            "Stripe",
-            "Chargebee",
-            "Salesforce",
-            "HubSpot",
-            "NetSuite",
-            "Data Warehouse",
-          ].map((item) => (
+        <div className="text-center">
+          <h3 className="text-lg font-bold text-white">{INTEGRATIONS.title}</h3>
+          <p className="mt-2 text-sm text-slate-400">{INTEGRATIONS.description}</p>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {INTEGRATIONS.items.map((item) => (
             <div key={item} className="rounded-2xl border border-white/8 bg-white/5 px-4 py-4 text-center text-sm font-semibold text-slate-200">
               {item}
             </div>
@@ -307,31 +296,31 @@ export function ProblemSection() {
     {
       title: "Without Solvren",
       points: [
-        "Approvals buried in Slack threads and tickets",
-        "Missing rollback plans and evidence at review time",
-        "No shared view of financial exposure before release",
+        "Revenue-impacting issues go undetected until they hit the bottom line",
+        "No way to quantify which issues matter most",
+        "Manual fixes and no verification that actions worked",
       ],
     },
     {
       title: "What breaks",
       points: [
-        "Billing errors and pricing regressions hit customers",
-        "Revenue recognition issues surface after changes ship",
-        "Critical reviewers are looped in too late",
+        "Failed payments and refund leakage drain revenue",
+        "CRM drift and reconciliation gaps create missed opportunities",
+        "No visibility into recovered value or ROI",
       ],
     },
     {
       title: "Why existing tools fall short",
       points: [
-        "Jira tracks work but not financial risk",
-        "Spreadsheets track approvals but not safeguards",
-        "Slack coordinates conversation, not accountability",
+        "BI tools report after the fact—they don't detect or act",
+        "Ticketing systems track work but don't run playbooks",
+        "No closed loop to verify outcomes and prove value",
       ],
     },
   ];
 
   return (
-    <SectionFrame eyebrow="The problem" title="Revenue-impacting changes are still coordinated like tribal knowledge.">
+    <SectionFrame eyebrow="The problem" title="Revenue-impacting issues hide in your systems until it's too late.">
       <div className="grid gap-6 lg:grid-cols-3">
         {columns.map((column) => (
           <div key={column.title} className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20">
@@ -354,24 +343,24 @@ export function ProblemSection() {
 export function ValuePillarsSection() {
   const features: Feature[] = [
     {
-      icon: "CircleDollarSign",
-      title: "Revenue Risk Intelligence",
-      body: "Analyze pricing, billing, and revenue-impacting changes before they ship. Surface financial exposure, likely failure modes, and the safeguards that matter most.",
+      icon: "Search",
+      title: "Detect and quantify",
+      body: "Continuously monitor Stripe, HubSpot, Salesforce, and more to identify revenue-impacting issues. Score each by financial impact and confidence so you prioritize what matters most.",
     },
     {
-      icon: "Bot",
-      title: "Coordination Autopilot",
-      body: "Automatically identify the right reviewers, evidence, and routing based on systems, domains, and change type — then apply them in one click.",
+      icon: "Zap",
+      title: "Act and verify",
+      body: "Run playbooks to fix issues automatically or with approval. Idempotent execution, retries, and built-in verification ensure every action actually worked.",
     },
     {
-      icon: "Eye",
-      title: "Governance Visibility",
-      body: "See what is in review, blocked, overdue, restricted, or high-risk — with dashboards, queues, timelines, and executive-ready summaries.",
+      icon: "BarChart3",
+      title: "Prove ROI",
+      body: "Track recovered revenue and avoided loss with a clear value dashboard. Share executive-ready ROI, playbook performance, and time-to-value insights.",
     },
   ];
 
   return (
-    <SectionFrame eyebrow="Why teams buy" title="The platform that makes risky operational changes visible, coordinated, and governable.">
+    <SectionFrame eyebrow="Why teams buy" title="A closed-loop system for protecting and growing revenue.">
       <div className="grid gap-6 lg:grid-cols-3">
         {features.map((feature) => {
           const Icon = iconMap[feature.icon];
@@ -391,41 +380,22 @@ export function ValuePillarsSection() {
 }
 
 export function WorkflowOverviewSection() {
-  const steps = [
-    {
-      step: "01",
-      title: "Capture the change",
-      body: "Structured intake records systems, change type, domain, rollout method, customer impact, and revenue context in one place.",
-      icon: "Layers3",
-    },
-    {
-      step: "02",
-      title: "Autopilot coordinates the work",
-      body: "The platform suggests the right approvers, evidence, and routing automatically, so teams stop coordinating through Slack and memory.",
-      icon: "Bot",
-    },
-    {
-      step: "03",
-      title: "Risk is analyzed before release",
-      body: "Revenue Impact Reports summarize financial risk, likely failure modes, and the safeguards that reduce exposure most.",
-      icon: "BrainCircuit",
-    },
-    {
-      step: "04",
-      title: "Review with full context",
-      body: "Approvers see the timeline, evidence, coordination plan, and risk analysis before approving — with queues for blocked, overdue, and restricted work.",
-      icon: "Gauge",
-    },
-  ] as const;
+  const stepIcons = ["Layers3", "Search", "Gauge", "Zap", "CheckCircle2", "BarChart3"] as const;
+  const steps = HOW_IT_WORKS.map((s, i) => ({
+    step: s.step,
+    title: s.title,
+    body: s.description,
+    icon: stepIcons[i] ?? "Layers3",
+  }));
 
   return (
-    <SectionFrame eyebrow="How it works" title="From change submission to executive visibility in one governed flow.">
-      <div className="grid gap-6 lg:grid-cols-4">
+    <SectionFrame eyebrow="How it works" title="Connect, detect, quantify, act, verify, and track value in one closed loop.">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((item) => {
           const Icon = iconMap[item.icon];
           return (
             <div key={item.step} className="relative rounded-3xl border border-white/10 bg-white/5 p-6">
-              <div className="absolute right-5 top-5 text-5xl font-black tracking-tight text-white/10">{item.step}</div>
+              <div className="absolute right-5 top-5 text-5xl font-black tracking-tight text-white/10">0{item.step}</div>
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-400/10 text-indigo-200">
                 <Icon className="h-6 w-6" />
               </div>
@@ -492,19 +462,19 @@ export function AudienceCardsSection() {
     {
       href: "/for-executives",
       title: "For executives",
-      body: "See which active changes carry the most financial risk, where safeguards are missing, and where approvals are stuck.",
+      body: "See recovered revenue, avoided loss, and ROI at a glance. Executive dashboards with benchmarks and insights prove the value of revenue protection.",
       icon: "BarChart3",
     },
     {
       href: "/for-engineering",
       title: "For engineering",
-      body: "Give platform and application teams a governed, auditable way to ship high-risk operational changes without coordination chaos.",
+      body: "Run playbooks safely with idempotent execution, retries, and verification. Connect Stripe, HubSpot, Salesforce—and fix issues where they live.",
       icon: "Cpu",
     },
     {
       href: "/for-finance",
       title: "For finance & RevOps",
-      body: "Protect pricing, billing, and revenue-recognition logic with structured reviews, evidence requirements, and cross-functional accountability.",
+      body: "Detect failed payments, refund leakage, and reconciliation gaps. Quantify impact, automate fixes, and track value with full auditability.",
       icon: "Landmark",
     },
   ] as const;
@@ -535,24 +505,24 @@ export function AudienceCardsSection() {
 export function FAQSection() {
   const faqs = [
     {
-      q: "Why not just use Jira or our ticketing system?",
-      a: "Jira tracks work. Solvren governs financially risky operational changes. It determines who must review, what safeguards are required, and how much revenue risk the change carries before it ships.",
+      q: "How is Solvren different from our BI or ticketing tools?",
+      a: "BI tools report after the fact. Ticketing systems track work. Solvren detects revenue-impacting issues, quantifies their impact, runs playbooks to fix them, verifies outcomes, and tracks recovered revenue to prove ROI—a full closed loop.",
     },
     {
-      q: "Does this slow teams down?",
-      a: "It reduces coordination overhead by replacing Slack chases, spreadsheet approvals, and tribal knowledge with structured intake, automated reviewer suggestions, and evidence requirements that are visible from the start.",
+      q: "Does this require a lot of manual work?",
+      a: "No. Playbooks can run automatically with retries and idempotency. You can require approval for sensitive actions. Either way, every action is verified and tracked, so you know what worked.",
     },
     {
       q: "Who owns this inside the organization?",
-      a: "The strongest early buyers are RevOps, finance systems, billing/platform, and engineering leaders responsible for pricing, billing, subscription, and revenue-recognition workflows.",
+      a: "RevOps, finance systems, billing/platform, and engineering leaders responsible for payments, CRM, subscriptions, and revenue workflows. Executive dashboards make ROI visible to leadership.",
     },
     {
       q: "Where do most teams start?",
-      a: "Start with the highest-risk workflows: pricing logic, billing changes, subscription lifecycle rules, and revenue-recognition changes. Once value is clear, expand to adjacent revenue systems.",
+      a: "Connect Stripe and run detector packs for failed payments and refund leakage. Add HubSpot or Salesforce for CRM data integrity. Prove your first value in minutes, then expand.",
     },
     {
       q: "How does Solvren prove value?",
-      a: "By reducing missed stakeholders, surfacing risk before release, preventing approval without evidence, and giving leaders visibility into blocked, overdue, and high-risk changes in one system.",
+      a: "By tracking recovered revenue and avoided loss in real time. Playbook performance metrics, time-to-value insights, and executive dashboards show measurable ROI from day one.",
     },
   ];
 
@@ -571,11 +541,15 @@ export function FAQSection() {
 }
 
 export function FinalCTASection({
-  title = "Govern revenue-impacting changes before they govern you.",
-  body = "Solvren helps teams identify financial risk, coordinate the right stakeholders, and move high-risk changes through a repeatable, auditable workflow.",
+  title = FINAL_CTA.headline,
+  body = FINAL_CTA.subheadline,
+  primaryCta = FINAL_CTA.primaryCta,
+  secondaryCta = FINAL_CTA.secondaryCta,
 }: {
   title?: string;
   body?: string;
+  primaryCta?: { href: string; label: string };
+  secondaryCta?: { href: string; label: string };
 }) {
   return (
     <section className="border-t border-white/10 bg-slate-950 py-20 sm:py-24">
@@ -583,17 +557,17 @@ export function FinalCTASection({
         <div className="rounded-[36px] border border-cyan-400/20 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.18),_transparent_32%),linear-gradient(180deg,_rgba(15,23,42,0.95),_rgba(2,6,23,1))] p-8 text-center shadow-2xl shadow-cyan-950/40 sm:p-12">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
             <Zap className="h-3.5 w-3.5" />
-            Beta access open
+            Start protecting revenue
           </div>
           <h2 className="mt-6 text-4xl font-black tracking-[-0.03em] text-white sm:text-5xl">{title}</h2>
           <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-slate-300">{body}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/pricing">
-              <Button size="lg" className="bg-white text-slate-950">Request beta access</Button>
+            <Link href={primaryCta.href}>
+              <Button size="lg" className="bg-white text-slate-950">{primaryCta.label}</Button>
             </Link>
-            <Link href="/login">
+            <Link href={secondaryCta.href}>
               <Button size="lg" variant="outline" className="border-white/15 bg-white/5 text-white hover:bg-white/10">
-                Sign in
+                {secondaryCta.label}
               </Button>
             </Link>
           </div>
@@ -605,13 +579,13 @@ export function FinalCTASection({
 
 export function ComparisonBand() {
   const rows = [
-    ["Understands financial risk", "Jira", "Slack", "Spreadsheets", "Solvren"],
-    ["Suggests reviewers and safeguards", "—", "—", "Manual", "Yes"],
-    ["Blocks approval when evidence is missing", "Manual", "No", "No", "Yes"],
-    ["Gives executives real-time exposure visibility", "No", "No", "No", "Yes"],
+    ["Detects revenue-impacting issues automatically", "Jira", "Slack", "Spreadsheets", "Solvren"],
+    ["Quantifies impact and prioritizes by value", "—", "—", "Manual", "Yes"],
+    ["Executes playbooks with retries and verification", "—", "—", "—", "Yes"],
+    ["Tracks recovered revenue and proves ROI", "No", "No", "No", "Yes"],
   ];
   return (
-    <SectionFrame eyebrow="Why it is different" title="Generic work tools track tasks. Solvren governs risky revenue changes.">
+    <SectionFrame eyebrow="Why it is different" title="Generic tools track tasks. Solvren detects, fixes, and proves value.">
       <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
         <div className="grid grid-cols-5 border-b border-white/10 bg-white/5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
           <div className="px-5 py-4">Capability</div>
@@ -737,21 +711,43 @@ export function PricingCards() {
   );
 }
 
+export function UseCasesSection() {
+  return (
+    <SectionFrame eyebrow="Use cases" title="Revenue protection that works where your data lives.">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {USE_CASES.map((uc) => (
+          <div key={uc.title} className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <h3 className="text-lg font-bold text-white">{uc.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-300">{uc.description}</p>
+          </div>
+        ))}
+      </div>
+    </SectionFrame>
+  );
+}
+
 export function MetricsStrip() {
   const metrics = [
-    { label: "High-risk changes surfaced before release", value: "100%" },
-    { label: "Approval coordination overhead reduced", value: "Hours → Minutes" },
-    { label: "Single system of record for change governance", value: "1" },
+    { label: ROI_SECTION.highlights[0], value: "Real-time" },
+    { label: ROI_SECTION.highlights[1], value: "Tracked" },
+    { label: ROI_SECTION.highlights[2], value: "Visible" },
+    { label: ROI_SECTION.highlights[3], value: "From day one" },
   ];
   return (
-    <section className="border-y border-white/10 bg-white/5 py-8">
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 text-center sm:grid-cols-3 sm:px-6 lg:px-8">
+    <section className="border-y border-white/10 bg-white/5 py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 text-center">
+          <h3 className="text-xl font-bold text-white">{ROI_SECTION.title}</h3>
+          <p className="mt-2 text-sm text-slate-400">{ROI_SECTION.description}</p>
+        </div>
+        <div className="grid gap-6 text-center sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric) => (
           <div key={metric.label}>
             <div className="text-3xl font-black tracking-tight text-white">{metric.value}</div>
             <div className="mt-2 text-sm text-slate-400">{metric.label}</div>
           </div>
         ))}
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 /**
  * Phase 0 — Issue detail with full panels.
+ * Phase 1 Gap 1 — Entities, evidence, signals, lineage.
  */
 import { redirect, notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -11,6 +12,8 @@ import {
   IssueDetailHeader,
   IssueSourcePanel,
   IssueLinksPanel,
+  IssueEvidencePanel,
+  IssueLineagePanel,
   IssueTimelinePanel,
   IssueVerificationPanel,
   IssueCommentsPanel,
@@ -58,6 +61,8 @@ export default async function IssueDetailPage({
     { data: commentRows },
     { data: linkRows },
     { data: entityRows },
+    { data: evidenceRows },
+    { data: lineageRows },
     { data: impactSummaryRow },
     { data: legacyImpactRow },
     { data: assessmentRow },
@@ -67,7 +72,9 @@ export default async function IssueDetailPage({
     supabase.from("verification_runs").select("id, verification_type, status, started_at, completed_at, result_summary").eq("issue_id", issueId).order("started_at", { ascending: false }).limit(20),
     supabase.from("issue_comments").select("id, body, author_user_id, created_at").eq("issue_id", issueId).order("created_at", { ascending: false }).limit(50),
     supabase.from("change_issue_links").select("change_id, link_type").eq("issue_id", issueId),
-    supabase.from("issue_entities").select("entity_type, external_system, external_id, entity_display_name").eq("issue_id", issueId).limit(20),
+    supabase.from("issue_entities").select("entity_type, external_system, external_id, entity_display_name, canonical_entity_id, role, confidence").eq("issue_id", issueId).limit(20),
+    supabase.from("issue_evidence").select("evidence_type, evidence_key, payload_json, confidence").eq("issue_id", issueId).order("created_at", { ascending: true }),
+    supabase.from("issue_lineage").select("source_type, source_ref, metadata_json").eq("issue_id", issueId).order("created_at", { ascending: true }),
     supabase.from("issue_impact_summaries").select("*").eq("issue_id", issueId).maybeSingle(),
     supabase.from("issue_impact_assessments").select("revenue_at_risk, customer_count_affected, operational_cost_estimate, confidence_score, model_key").eq("issue_id", issueId).order("calculated_at", { ascending: false }).limit(1).maybeSingle(),
     getLatestAssessmentForIssue(supabase, issue.org_id, issueId).then((r) => ({ data: r.data })),
@@ -107,12 +114,30 @@ export default async function IssueDetailPage({
     linkType: l.link_type,
     title: changeTitles.get(l.change_id),
   }));
-  const entities = (entityRows ?? []).map((e: { entity_type: string; external_system: string; external_id: string; entity_display_name: string | null }) => ({
+  const entities = (entityRows ?? []).map((e: { entity_type: string; external_system: string | null; external_id: string | null; entity_display_name: string | null; canonical_entity_id: string | null; role: string | null; confidence: number }) => ({
     entityType: e.entity_type,
     externalSystem: e.external_system,
     externalId: e.external_id,
     displayName: e.entity_display_name,
+    entityId: e.canonical_entity_id,
+    role: e.role,
+    confidence: e.confidence,
   }));
+
+  const evidence = (evidenceRows ?? []).map((e: { evidence_type: string; evidence_key: string; payload_json: Record<string, unknown>; confidence: number | null }) => ({
+    evidenceType: e.evidence_type,
+    evidenceKey: e.evidence_key,
+    payload: e.payload_json,
+    confidence: e.confidence,
+  }));
+
+  const lineage = (lineageRows ?? []).map((l: { source_type: string; source_ref: string; metadata_json: Record<string, unknown> }) => ({
+    sourceType: l.source_type,
+    sourceRef: l.source_ref,
+    metadata: l.metadata_json,
+  }));
+
+  const issueRow = issue as { detector_key?: string | null };
 
   const impact = impactSummaryRow
     ? {
@@ -167,6 +192,10 @@ export default async function IssueDetailPage({
       </div>
       <IssueSourcePanel issue={issue} evidenceJson={evidenceJson} />
       <IssueLinksPanel changes={changes} entities={entities} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <IssueEvidencePanel evidence={evidence} evidenceJson={evidenceJson} detectorKey={issueRow.detector_key} />
+        <IssueLineagePanel lineage={lineage} />
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <IssueTimelinePanel history={history} />
         <IssueVerificationPanel verificationStatus={issue.verification_status} runs={runs} />

@@ -11,6 +11,12 @@ export type OrgOnboardingStateRow = {
   first_value_at: string | null;
   activated_at: string | null;
   current_step_key: string | null;
+  integrations_connected?: boolean;
+  first_signal_received?: boolean;
+  first_issue_detected?: boolean;
+  first_action_executed?: boolean;
+  first_value_verified?: boolean;
+  onboarding_stage?: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card, CardBody } from "@/ui";
 
@@ -59,7 +60,7 @@ export function PolicyCenterClient({ orgId }: { orgId: string }) {
           </p>
           {policies.length === 0 ? (
             <p className="mt-3 text-sm text-[var(--text-muted)]">
-              No policies defined. Default approval-required mode applies. Add policies via API or Policy Builder (coming soon).
+              No policies defined. Default approval-required mode applies.
             </p>
           ) : (
             <ul className="mt-3 space-y-2">
@@ -71,6 +72,9 @@ export function PolicyCenterClient({ orgId }: { orgId: string }) {
               ))}
             </ul>
           )}
+          <Link href="/admin/policy" className="mt-3 inline-block text-sm font-medium text-[var(--primary)] hover:underline">
+            Manage policies →
+          </Link>
         </CardBody>
       </Card>
     </div>

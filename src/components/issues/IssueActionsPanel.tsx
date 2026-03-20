@@ -24,6 +24,20 @@ type TaskRow = {
   createdAt: string;
 };
 
+type ExecutionRow = {
+  id: string;
+  status: string;
+  attemptCount: number;
+  maxAttempts: number;
+  lastError?: string;
+  lastErrorCode?: string;
+  nextRetryAt?: string;
+  executedAt?: string;
+  provider: string;
+  actionKey: string;
+  createdAt: string;
+};
+
 type AvailableAction = {
   actionKey: string;
   provider: string;
@@ -56,6 +70,7 @@ export function IssueActionsPanel({
 }) {
   const [actions, setActions] = useState<ActionRow[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [executions, setExecutions] = useState<ExecutionRow[]>([]);
   const [availableActions, setAvailableActions] = useState<AvailableAction[]>([]);
   const [recommended, setRecommended] = useState<RecommendedData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +82,7 @@ export function IssueActionsPanel({
       .then((d) => {
         setActions(d.actions ?? []);
         setTasks(d.tasks ?? []);
+        setExecutions(d.executions ?? []);
       })
       .finally(() => setLoading(false));
   }, [issueId]);
@@ -96,7 +112,19 @@ export function IssueActionsPanel({
       .then((d) => {
         setActions(d.actions ?? []);
         setTasks(d.tasks ?? []);
+        setExecutions(d.executions ?? []);
       });
+
+  const [retrying, setRetrying] = useState<string | null>(null);
+  const handleRetry = async (executionId: string) => {
+    setRetrying(executionId);
+    try {
+      const res = await fetch(`/api/execution/actions/${executionId}/retry`, { method: "POST" });
+      if (res.ok) await fetchActions();
+    } finally {
+      setRetrying(null);
+    }
+  };
 
   const handleExecute = async (actionKey: string, provider: string, params: Record<string, unknown>) => {
     setExecuting(`${provider}:${actionKey}`);
@@ -161,20 +189,54 @@ export function IssueActionsPanel({
           </div>
         )}
 
-        {actions.length > 0 && (
+        {(actions.length > 0 || executions.length > 0) && (
           <ul className="space-y-2 mb-4">
-            {actions.map((a) => (
-              <li key={a.id} className="text-sm flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-xs">{a.externalSystem}/{a.actionType.split(".").pop() ?? a.actionType}</span>
-                <span className={a.actionStatus === "done" ? "text-[var(--success)]" : a.actionStatus === "failed" ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}>
-                  {a.actionStatus}
-                </span>
-                {a.targetRef && <span className="text-xs truncate max-w-[120px]">{a.targetRef}</span>}
-                <span className="text-xs text-[var(--text-muted)]">
-                  {new Date(a.executedAt ?? a.createdAt).toLocaleString()}
-                </span>
-              </li>
-            ))}
+            {executions.length > 0 ? (
+              executions.map((e) => (
+                <li key={e.id} className="text-sm flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs">{e.provider}/{e.actionKey.split(".").pop() ?? e.actionKey}</span>
+                  <span className={
+                    e.status === "SUCCESS" || e.status === "VERIFIED" ? "text-[var(--success)]" :
+                    e.status === "FAILED" || e.status === "DEAD_LETTERED" ? "text-[var(--danger)]" :
+                    e.status === "RETRYING" ? "text-[var(--warning)]" : "text-[var(--text-muted)]"
+                  }>
+                    {e.status.toLowerCase()}
+                    {e.attemptCount > 0 && ` (${e.attemptCount}/${e.maxAttempts})`}
+                  </span>
+                  {e.lastError && (
+                    <span className="text-xs text-[var(--danger)] truncate max-w-[180px]" title={e.lastError}>
+                      {e.lastError}
+                    </span>
+                  )}
+                  <span className="text-xs text-[var(--text-muted)]">
+                    {new Date(e.executedAt ?? e.createdAt).toLocaleString()}
+                  </span>
+                  {["FAILED", "DEAD_LETTERED", "RETRYING"].includes(e.status) && (
+                    <button
+                      type="button"
+                      onClick={() => handleRetry(e.id)}
+                      disabled={retrying === e.id}
+                      className="text-xs text-[var(--primary)] hover:underline disabled:opacity-50"
+                    >
+                      {retrying === e.id ? "Retrying…" : "Retry"}
+                    </button>
+                  )}
+                </li>
+              ))
+            ) : (
+              actions.map((a) => (
+                <li key={a.id} className="text-sm flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs">{a.externalSystem}/{a.actionType.split(".").pop() ?? a.actionType}</span>
+                  <span className={a.actionStatus === "done" ? "text-[var(--success)]" : a.actionStatus === "failed" ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}>
+                    {a.actionStatus}
+                  </span>
+                  {a.targetRef && <span className="text-xs truncate max-w-[120px]">{a.targetRef}</span>}
+                  <span className="text-xs text-[var(--text-muted)]">
+                    {new Date(a.executedAt ?? a.createdAt).toLocaleString()}
+                  </span>
+                </li>
+              ))
+            )}
           </ul>
         )}
 
@@ -219,7 +281,7 @@ export function IssueActionsPanel({
           </div>
         )}
 
-        {actions.length === 0 && filteredActions.length === 0 && (
+        {actions.length === 0 && executions.length === 0 && filteredActions.length === 0 && (
           <p className="text-sm text-[var(--text-muted)]">No actions yet. Connect Jira, Slack, Stripe, or HubSpot to create tasks.</p>
         )}
       </CardBody>

@@ -133,20 +133,32 @@ export async function runDetector(
         if (finding) findings.push({ id: finding.id, status: effectiveStatus });
 
         if (effectiveStatus === "actionable" && !suppression.suppressed) {
+          const evidence = result.evidenceBundle as {
+            headline?: string;
+            detector_reason?: string;
+            entities?: Array<{ entityType: string; entityId?: string; displayName?: string }>;
+          };
+          const primaryEntityId =
+            evidence.entities?.[0]?.entityId ??
+            input.signals[0]?.primary_canonical_entity_id ??
+            null;
+          const secondaryIds = (evidence.entities ?? []).slice(1).map((e) => e.entityId).filter(Boolean) as string[];
+
           const escalateResult = await escalateFindingToIssue(supabase, {
             detectorKey: input.detectorKey,
             findingId: finding!.id,
             orgId: input.orgId,
-            title: (result.evidenceBundle as { headline?: string }).headline ?? "Detector finding",
-            summary: (result.evidenceBundle as { detector_reason?: string }).detector_reason ?? "",
+            title: evidence.headline ?? "Detector finding",
+            summary: evidence.detector_reason ?? "",
             domain: "revenue",
             severity: result.severityOverride ?? def.default_severity,
             priorityBand: def.default_priority_band,
-            primaryCanonicalEntityId: null,
-            secondaryEntityIds: [],
+            primaryCanonicalEntityId: primaryEntityId,
+            secondaryEntityIds: secondaryIds,
             evidenceBundle: result.evidenceBundle as Record<string, unknown>,
             confidenceScore: result.confidenceScore,
             dedupeFingerprint: result.proposedIssueFingerprint,
+            signals: input.signals,
           });
           if (escalateResult.ok) {
             await updateDetectorFinding(supabase, finding!.id, {

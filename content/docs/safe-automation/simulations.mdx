@@ -1,0 +1,37 @@
+---
+title: Simulations
+description: Dry-run and simulation modes.
+section: Safe Automation
+order: 4
+toc: true
+lastUpdated: 2026-03-17
+---
+
+## Overview
+
+**Simulations** let you test playbooks without executing write-back. Actions run in dry-run mode and report what would happen.
+
+---
+
+## Use Cases
+
+- Validate playbook logic before enabling
+- Train operators on expected behavior
+- Debug detector-to-action flow
+
+---
+
+## How It Works
+
+When simulation is enabled, actions:
+
+- Evaluate inputs and produce a "would do" report
+- Do not call external APIs for write-back
+- Log results for review
+
+---
+
+## Related
+
+- [Safe Mode and Confidence](/docs/safe-automation/safe-mode-and-confidence)
+- [Playbooks](/docs/actions-playbooks/playbooks)

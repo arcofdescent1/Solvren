@@ -13,14 +13,14 @@ export default async function DocsHomePage() {
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="max-w-xl">
           <div className="text-sm leading-6 text-[var(--text-muted)]">
-            Search guides, concepts, admin, architecture, and examples.
+            Search signals, detectors, playbooks, verification, ROI, and more.
           </div>
         </div>
         <DocsCommandTrigger />
       </section>
 
       <section className="mt-6">
-        <DocsSearch placeholder="Search setup, guides, concepts, admin, architecture..." />
+        <DocsSearch placeholder="Search signals, detectors, playbooks, verification, ROI, safe automation..." />
       </section>
 
       {indexDoc ? (

@@ -73,6 +73,20 @@ export async function insertPolicyDecisionLog(
   return { data: data as PolicyDecisionLogRow, error: null };
 }
 
+export async function getDecisionLogById(
+  supabase: SupabaseClient,
+  id: string
+): Promise<{ data: PolicyDecisionLogRow | null; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("policy_decision_logs")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) return { data: null, error: error as Error };
+  return { data: data as PolicyDecisionLogRow | null, error: null };
+}
+
 export async function listDecisionLogs(
   supabase: SupabaseClient,
   orgId: string,

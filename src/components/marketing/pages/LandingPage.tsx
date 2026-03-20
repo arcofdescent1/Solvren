@@ -9,22 +9,24 @@ import {
   MarketingShell,
   MetricsStrip,
   ProblemSection,
+  UseCasesSection,
   V1ValueCardsSection,
   V1FlowDiagramSection,
   ValuePillarsSection,
   WorkflowOverviewSection,
 } from "@/components/marketing/MarketingBlocks";
+import { HERO, SAFE_AUTOMATION, USE_CASES } from "@/components/marketing/landingCopy";
 
 /** When true, render content only (layout provides PublicShell). */
 export function LandingPage({ noShell = false }: { noShell?: boolean }) {
   const content = (
     <>
       <HeroSection
-        eyebrow="Revenue risk intelligence"
-        title="Protect Revenue From Uncontrolled System Changes"
-        subtitle="Solvren detects, governs, and audits revenue-impacting changes across your systems."
-        primaryCta={{ href: "/signup", label: "Start Free Trial" }}
-        secondaryCta={{ href: "/how-it-works", label: "Watch Demo" }}
+        eyebrow="Revenue protection platform"
+        title={HERO.headline}
+        subtitle={HERO.subheadline}
+        primaryCta={HERO.primaryCta}
+        secondaryCta={HERO.secondaryCta}
       />
       <V1ValueCardsSection />
       <V1FlowDiagramSection />
@@ -32,45 +34,42 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
       <ProblemSection />
       <ValuePillarsSection />
       <WorkflowOverviewSection />
+      <UseCasesSection />
       <MetricsStrip />
       <FeatureShowcaseSection
         items={[
           {
-            eyebrow: "Guided intake",
-            title: "Capture the change once — with the context reviewers actually need.",
-            body: "Move from informal change requests to structured intake that captures systems, domains, rollout strategy, customer impact, and revenue context in one governed workflow.",
+            eyebrow: "Detect & quantify",
+            title: "Surface revenue-impacting issues across your stack.",
+            body: "Connect Stripe, HubSpot, Salesforce, and more. Detector packs continuously identify failed payments, refund leakage, CRM drift, and reconciliation gaps—with impact scores so you prioritize what matters.",
             bullets: [
-              "Multi-step workflow replaces giant ticket forms",
-              "Readiness logic shows what is still incomplete",
-              "Draft, ready, and in-review lifecycle keeps reviewers focused on real work",
+              "Multi-system signal ingestion from payments, CRM, and operations",
+              "Financial impact and confidence scoring for every issue",
+              "Detector packs for failed payments, refund leakage, data integrity",
             ],
-            badge: "Structured intake and readiness",
-            icon: "Layers3",
+            badge: "Detection and quantification",
+            icon: "Search",
           },
           {
-            eyebrow: "Revenue Impact Reports",
-            title: "Turn risky operational changes into executive-ready decision support.",
-            body: "Surface financial exposure, likely failure modes, and the safeguards that reduce risk most before a pricing or billing change ever reaches production.",
-            bullets: [
-              "Risk score and executive summary generated in context",
-              "Potential failure modes grounded in systems and change type",
-              "Required safeguards and approvals surfaced before signoff",
-            ],
-            badge: "AI + rules-based risk analysis",
-            icon: "CircleDollarSign",
+            eyebrow: "Act & verify",
+            title: "Run playbooks to fix issues—safely and reliably.",
+            body: "Execute corrective actions automatically or with approval. Built-in retries, idempotency, and verification ensure every action actually worked before marking an issue resolved.",
+            bullets: SAFE_AUTOMATION.points,
+            badge: "Playbooks and verification",
+            icon: "Zap",
             reverse: true,
           },
           {
-            eyebrow: "Coordination Autopilot",
-            title: "Stop chasing reviewers, evidence, and stakeholders across Slack and spreadsheets.",
-            body: "Automatically suggest the right approvers, evidence checklist, and routing based on mappings, system ownership, domains, and organizational controls.",
+            eyebrow: "Prove ROI",
+            title: "Track recovered revenue and avoided loss in real time.",
+            body: "Measure value with a clear dashboard: recovered revenue, avoided loss, playbook performance, and time-to-value. Share executive-ready ROI with stakeholders.",
             bullets: [
-              "Approver suggestions based on domain and system mappings",
-              "Evidence checklist generated from actual operational risk",
-              "Coverage gaps surfaced before a risky change slips forward",
+              "Recovered revenue and avoided loss tracking",
+              "Playbook performance and success rates",
+              "Executive dashboards with benchmarks and insights",
             ],
-            badge: "One-click coordination",
-            icon: "Bot",
+            badge: "Value and ROI",
+            icon: "BarChart3",
           },
         ]}
       />

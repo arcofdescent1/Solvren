@@ -1,11 +1,10 @@
 /**
- * Phase 10 — GET /api/onboarding/recommendations (§18.2).
+ * Phase 10 + Gap 5 — GET /api/onboarding/recommendations (§18.2, §12.2).
  */
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { getContextualRecommendations } from "@/modules/onboarding/services/activation-recommendation.service";
-import { listActivationRecommendations } from "@/modules/onboarding/repositories/activation-recommendations.repository";
+import { getRecommendations } from "@/modules/onboarding/services/recommendation.service";
 
 export async function GET() {
   const supabase = await createServerSupabaseClient();
@@ -19,18 +18,16 @@ export async function GET() {
     return NextResponse.json({ error: "No active org" }, { status: 400 });
   }
 
-  const { data: storedRecs } = await listActivationRecommendations(supabase, activeOrgId);
-  const { recommendations: contextualRecs } = await getContextualRecommendations(supabase, activeOrgId);
+  const { recommendations } = await getRecommendations(supabase, activeOrgId);
 
-  const recs = storedRecs.length > 0
-    ? storedRecs
-    : contextualRecs.map((r) => ({
-        recommendationType: r.recommendationType,
-        targetKey: r.targetKey,
-        title: r.title,
-        description: r.description,
-        confidenceScore: r.confidenceScore,
-      }));
+  const recs = recommendations.map((r) => ({
+    recommendationType: r.type,
+    targetKey: r.targetKey ?? "",
+    title: r.title,
+    description: r.reason,
+    confidenceScore: r.priority,
+    href: r.href,
+  }));
 
   return NextResponse.json({
     recommendations: recs,

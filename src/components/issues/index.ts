@@ -11,6 +11,8 @@ export { IssueDetailHeader } from "./IssueDetailHeader";
 export { IssueImpactCard } from "./IssueImpactCard";
 export { IssueSourcePanel } from "./IssueSourcePanel";
 export { IssueLinksPanel } from "./IssueLinksPanel";
+export { IssueEvidencePanel } from "./IssueEvidencePanel";
+export { IssueLineagePanel } from "./IssueLineagePanel";
 export { IssueTimelinePanel } from "./IssueTimelinePanel";
 export { IssueVerificationPanel } from "./IssueVerificationPanel";
 export { IssueCommentsPanel } from "./IssueCommentsPanel";

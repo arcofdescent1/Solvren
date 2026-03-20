@@ -11,6 +11,10 @@ export async function auditLog(
     entityType: string;
     entityId?: string | null;
     metadata?: Record<string, unknown>;
+    /** Phase 6 — structured audit (D2): snapshot before mutation */
+    before?: Record<string, unknown> | null;
+    /** Phase 6 — structured audit (D2): snapshot after mutation */
+    after?: Record<string, unknown> | null;
   }
 ) {
   const {
@@ -22,6 +26,8 @@ export async function auditLog(
     entityType,
     entityId = null,
     metadata = {},
+    before = null,
+    after = null,
   } = params;
 
   // Convenience: if the entity is the change itself, treat entityId as the change_event_id.
@@ -30,6 +36,12 @@ export async function auditLog(
     ((entityType === "change" || entityType === "change_event") && entityId
       ? String(entityId)
       : null);
+  const mergedMetadata: Record<string, unknown> = {
+    ...metadata,
+    ...(before != null ? { before } : {}),
+    ...(after != null ? { after } : {}),
+  };
+
   const { error } = await supabase.from("audit_log").insert({
     org_id: orgId,
     change_event_id: inferredChangeId,
@@ -38,7 +50,7 @@ export async function auditLog(
     action,
     entity_type: entityType,
     entity_id: entityId != null ? String(entityId) : null,
-    metadata,
+    metadata: mergedMetadata,
   });
 
   if (error) {

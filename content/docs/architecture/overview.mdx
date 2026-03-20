@@ -1,6 +1,6 @@
 ---
 title: Architecture Overview
-description: Platform architecture and key concepts.
+description: System layers, data flow, execution guarantees, and tech stack.
 section: Architecture
 order: 1
 toc: true
@@ -10,34 +10,80 @@ tags:
 roles:
   - executive
   - admin
-lastUpdated: 2026-03-08
+lastUpdated: 2026-03-17
 ---
 
-## Overview
+## System Layers
 
-Solvren is built on Next.js with Supabase for data and auth. Key concepts include changes, approval workflows, evidence enforcement, and revenue impact reporting.
+Solvren is composed of the following layers:
 
-## Core Concepts
+1. **Integrations** — Connect billing, CRM, pricing, and other revenue systems  
+2. **Identity Graph** — Entity resolution across systems for correlated signals and issues  
+3. **Signals** — Ingested, normalized data streams  
+4. **Detectors** — Logic that creates **issues** from signals (detector packs)  
+5. **Issues** — Detected revenue-impacting problems  
+6. **Impact Engine** — Quantifies revenue at risk and feeds prioritization  
+7. **Playbooks** — Defined workflows and actions for resolution  
+8. **Execution Engine** — Orchestrates actions, write-back, retries, and state  
+9. **Verification** — Confirms outcomes against external systems  
+10. **ROI Tracking** — Recovered revenue, avoided loss, dashboards  
+11. **Safe Automation** — Policies, approvals, safe mode, confidence thresholds  
 
-### Changes
+---
 
-A change represents a revenue-impacting modification (pricing, billing, integration, etc.). Each change has status, risk, and coordination metadata.
+## Data Flow
 
-### Approval Workflow
+**Signals → Detectors → Issues → Impact → Actions → Verification → ROI**
 
-Approvals flow from approval roles and mappings. The system suggests approvers and tracks decisions.
+---
 
-### Evidence
+## Key Principles
 
-Evidence (screenshots, test results, docs) is required before submission. The platform enforces requirements by change type.
+### Explainability
 
-### Revenue Impact Report
+Every issue is traceable to signals and evidence.
 
-The Revenue Impact Report summarizes exposure, risk drivers, and mitigations. It powers executive views and SLA tracking.
+### Reliability
 
-## Tech Stack
+All actions are idempotent and retry-safe.
 
-- **Frontend**: Next.js 16, React 19
-- **Backend**: Next.js API routes, Supabase
-- **Auth**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
+### Observability
+
+All operations are logged and auditable.
+
+### Safety
+
+Policies control execution and automation.
+
+---
+
+## Execution Guarantees
+
+- No duplicate actions (idempotent design)  
+- Safe retries  
+- Full audit trail  
+- External state verification  
+
+---
+
+## Outcome
+
+A deterministic, explainable, and reliable system for revenue protection.
+
+---
+
+## Tech stack
+
+- **Frontend**: Next.js 16, React 19  
+- **Backend**: Next.js API routes, Supabase  
+- **Auth**: Supabase Auth  
+- **Database**: Supabase (PostgreSQL)  
+
+---
+
+## Related
+
+- [System Layers](/docs/architecture/system-layers)  
+- [Data Flow](/docs/architecture/data-flow)  
+- [How Solvren Works](/docs/platform-overview/how-solvren-works)  
+- [Security and Trust](/docs/architecture/security-and-trust)  

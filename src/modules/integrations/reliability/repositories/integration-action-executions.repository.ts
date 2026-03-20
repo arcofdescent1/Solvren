@@ -24,6 +24,8 @@ export type IntegrationActionExecutionRow = {
   last_error_message: string | null;
   reconciliation_required: boolean;
   reconciliation_status: string;
+  executed_at: string | null;
+  next_retry_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -58,7 +60,7 @@ export async function insertActionExecution(
     request_payload_json: input.request_payload_json ?? {},
     idempotency_key: input.idempotency_key,
     risk_level: input.risk_level ?? null,
-    max_attempts: input.max_attempts ?? 4,
+    max_attempts: input.max_attempts ?? 5,
     reconciliation_required: input.reconciliation_required ?? false,
   };
   const { data, error } = await supabase
@@ -129,6 +131,8 @@ export async function updateActionExecution(
     last_error_code: string | null;
     last_error_message: string | null;
     reconciliation_status: string;
+    executed_at: string | null;
+    next_retry_at: string | null;
   }>
 ): Promise<{ error: Error | null }> {
   const { error } = await supabase

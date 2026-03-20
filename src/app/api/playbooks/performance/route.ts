@@ -1,49 +1,56 @@
 /**
- * Phase 10 — GET /api/playbooks/performance (§18.3).
+ * Gap 5 — GET /api/playbooks/performance (§12.3).
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { getLatestPlaybookPerformance } from "@/modules/onboarding/repositories/playbook-performance-snapshots.repository";
-import { getOrgPlaybookConfigs } from "@/modules/autonomy/persistence/playbooks.repository";
-import { listPlaybookDefinitions } from "@/modules/autonomy/persistence/playbooks.repository";
 
 export async function GET(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
-  if (!activeOrgId) {
-    return NextResponse.json({ error: "No active org" }, { status: 400 });
-  }
+  const orgId = req.nextUrl.searchParams.get("orgId") ?? (await getActiveOrg(supabase, userRes.user.id)).activeOrgId;
+  if (!orgId) return NextResponse.json({ error: "No active org" }, { status: 400 });
 
-  const { data: snapshots } = await getLatestPlaybookPerformance(supabase, activeOrgId);
-  const { data: configs } = await getOrgPlaybookConfigs(supabase, activeOrgId);
-  const { data: definitions } = await listPlaybookDefinitions(supabase);
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("org_id")
+    .eq("user_id", userRes.user.id)
+    .eq("org_id", orgId)
+    .maybeSingle();
+  if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const enabledConfigs = (configs ?? []).filter((c) => c.enabled);
-  const defById = new Map((definitions ?? []).map((d) => [d.id, d]));
+  const { data: perf, error } = await supabase
+    .from("playbook_performance")
+    .select("*")
+    .eq("org_id", orgId)
+    .order("total_recovered_value", { ascending: false })
+    .limit(20);
 
-  const playbooks = enabledConfigs.map((config) => {
-    const def = defById.get(config.playbook_definition_id);
-    const snap = snapshots.find((s) => s.playbookKey === def?.playbook_key);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const defIds = [...new Set((perf ?? []).map((p: { playbook_definition_id: string }) => p.playbook_definition_id))];
+  const { data: defs } = defIds.length > 0
+    ? await supabase.from("playbook_definitions").select("id, playbook_key, display_name").in("id", defIds)
+    : { data: [] };
+  const defMap = new Map((defs ?? []).map((d: { id: string; playbook_key: string; display_name: string }) => [d.id, d]));
+
+  const performance = (perf ?? []).map((p: Record<string, unknown>) => {
+    const def = defMap.get(p.playbook_definition_id as string);
     return {
-      playbookKey: def?.playbook_key ?? "unknown",
-      displayName: def?.display_name ?? "Unknown",
-      healthState: snap?.healthState ?? "INSUFFICIENT_DATA",
-      performanceScore: snap?.performanceScore ?? 0,
-      recoveredAmount: snap?.recoveredAmount ?? 0,
-      avoidedAmount: snap?.avoidedAmount ?? 0,
-      savingsAmount: snap?.savingsAmount ?? 0,
-      runCount: snap?.runCount ?? 0,
-      verificationSuccessRate: snap?.verificationSuccessRate ?? null,
-      automationRate: snap?.automationRate ?? null,
-      lastActivity: snap?.snapshotWindowEnd ?? null,
+      playbookId: p.playbook_definition_id,
+      playbookKey: def?.playbook_key,
+      displayName: def?.display_name,
+      executions: p.executions,
+      successes: p.successes,
+      failures: p.failures,
+      totalRecoveredValue: p.total_recovered_value,
+      totalAvoidedLoss: p.total_avoided_loss,
+      successRate: p.success_rate,
+      lastExecutedAt: p.last_executed_at,
     };
   });
 
-  return NextResponse.json({ playbooks });
+  return NextResponse.json({ performance });
 }

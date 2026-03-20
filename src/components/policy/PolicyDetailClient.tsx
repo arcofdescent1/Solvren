@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Card, CardBody } from "@/ui";
 
 type PolicyRow = {
@@ -25,10 +28,68 @@ export function PolicyDetailClient({ policy }: { policy: PolicyRow }) {
     hardBlock?: boolean;
   }>;
 
+  const isSystemPolicy = (policy as { is_system_policy?: boolean }).is_system_policy;
+
   return (
     <div className="space-y-4">
       <Card>
         <CardBody>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            {policy.status === "active" && (
+              <button
+                onClick={() => runAction("deactivate", `/api/admin/policies/${policy.id}/deactivate`)}
+                disabled={!!loading}
+                className="rounded px-2 py-1 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:opacity-80 disabled:opacity-50"
+              >
+                Deactivate
+              </button>
+            )}
+            {(policy.status === "inactive" || policy.status === "draft") && (
+              <button
+                onClick={() => runAction("activate", `/api/admin/policies/${policy.id}/activate`)}
+                disabled={!!loading}
+                className="rounded px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:opacity-80 disabled:opacity-50"
+              >
+                Activate
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                setLoading("duplicate");
+                try {
+                  const res = await fetch(`/api/admin/policies/${policy.id}/duplicate`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({}),
+                  });
+                  const json = await res.json();
+                  if (res.ok && json.policy?.id) router.push(`/admin/policy/${json.policy.id}`);
+                  else alert(json.error ?? "Duplicate failed");
+                } finally {
+                  setLoading(null);
+                }
+              }}
+              disabled={!!loading}
+              className="rounded px-2 py-1 text-xs font-medium border border-[var(--border)] hover:bg-[var(--bg-surface-2)] disabled:opacity-50"
+            >
+              Duplicate
+            </button>
+            {!isSystemPolicy && (
+              <button
+                onClick={() => runAction("archive", `/api/admin/policies/${policy.id}/archive`)}
+                disabled={!!loading}
+                className="rounded px-2 py-1 text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--bg-surface-2)] disabled:opacity-50"
+              >
+                Archive
+              </button>
+            )}
+            <Link
+              href={`/admin/policy/${policy.id}/exceptions`}
+              className="rounded px-2 py-1 text-xs font-medium text-[var(--primary)] hover:underline"
+            >
+              Exceptions
+            </Link>
+          </div>
           <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Configuration</h3>
           <dl className="grid grid-cols-2 gap-2 text-sm">
             <div>

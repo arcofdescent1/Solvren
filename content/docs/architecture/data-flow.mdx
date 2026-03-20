@@ -1,0 +1,31 @@
+---
+title: Data Flow
+description: How data moves through the platform.
+section: Architecture
+order: 3
+toc: true
+lastUpdated: 2026-03-17
+---
+
+## Overview
+
+Data flows from external systems through integrations into signals, then through detectors to issues, and finally through actions to verification and ROI.
+
+---
+
+## Flow Summary
+
+1. **Ingestion** — Integrations pull or receive data → signals
+2. **Detection** — Detectors analyze signals → issues
+3. **Prioritization** — Impact engine scores issues
+4. **Action** — Playbooks execute (recommend, simulate, or write-back)
+5. **Verification** — Outcomes checked → value attributed
+6. **Reporting** — ROI dashboard and metrics updated
+
+---
+
+## Related
+
+- [How Signals Work](/docs/integrations-signals/how-signals-work)
+- [How Issues Are Created](/docs/detectors-issues/how-issues-are-created)
+- [How Verification Works](/docs/verification-roi/how-verification-works)
