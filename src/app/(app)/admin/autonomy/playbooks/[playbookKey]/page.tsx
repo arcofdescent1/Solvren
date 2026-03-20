@@ -5,7 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader, Card, CardBody, Stack } from "@/ui";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { getPlaybookDefinitionByKey, getOrgPlaybookConfigs } from "@/modules/autonomy/persistence/playbooks.repository";
 
@@ -34,7 +34,7 @@ export default async function PlaybookDetailPage({
   const steps = (playbook.steps_json ?? []) as Array<{ key: string; type: string; actionKey?: string; order: number }>;
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <Stack gap={6} className="max-w-4xl">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
@@ -53,23 +53,26 @@ export default async function PlaybookDetailPage({
 
       <Card>
         <CardBody>
-          <h2 className="text-lg font-semibold">Configuration</h2>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
+          <Stack gap={1}>
+            <h2 className="text-lg font-semibold">Configuration</h2>
+            <p className="text-sm text-[var(--text-muted)]">
             Status: {config?.enabled ? "Enabled" : "Disabled"} · Rollout: {config?.rollout_state ?? "off"}
-          </p>
-          <Link
-            href="/admin/autonomy/playbooks"
-            className="mt-2 inline-block text-sm font-medium text-[var(--primary)] hover:underline"
-          >
+            </p>
+            <Link
+              href="/admin/autonomy/playbooks"
+              className="inline-block text-sm font-medium text-[var(--primary)] hover:underline"
+            >
             Configure in catalog →
-          </Link>
+            </Link>
+          </Stack>
         </CardBody>
       </Card>
 
       <Card>
         <CardBody>
-          <h2 className="text-lg font-semibold">Workflow steps</h2>
-          <ul className="mt-3 space-y-2">
+          <Stack gap={2}>
+            <h2 className="text-lg font-semibold">Workflow steps</h2>
+            <ul className="flex flex-col gap-2">
             {steps
               .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
               .map((s) => (
@@ -81,18 +84,21 @@ export default async function PlaybookDetailPage({
                   )}
                 </li>
               ))}
-          </ul>
+            </ul>
+          </Stack>
         </CardBody>
       </Card>
 
       <Card>
         <CardBody>
-          <h2 className="text-lg font-semibold">Required integrations</h2>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {(playbook.required_integrations_json as string[])?.join(", ") ?? "—"}
-          </p>
+          <Stack gap={1}>
+            <h2 className="text-lg font-semibold">Required integrations</h2>
+            <p className="text-sm text-[var(--text-muted)]">
+              {(playbook.required_integrations_json as string[])?.join(", ") ?? "—"}
+            </p>
+          </Stack>
         </CardBody>
       </Card>
-    </div>
+    </Stack>
   );
 }

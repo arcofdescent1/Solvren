@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/ui/primitives/badge";
 import { Card, CardBody } from "@/ui/primitives/card";
+import { Stack, Grid } from "@/ui";
 
 type Props = { playbookKey: string };
 
@@ -52,14 +53,15 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
     data.healthState === "HEALTHY" ? "success" : data.healthState === "DEGRADED" ? "warning" : data.healthState === "BLOCKED" ? "danger" : "secondary";
 
   return (
-    <div className="space-y-6">
+    <Stack gap={6}>
       <Card>
         <CardBody>
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">{data.displayName}</h2>
             <Badge variant={healthVariant}>{data.healthState}</Badge>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <Stack gap={4}>
+            <Grid cols={2} gap={4}>
             <div>
               <p className="text-xs text-[color:var(--rg-text-muted)]">Performance Score</p>
               <p className="text-xl font-semibold">{data.performanceScore}</p>
@@ -76,14 +78,16 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
               <p className="text-xs text-[color:var(--rg-text-muted)]">Runs</p>
               <p className="text-xl font-semibold">{data.runCount}</p>
             </div>
-          </div>
+            </Grid>
+          </Stack>
         </CardBody>
       </Card>
 
       <Card>
         <CardBody>
-          <h3 className="mb-4 text-sm font-semibold">Run Summary</h3>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <Stack gap={4}>
+            <h3 className="text-sm font-semibold">Run Summary</h3>
+            <Grid cols={2} gap={4}>
             <div>
               <p className="text-xs text-[color:var(--rg-text-muted)]">Success</p>
               <p className="font-medium">{data.successCount}</p>
@@ -100,25 +104,28 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
               <p className="text-xs text-[color:var(--rg-text-muted)]">Automation Rate</p>
               <p className="font-medium">{data.automationRate != null ? `${(data.automationRate * 100).toFixed(0)}%` : "—"}</p>
             </div>
-          </div>
+            </Grid>
+          </Stack>
         </CardBody>
       </Card>
 
       {data.trend.length > 0 && (
         <Card>
           <CardBody>
-            <h3 className="mb-4 text-sm font-semibold">Trend</h3>
-            <div className="space-y-2">
+            <Stack gap={4}>
+              <h3 className="text-sm font-semibold">Trend</h3>
+              <Stack gap={2}>
               {data.trend.map((t, i) => (
-                <div key={i} className="flex items-center justify-between rounded border border-[color:var(--rg-border)] px-3 py-2 text-sm">
+                <div key={i} className="flex items-center justify-between rounded border border-[color:var(--rg-border)] text-sm">
                   <span>{new Date(t.windowEnd).toLocaleDateString()}</span>
                   <span>Score: {t.performanceScore} | Recovered: ${t.recoveredAmount.toLocaleString()} | Runs: {t.runCount}</span>
                 </div>
               ))}
-            </div>
+              </Stack>
+            </Stack>
           </CardBody>
         </Card>
       )}
-    </div>
+    </Stack>
   );
 }

@@ -45,7 +45,12 @@ export async function POST(
     orgId = (acc as { org_id: string } | null)?.org_id ?? null;
   }
   if (orgId) {
-    const obj = (payload as Record<string, unknown>)?.data?.object ?? (payload as Record<string, unknown>)?.object ?? payload;
+    const p = payload as Record<string, unknown>;
+    const data = p?.data;
+    const obj =
+      (data != null && typeof data === "object" ? (data as Record<string, unknown>).object : undefined) ??
+      p?.object ??
+      payload;
     const externalObjectId = (obj as Record<string, unknown>)?.id ?? (payload as Record<string, unknown>)?.objectId ?? null;
     const externalObjectType = (obj as Record<string, unknown>)?.object ?? (payload as Record<string, unknown>)?.objectType ?? null;
     const eventTime = (payload as Record<string, unknown>)?.created

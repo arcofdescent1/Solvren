@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   let orgId = searchParams.get("orgId");
   if (!orgId) {
     const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
-    orgId = activeOrgId ?? undefined ?? null;
+    orgId = activeOrgId ?? null;
   }
   if (!orgId) {
     return NextResponse.json({ error: "orgId required" }, { status: 400 });

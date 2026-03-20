@@ -3,7 +3,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { previewPolicy } from "@/modules/policy/services/policy-preview.service";
+import { previewPolicy, type PolicyPreviewDraft } from "@/modules/policy/services/policy-preview.service";
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   const ctx = body.evaluationContext ?? {};
-  const decision = previewPolicy(body.policyDraft ?? {}, {
+  const decision = previewPolicy((body.policyDraft ?? {}) as PolicyPreviewDraft, {
     orgId: ctx.orgId ?? "",
     environment: (ctx.environment as "production" | "staging") ?? "production",
     actionKey: ctx.actionKey,

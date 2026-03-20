@@ -4,6 +4,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listIssues } from "@/modules/issues";
+import type { IssueSourceType } from "@/modules/issues";
 import { PageHeader, Card, CardBody } from "@/ui";
 import {
   IssuesFilters,
@@ -46,7 +47,7 @@ export default async function IssuesPage({
 
   const result = await listIssues(supabase, {
     org_id: membership.org_id,
-    source_type: sourceType,
+    source_type: sourceType as IssueSourceType | undefined,
     severity: severity as "low" | "medium" | "high" | "critical" | undefined,
     domain_key: domainKey,
     verification_status: verificationStatus as "pending" | "passed" | "failed" | "not_required" | undefined,

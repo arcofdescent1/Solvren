@@ -22,10 +22,10 @@ export async function GET(req: NextRequest) {
   const playbookKey = searchParams.get("playbookKey") ?? undefined;
   const environment = (searchParams.get("environment") ?? "production") as AppEnvironment;
 
-  let resolvedOrgId = orgId;
+  let resolvedOrgId: string | null = orgId;
   if (!resolvedOrgId) {
     const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
-    resolvedOrgId = activeOrgId ?? undefined;
+    resolvedOrgId = activeOrgId ?? null;
   }
   if (!resolvedOrgId) {
     return NextResponse.json({ error: "orgId required" }, { status: 400 });

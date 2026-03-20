@@ -36,7 +36,13 @@ export async function GET(req: NextRequest) {
       .select("id, playbook_definitions(playbook_key, display_name)")
       .in("id", runIds);
     for (const r of wrWithPb ?? []) {
-      const pb = (r as { playbook_definitions?: { playbook_key: string; display_name: string } }).playbook_definitions;
+      const raw = (r as { id: string; playbook_definitions?: unknown }).playbook_definitions;
+      const pb =
+        Array.isArray(raw) && raw[0] != null
+          ? (raw[0] as { playbook_key: string; display_name: string })
+          : raw != null && typeof raw === "object" && !Array.isArray(raw)
+            ? (raw as { playbook_key: string; display_name: string })
+            : undefined;
       if (pb) playbookMap.set((r as { id: string }).id, pb);
     }
   }

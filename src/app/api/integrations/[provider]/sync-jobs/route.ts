@@ -26,10 +26,10 @@ export async function GET(
   const integrationAccountId = req.nextUrl.searchParams.get("integrationAccountId");
   const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get("limit") ?? "20", 10) || 20);
 
-  let accountId = integrationAccountId;
+  let accountId: string | null = integrationAccountId;
   if (!accountId && orgId) {
     const { data: account } = await getAccountByOrgAndProvider(supabase, orgId, provider);
-    accountId = account?.id ?? undefined;
+    accountId = account?.id ?? null;
   }
   if (!accountId) {
     return NextResponse.json({ ok: false, error: { code: "bad_request", message: "orgId or integrationAccountId required" } }, { status: 400 });
