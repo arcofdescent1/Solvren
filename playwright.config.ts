@@ -35,8 +35,8 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: "npm run build && npm run start",
-        url: "http://localhost:3000/api/health",
+        command: process.env.CI ? "npm run start" : "npm run build && npm run start",
+        url: "http://localhost:3000/api/ready",
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
         env: { ...process.env, APP_URL: "http://localhost:3000" },
