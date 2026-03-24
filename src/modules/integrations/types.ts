@@ -19,7 +19,13 @@ export type IntegrationProvider =
   | "slack"
   | "hubspot"
   | "netsuite"
-  | "salesforce";
+  | "salesforce"
+  | "stripe"
+  | "csv"
+  | "postgres_readonly"
+  | "mysql_readonly"
+  | "snowflake"
+  | "bigquery";
 
 export type IntegrationCapability = {
   provider: IntegrationProvider;

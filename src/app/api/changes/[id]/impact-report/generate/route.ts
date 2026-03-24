@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { runRevenueImpactGeneration } from "@/services/revenueImpact/runRevenueImpactGeneration";
@@ -21,9 +22,7 @@ export async function POST(
   const orgId = orgRow?.org_id as string | undefined;
   if (!orgId) return NextResponse.json({ error: "No org" }, { status: 400 });
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("*")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("*"))
     .eq("id", changeId)
     .maybeSingle();
   if (chErr) return NextResponse.json({ error: chErr.message }, { status: 500 });

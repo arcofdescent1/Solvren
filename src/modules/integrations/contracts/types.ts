@@ -2,7 +2,8 @@
  * Phase 1 — Integration platform shared types (§6, §7).
  */
 
-export type IntegrationProvider =
+/** Native SaaS providers */
+export type NativeIntegrationProvider =
   | "hubspot"
   | "salesforce"
   | "stripe"
@@ -10,6 +11,16 @@ export type IntegrationProvider =
   | "jira"
   | "github"
   | "netsuite";
+
+/** Phase 3 ingestion sources (files, DB, warehouse) */
+export type IngestionSourceProvider =
+  | "csv"
+  | "postgres_readonly"
+  | "mysql_readonly"
+  | "snowflake"
+  | "bigquery";
+
+export type IntegrationProvider = NativeIntegrationProvider | IngestionSourceProvider;
 
 export type AuthType =
   | "oauth2"
@@ -65,7 +76,10 @@ export type IntegrationCategory =
   | "communication"
   | "work_management"
   | "engineering"
-  | "erp";
+  | "erp"
+  | "file_import"
+  | "database"
+  | "warehouse";
 
 export type HealthCheckStrategy =
   | "api_probe"
@@ -96,3 +110,21 @@ export type SyncJobType =
 export type SyncJobStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
 
 export type EnvironmentTag = "production" | "sandbox" | "test" | "development";
+
+/** Phase 3 — Source-aware error classification for retry */
+export type Phase3ErrorCode =
+  | "file_parse_error"
+  | "row_validation_error"
+  | "db_connectivity_error"
+  | "warehouse_query_error"
+  | "cursor_corruption"
+  | "replay_conflict"
+  | "rate_limit"
+  | "timeout"
+  | "invalid_mapping"
+  | "unsupported_schema"
+  | "bad_credentials"
+  | "deleted_source_object";
+
+/** Phase 3 — Replay scope types */
+export type ReplayScopeType = "record" | "job" | "time_range" | "full_source";

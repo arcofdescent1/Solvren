@@ -25,6 +25,8 @@ export type PolicyRow = {
   is_system_policy?: boolean;
   archived_at?: string | null;
   updated_by_user_id?: string | null;
+  policy_owner_type?: string | null;
+  relaxation_mode?: string | null;
 };
 
 function rowToDefinition(row: PolicyRow): PolicyDefinition {
@@ -46,12 +48,24 @@ function rowToDefinition(row: PolicyRow): PolicyDefinition {
 export async function listPoliciesForEvaluation(
   supabase: SupabaseClient,
   orgId: string,
-  environment: string
+  _environment: string
 ): Promise<{ data: PolicyDefinition[]; error: Error | null }> {
+  const { data: rows, error } = await listPolicyRowsForEvaluation(supabase, orgId);
+  if (error) return { data: [], error };
+  return { data: rows.map((r) => rowToDefinition(r)), error: null };
+}
+
+/** Active policies for evaluation with row metadata (Phase 5 governance / ownership). */
+export async function listPolicyRowsForEvaluation(
+  supabase: SupabaseClient,
+  orgId: string
+): Promise<{ data: PolicyRow[]; error: Error | null }> {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("policies")
-    .select("id, org_id, policy_key, display_name, description, scope, scope_ref, priority_order, status, default_disposition, rules_json, effective_from, effective_to")
+    .select(
+      "id, org_id, policy_key, display_name, description, scope, scope_ref, priority_order, status, default_disposition, rules_json, effective_from, effective_to, policy_owner_type, relaxation_mode"
+    )
     .in("status", ["active"])
     .lte("effective_from", now)
     .or(`effective_to.is.null,effective_to.gte.${now}`)
@@ -59,9 +73,7 @@ export async function listPoliciesForEvaluation(
     .order("priority_order", { ascending: true });
 
   if (error) return { data: [], error: error as Error };
-  const rows = (data ?? []) as PolicyRow[];
-  const definitions = rows.map(rowToDefinition);
-  return { data: definitions, error: null };
+  return { data: (data ?? []) as PolicyRow[], error: null };
 }
 
 export async function listPolicies(
@@ -243,6 +255,12 @@ export async function archivePolicy(
   if (!existing) return { data: null, error: new Error("Policy not found") };
   if ((existing as PolicyRow).is_system_policy) {
     return { data: null, error: new Error("System policies cannot be archived") };
+  }
+  if (
+    String(existing.policy_owner_type ?? "").toUpperCase() === "PLATFORM" &&
+    String(existing.relaxation_mode ?? "").toUpperCase() === "NON_RELAXABLE"
+  ) {
+    return { data: null, error: new Error("Non-relaxable platform policies cannot be archived") };
   }
 
   return updatePolicy(supabase, id, {

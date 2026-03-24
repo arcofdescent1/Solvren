@@ -23,14 +23,21 @@ export type IntegrationInboundEventRow = {
   processing_attempts: number;
   last_processing_error_code: string | null;
   last_processing_error_message: string | null;
+  downstream_raw_event_id: string | null;
+  replayed_at: string | null;
+  replay_reason: string | null;
+  replay_count: number;
   created_at: string;
 };
+
+export type InboundSourceChannel = "webhook" | "sync" | "backfill" | "warehouse" | "internal" | "reconcile" | "salesforce_cdc";
 
 export type InsertInboundEventInput = {
   org_id: string;
   integration_account_id: string;
   provider: string;
-  source_channel: "webhook" | "sync" | "backfill" | "warehouse" | "internal";
+  source_channel: InboundSourceChannel;
+  initial_status?: "RECEIVED" | "VALIDATED";
   external_event_id?: string | null;
   external_object_type?: string | null;
   external_object_id?: string | null;
@@ -61,9 +68,10 @@ export async function insertInboundEvent(
     payload_hash: input.payload_hash,
     idempotency_key: input.idempotency_key,
   };
+  const status = input.initial_status ?? "RECEIVED";
   const { data, error } = await supabase
     .from("integration_inbound_events")
-    .insert(row)
+    .insert({ ...row, ingest_status: status })
     .select()
     .single();
   if (error) return { data: null, error: error as Error };
@@ -107,6 +115,10 @@ export async function updateInboundEventStatus(
     processing_attempts?: number;
     last_processing_error_code?: string | null;
     last_processing_error_message?: string | null;
+    downstream_raw_event_id?: string | null;
+    replayed_at?: string | null;
+    replay_reason?: string | null;
+    replay_count?: number;
   }
 ): Promise<{ error: Error | null }> {
   const { error } = await supabase
@@ -114,4 +126,53 @@ export async function updateInboundEventStatus(
     .update(updates)
     .eq("id", id);
   return { error: error as Error | null };
+}
+
+export async function listInboundEventsByAccountId(
+  supabase: SupabaseClient,
+  integrationAccountId: string,
+  limit = 20
+): Promise<{ data: IntegrationInboundEventRow[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("integration_inbound_events")
+    .select("*")
+    .eq("integration_account_id", integrationAccountId)
+    .order("received_at", { ascending: false })
+    .limit(limit);
+  return { data: (data ?? []) as IntegrationInboundEventRow[], error: error as Error | null };
+}
+
+export async function listInboundEventsForReplay(
+  supabase: SupabaseClient,
+  params: {
+    integrationAccountId?: string;
+    fromReceived?: string;
+    toReceived?: string;
+    statuses?: string[];
+  },
+  limit = 100
+): Promise<{ data: IntegrationInboundEventRow[]; error: Error | null }> {
+  let q = supabase
+    .from("integration_inbound_events")
+    .select("*")
+    .in("ingest_status", params.statuses ?? ["FAILED", "DEAD_LETTERED"])
+    .order("received_at", { ascending: true })
+    .limit(limit);
+  if (params.integrationAccountId) q = q.eq("integration_account_id", params.integrationAccountId);
+  if (params.fromReceived) q = q.gte("received_at", params.fromReceived);
+  if (params.toReceived) q = q.lte("received_at", params.toReceived);
+  const { data, error } = await q;
+  return { data: (data ?? []) as IntegrationInboundEventRow[], error: error as Error | null };
+}
+
+export async function getInboundEventById(
+  supabase: SupabaseClient,
+  id: string
+): Promise<{ data: IntegrationInboundEventRow | null; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("integration_inbound_events")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return { data: data as IntegrationInboundEventRow | null, error: error as Error | null };
 }

@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
@@ -24,9 +25,7 @@ export async function POST(req: Request) {
   if (iErr) return NextResponse.json({ error: iErr.message }, { status: 500 });
   if (!inc) return NextResponse.json({ error: "Incident not found" }, { status: 404 });
 
-  const { data: change, error: cErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: cErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", body.changeEventId)
     .maybeSingle();
 

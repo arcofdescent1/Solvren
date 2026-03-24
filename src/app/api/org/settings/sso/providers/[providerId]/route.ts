@@ -27,6 +27,8 @@ type SsoProviderRow = {
   client_id?: string;
   client_secret?: string;
   domain_hint?: string;
+  email_domains?: string[];
+  default_role?: string;
   enabled?: boolean;
   enforce_sso?: boolean;
   allow_local_fallback?: boolean;
@@ -56,6 +58,8 @@ function toCamelCase(row: SsoProviderRow | null): Record<string, unknown> | null
     samlCertificate: row.saml_certificate,
     clientId: row.client_id,
     domainHint: row.domain_hint,
+    emailDomains: Array.isArray(row.email_domains) ? row.email_domains : [],
+    defaultRole: row.default_role ?? "viewer",
     enabled: row.enabled,
     enforceSso: row.enforce_sso,
     allowLocalFallback: row.allow_local_fallback,
@@ -133,6 +137,8 @@ type PutBody = Partial<{
   clientId: string;
   clientSecret: string;
   domainHint: string;
+  emailDomains?: string[];
+  defaultRole?: string;
   enabled: boolean;
   enforceSso: boolean;
   allowLocalFallback: boolean;
@@ -181,6 +187,8 @@ export async function PUT(
   if (body.clientId !== undefined) updates.client_id = body.clientId;
   if (body.clientSecret !== undefined) updates.client_secret = body.clientSecret;
   if (body.domainHint !== undefined) updates.domain_hint = body.domainHint;
+  if (body.emailDomains !== undefined) updates.email_domains = Array.isArray(body.emailDomains) ? body.emailDomains : [];
+  if (body.defaultRole !== undefined) updates.default_role = body.defaultRole;
   if (typeof body.enabled === "boolean") updates.enabled = body.enabled;
   if (typeof body.enforceSso === "boolean") updates.enforce_sso = body.enforceSso;
   if (typeof body.allowLocalFallback === "boolean") updates.allow_local_fallback = body.allowLocalFallback;

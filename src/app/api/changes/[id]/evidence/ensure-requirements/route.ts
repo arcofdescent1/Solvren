@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
@@ -18,11 +19,9 @@ export async function POST(
 
   const { id: changeId } = await ctx.params;
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select(
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, org_id, change_type, structured_change_type, domain, systems_involved, backfill_required, rollout_method, customer_impact_expected"
-    )
+    ))
     .eq("id", changeId)
     .maybeSingle();
 

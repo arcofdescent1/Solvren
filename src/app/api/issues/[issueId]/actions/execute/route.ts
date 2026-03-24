@@ -20,7 +20,7 @@ export async function POST(
   const { issue } = await getIssueDetail(supabase, issueId);
   if (!issue) return NextResponse.json({ error: "Issue not found" }, { status: 404 });
 
-  let body: { actionKey: string; provider: string; params: Record<string, unknown> };
+  let body: { actionKey: string; provider: string; params: Record<string, unknown>; policyApprovalRequestId?: string };
   try {
     body = await req.json();
   } catch {
@@ -37,6 +37,11 @@ export async function POST(
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   }
 
+  const policyApprovalRequestId =
+    typeof body.policyApprovalRequestId === "string" && body.policyApprovalRequestId.trim()
+      ? body.policyApprovalRequestId.trim()
+      : undefined;
+
   const result = await createExecutionTask(supabase, {
     orgId: issue.org_id,
     issueId,
@@ -45,6 +50,7 @@ export async function POST(
     requestedByUserId: userRes.user.id,
     params: actionParams ?? {},
     executeImmediately: true,
+    policyApprovalRequestId: policyApprovalRequestId ?? null,
   });
 
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 });

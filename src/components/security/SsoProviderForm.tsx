@@ -20,7 +20,13 @@ export default function SsoProviderForm({ orgId, providerId, onSaved, onCancel }
   const [issuer, setIssuer] = useState("");
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
+  const [protocol, setProtocol] = useState<"saml" | "oidc">("oidc");
   const [domainHint, setDomainHint] = useState("");
+  const [samlSsoUrl, setSamlSsoUrl] = useState("");
+  const [samlEntityId, setSamlEntityId] = useState("");
+  const [samlCertificate, setSamlCertificate] = useState("");
+  const [emailDomains, setEmailDomains] = useState("");
+  const [defaultRole, setDefaultRole] = useState<string>("viewer");
   const [endSessionEndpoint, setEndSessionEndpoint] = useState("");
   const [enabled, setEnabled] = useState(false);
   const [enforceSso, setEnforceSso] = useState(false);
@@ -36,10 +42,16 @@ export default function SsoProviderForm({ orgId, providerId, onSaved, onCancel }
         const json = await res.json().catch(() => ({}));
         if (res.ok) {
           const d = json as Record<string, unknown>;
+          setProtocol((d.protocol === "saml" ? "saml" : "oidc") as "saml" | "oidc");
           setDisplayName(String(d.displayName ?? ""));
           setIssuer(String(d.issuer ?? ""));
           setClientId(String(d.clientId ?? ""));
           setDomainHint(String(d.domainHint ?? ""));
+          setSamlSsoUrl(String(d.samlSsoUrl ?? ""));
+          setSamlEntityId(String(d.samlEntityId ?? ""));
+          setSamlCertificate(String(d.samlCertificate ?? ""));
+          setEmailDomains(Array.isArray(d.emailDomains) ? (d.emailDomains as string[]).join(", ") : String(d.domainHint ?? ""));
+          setDefaultRole(String(d.defaultRole ?? "viewer"));
           setEndSessionEndpoint(String(d.endSessionEndpoint ?? ""));
           setEnabled(Boolean(d.enabled));
           setEnforceSso(Boolean(d.enforceSso));
@@ -61,10 +73,12 @@ export default function SsoProviderForm({ orgId, providerId, onSaved, onCancel }
         body: JSON.stringify({
           organizationId: orgId,
           displayName,
-          issuer: issuer || undefined,
-          clientId: clientId || undefined,
-          clientSecret: clientSecret || undefined,
+          ...(protocol === "saml"
+            ? { samlSsoUrl: samlSsoUrl || undefined, samlEntityId: samlEntityId || undefined, samlCertificate: samlCertificate || undefined }
+            : { issuer: issuer || undefined, clientId: clientId || undefined, clientSecret: clientSecret || undefined }),
           domainHint: domainHint || undefined,
+          emailDomains: emailDomains ? emailDomains.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean) : undefined,
+          defaultRole: defaultRole || "viewer",
           endSessionEndpoint: endSessionEndpoint || undefined,
           enabled,
           enforceSso,
@@ -102,30 +116,82 @@ export default function SsoProviderForm({ orgId, providerId, onSaved, onCancel }
           <label className="text-xs text-[var(--text-muted)]">Display name</label>
           <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Okta" />
         </div>
+        {protocol === "saml" ? (
+          <>
+            <div>
+              <label className="text-xs text-[var(--text-muted)]">IdP SSO URL (SAML)</label>
+              <Input
+                value={samlSsoUrl}
+                onChange={(e) => setSamlSsoUrl(e.target.value)}
+                placeholder="https://idp.company.com/sso/saml"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)]">IdP Entity ID (optional)</label>
+              <Input
+                value={samlEntityId}
+                onChange={(e) => setSamlEntityId(e.target.value)}
+                placeholder="https://idp.company.com/sso"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)]">IdP certificate (PEM, for signature verification)</label>
+              <textarea
+                value={samlCertificate}
+                onChange={(e) => setSamlCertificate(e.target.value)}
+                placeholder="-----BEGIN CERTIFICATE-----..."
+                rows={4}
+                className="mt-1 w-full rounded border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 font-mono text-sm"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="text-xs text-[var(--text-muted)]">Issuer URL (OIDC)</label>
+              <Input
+                value={issuer}
+                onChange={(e) => setIssuer(e.target.value)}
+                placeholder="https://your-org.okta.com/oauth2/default"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)]">Client ID</label>
+              <Input value={clientId} onChange={(e) => setClientId(e.target.value)} placeholder="Client ID" />
+            </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)]">Client secret</label>
+              <Input
+                type="password"
+                value={clientSecret}
+                onChange={(e) => setClientSecret(e.target.value)}
+                placeholder="Leave blank to keep existing"
+              />
+            </div>
+          </>
+        )}
         <div>
-          <label className="text-xs text-[var(--text-muted)]">Issuer URL (OIDC)</label>
+          <label className="text-xs text-[var(--text-muted)]">Email domains (comma-separated, for discovery)</label>
           <Input
-            value={issuer}
-            onChange={(e) => setIssuer(e.target.value)}
-            placeholder="https://your-org.okta.com/oauth2/default"
+            value={emailDomains}
+            onChange={(e) => setEmailDomains(e.target.value)}
+            placeholder="company.com, subsidiary.com"
           />
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Only users with matching email domains will see this provider on login.</p>
         </div>
         <div>
-          <label className="text-xs text-[var(--text-muted)]">Client ID</label>
-          <Input value={clientId} onChange={(e) => setClientId(e.target.value)} placeholder="Client ID" />
-        </div>
-        <div>
-          <label className="text-xs text-[var(--text-muted)]">Client secret</label>
-          <Input
-            type="password"
-            value={clientSecret}
-            onChange={(e) => setClientSecret(e.target.value)}
-            placeholder="Leave blank to keep existing"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-[var(--text-muted)]">Domain hint (optional)</label>
-          <Input value={domainHint} onChange={(e) => setDomainHint(e.target.value)} placeholder="company.com" />
+          <label className="text-xs text-[var(--text-muted)]">Default role (when no mapping matches)</label>
+          <select
+            value={defaultRole}
+            onChange={(e) => setDefaultRole(e.target.value)}
+            className="mt-1 w-full rounded border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
+          >
+            <option value="viewer">Viewer</option>
+            <option value="submitter">Submitter</option>
+            <option value="reviewer">Reviewer</option>
+            <option value="admin">Admin</option>
+            <option value="owner">Owner</option>
+          </select>
         </div>
         <div>
           <label className="text-xs text-[var(--text-muted)]">End session URL (optional, for IdP logout)</label>

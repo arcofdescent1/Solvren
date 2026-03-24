@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -44,9 +45,7 @@ export default async function ChangeDetailPage({
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes.user) redirect("/login");
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("*")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("*"))
     .eq("id", id)
     .single();
 

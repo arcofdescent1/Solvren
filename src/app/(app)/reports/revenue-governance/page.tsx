@@ -2,6 +2,7 @@
  * CFO Feature — Revenue Governance Compliance Report
  * "SOX-style revenue governance proof in one click."
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -79,11 +80,9 @@ export default async function RevenueGovernanceReportPage() {
   const since = new Date();
   since.setDate(since.getDate() - 90);
 
-  const { data: exceptions } = await supabase
-    .from("change_events")
-    .select(
+  const { data: exceptions } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, title, change_type, structured_change_type, systems_involved, revenue_at_risk, status"
-    )
+    ))
     .eq("org_id", activeOrgId)
     .in("status", ["IN_REVIEW", "REJECTED"])
     .gte("submitted_at", since.toISOString())
@@ -109,9 +108,7 @@ export default async function RevenueGovernanceReportPage() {
     }
   }
 
-  const { data: approvedWithDetails } = await supabase
-    .from("change_events")
-    .select("id, title, change_type, systems_involved, revenue_at_risk, status")
+  const { data: approvedWithDetails } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title, change_type, systems_involved, revenue_at_risk, status"))
     .eq("org_id", activeOrgId)
     .eq("status", "APPROVED")
     .gte("submitted_at", since.toISOString())

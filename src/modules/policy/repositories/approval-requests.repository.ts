@@ -83,6 +83,48 @@ export async function getApprovalRequest(
   return { data: data as ApprovalRequestRow | null, error: error as Error | null };
 }
 
+/** Loose match between approval_requests.action_key and governance action key (e.g. stripe.refund vs refund). */
+export function approvalActionKeyMatchesPolicyAction(
+  approvalActionKey: string | null,
+  policyActionKey: string
+): boolean {
+  if (approvalActionKey == null || approvalActionKey === "") return true;
+  if (approvalActionKey === policyActionKey) return true;
+  if (policyActionKey.endsWith(`.${approvalActionKey}`)) return true;
+  if (approvalActionKey.includes(".") && policyActionKey.endsWith(approvalActionKey)) return true;
+  return false;
+}
+
+/**
+ * After policy approval_requests is approved: stable join to the original policy_decision_logs row.
+ */
+export async function resolveGovernanceTraceFromApprovedPolicyRequest(
+  supabase: SupabaseClient,
+  params: {
+    approvalRequestId: string;
+    orgId: string;
+    issueId: string;
+    actionKeyForPolicy: string;
+  }
+): Promise<{ governanceTraceId: string } | { error: string }> {
+  const { data: ar, error } = await getApprovalRequest(supabase, params.approvalRequestId);
+  if (error || !ar) return { error: "Policy approval request not found" };
+  if (ar.org_id !== params.orgId) return { error: "Policy approval request org mismatch" };
+  if (ar.status !== "approved") {
+    return { error: `Policy approval not approved (status=${ar.status})` };
+  }
+  if (ar.issue_id != null && ar.issue_id !== params.issueId) {
+    return { error: "Policy approval request does not match this issue" };
+  }
+  if (!approvalActionKeyMatchesPolicyAction(ar.action_key, params.actionKeyForPolicy)) {
+    return { error: "Policy approval request does not match this action" };
+  }
+  if (!ar.source_policy_decision_log_id) {
+    return { error: "Missing governance trace on policy approval request" };
+  }
+  return { governanceTraceId: ar.source_policy_decision_log_id };
+}
+
 export async function resolveApprovalRequest(
   supabase: SupabaseClient,
   id: string,

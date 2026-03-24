@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, CardBody, Input, Stack } from "@/ui";
+import { IntegrationSetupActions } from "./IntegrationSetupActions";
 
 type Props = {
   orgId: string;
@@ -145,10 +146,11 @@ export default function HubSpotIntegrationCard({
           )}
 
           {isAdmin && connected && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleTest} disabled={testing}>
-                {testing ? "Testing…" : "Test connection"}
-              </Button>
+            <>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleTest} disabled={testing}>
+                  {testing ? "Testing…" : "Test connection"}
+                </Button>
               {authMode === "private_app" && (
                 <div>
                   <label className="text-xs text-[var(--text-muted)]">Update private app token</label>
@@ -158,7 +160,9 @@ export default function HubSpotIntegrationCard({
                   </Button>
                 </div>
               )}
-            </div>
+              </div>
+              <IntegrationSetupActions orgId={orgId} provider="hubspot" connected />
+            </>
           )}
 
           {msg && <p className="text-sm text-[var(--text-muted)]">{msg}</p>}

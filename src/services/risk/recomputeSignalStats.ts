@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 function safeDiv(a: number, b: number) {
@@ -82,9 +83,7 @@ export async function recomputeSignalStatsRevenueAware(
 ) {
   const { orgId, domain = "REVENUE", modelVersion = 1 } = args;
 
-  const { data: changes, error } = await supabaseAdmin
-    .from("change_events")
-    .select("id, revenue_at_risk, domain")
+  const { data: changes, error } = await scopeActiveChangeEvents(supabaseAdmin.from("change_events").select("id, revenue_at_risk, domain"))
     .eq("org_id", orgId)
     .eq("domain", domain);
 

@@ -16,6 +16,8 @@ export type CompleteSsoLoginParams = {
   identity: NormalizedIdentity;
   protocol: "oidc" | "saml";
   allowJit: boolean;
+  /** Default role when no mapping matches; defaults to viewer */
+  defaultRole?: "owner" | "admin" | "reviewer" | "submitter" | "approver" | "viewer";
   /** Optional; defaults to APP_URL/dashboard */
   successRedirectUrl?: string;
 };
@@ -27,7 +29,7 @@ export type CompleteSsoLoginResult =
 export async function completeSsoLogin(
   params: CompleteSsoLoginParams
 ): Promise<CompleteSsoLoginResult> {
-  const { admin, orgId, providerId, identity, protocol, allowJit, successRedirectUrl } = params;
+  const { admin, orgId, providerId, identity, protocol, allowJit, defaultRole = "viewer", successRedirectUrl } = params;
   const baseUrl = env.appUrl.replace(/\/$/, "");
   const failUrl = `${baseUrl}/login?error=sso_failed`;
   const successUrl = successRedirectUrl ?? `${baseUrl}/dashboard`;
@@ -70,7 +72,7 @@ export async function completeSsoLogin(
     return { ok: false, failureReason: "jit_disabled" };
   }
 
-  const role = await resolveRoleFromMappings(admin, providerId, identity, "viewer");
+  const role = await resolveRoleFromMappings(admin, providerId, identity, defaultRole);
 
   await ensureUserAndMembership(admin, orgId, providerId, identity, role);
 

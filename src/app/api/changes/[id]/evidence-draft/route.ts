@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { generateEvidenceDraft } from "@/services/ai/evidenceDraft";
@@ -26,9 +27,7 @@ export async function POST(
   if (!kind)
     return NextResponse.json({ error: "Missing kind" }, { status: 400 });
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", changeId)
     .maybeSingle();
 

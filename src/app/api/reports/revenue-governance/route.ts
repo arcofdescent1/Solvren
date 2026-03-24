@@ -2,6 +2,7 @@
  * CFO Feature — Revenue Governance Compliance Report API
  * GET /api/reports/revenue-governance
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -36,11 +37,9 @@ export async function GET(req: NextRequest) {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  const { data: changes, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: changes, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, change_type, structured_change_type, systems_involved, revenue_at_risk, estimated_mrr_affected, status, submitted_at, domain"
-    )
+    ))
     .eq("org_id", orgId)
     .in("status", ["IN_REVIEW", "APPROVED", "REJECTED"])
     .gte("submitted_at", since.toISOString());

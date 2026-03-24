@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getReadyStatus } from "@/services/risk/readyStatus";
 import { fetchMitigationsForSignals } from "@/services/risk/mitigationsDb";
@@ -56,9 +57,7 @@ export async function explainRiskScore(
 ): Promise<RiskExplainResponse> {
   const { changeId } = args;
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, risk_explanation")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, risk_explanation"))
     .eq("id", changeId)
     .maybeSingle();
   if (chErr) throw new Error(chErr.message);

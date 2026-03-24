@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { env } from "@/lib/env";
+import {
+  authzErrorResponse,
+  parseRequestedOrgId,
+  requireAnyOrgPermission,
+  requireOrgPermission,
+} from "@/lib/server/authz";
 
 const JOB_PATHS = {
   notifications_process: "/api/notifications/process",
@@ -36,72 +40,54 @@ type Body = {
 };
 
 export async function POST(req: Request) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  let body: Body;
   try {
-    body = (await req.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  if (!body.job || !(body.job in JOB_PATHS)) {
-    return NextResponse.json({ error: "valid job required" }, { status: 400 });
-  }
-
-  const needsOrgId = ORG_JOBS.includes(body.job as JobKey);
-  if (needsOrgId && !body.orgId) {
-    return NextResponse.json({ error: "orgId required for this job" }, { status: 400 });
-  }
-
-  // Permission: admin of specified org, or for global jobs, admin of any org
-  if (body.orgId) {
-    const { data: member } = await supabase
-      .from("organization_members")
-      .select("role")
-      .eq("org_id", body.orgId)
-      .eq("user_id", userRes.user.id)
-      .maybeSingle();
-    if (!member || !isAdminLikeRole(parseOrgRole(member.role ?? null))) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    let body: Body;
+    try {
+      body = (await req.json()) as Body;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
-  } else {
-    const { data: members } = await supabase
-      .from("organization_members")
-      .select("role")
-      .eq("user_id", userRes.user.id);
-    const hasAdmin = (members ?? []).some((m) =>
-      isAdminLikeRole(parseOrgRole((m as { role?: string | null }).role ?? null))
-    );
-    if (!hasAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    if (!body.job || !(body.job in JOB_PATHS)) {
+      return NextResponse.json({ error: "valid job required" }, { status: 400 });
     }
-  }
 
-  const cronSecret = env.cronSecret;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET missing" }, { status: 503 });
-  }
+    const needsOrgId = ORG_JOBS.includes(body.job as JobKey);
+    if (needsOrgId && !body.orgId) {
+      return NextResponse.json({ error: "orgId required for this job" }, { status: 400 });
+    }
 
-  const path = JOB_PATHS[body.job];
-  const bodyPayload = ORG_JOBS.includes(body.job) ? { orgId: body.orgId } : {};
-  const res = await fetch(`${env.appUrl.replace(/\/$/, "")}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${cronSecret}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(bodyPayload),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    return NextResponse.json(
-      { error: (json as { error?: string }).error ?? "Job failed" },
-      { status: res.status }
-    );
-  }
+    if (body.orgId) {
+      await requireOrgPermission(parseRequestedOrgId(body.orgId), "admin.jobs.view");
+    } else {
+      await requireAnyOrgPermission("admin.jobs.view");
+    }
 
-  return NextResponse.json({ ok: true, job: body.job, result: json });
+    const cronSecret = env.cronSecret;
+    if (!cronSecret) {
+      return NextResponse.json({ error: "CRON_SECRET missing" }, { status: 503 });
+    }
+
+    const path = JOB_PATHS[body.job];
+    const bodyPayload = ORG_JOBS.includes(body.job) ? { orgId: body.orgId } : {};
+    const res = await fetch(`${env.appUrl.replace(/\/$/, "")}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${cronSecret}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bodyPayload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: (json as { error?: string }).error ?? "Job failed" },
+        { status: res.status }
+      );
+    }
+
+    return NextResponse.json({ ok: true, job: body.job, result: json });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

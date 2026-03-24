@@ -1,10 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
-import { env } from "@/lib/env";
+import { createPrivilegedClient } from "@/lib/server/adminClient";
 
 /**
- * Service role client for background jobs (notifications processor, etc).
- * Bypasses RLS. Use only in trusted server-side code.
+ * Service role client — bypasses RLS.
+ * @deprecated Prefer {@link createPrivilegedClient} from `@/lib/server/adminClient` with an explicit reason string.
  */
 export function createAdminClient() {
-  return createClient(env.supabaseUrl, env.supabaseServiceRoleKey);
+  return createPrivilegedClient("legacy:createAdminClient()");
 }

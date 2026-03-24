@@ -14,13 +14,16 @@ export type ExceptionOverride = {
 export async function getApplicableExceptions(
   supabase: SupabaseClient,
   orgId: string,
-  context: PolicyEvaluationContext
+  context: PolicyEvaluationContext,
+  options?: { blockingPolicyId?: string | null }
 ): Promise<{ exceptions: ExceptionOverride[]; appliedIds: string[] }> {
   const { data: exceptions } = await listActiveExceptions(supabase, orgId, context as unknown as Record<string, unknown>);
   const applicable: ExceptionOverride[] = [];
   const appliedIds: string[] = [];
 
   for (const ex of exceptions) {
+    if (options?.blockingPolicyId && ex.policy_id !== options.blockingPolicyId) continue;
+
     if (!exceptionScopeMatches(ex.scope_json, context)) continue;
 
     const override = ex.override_effect_json as { type?: string; disposition?: string; autonomyMode?: string };

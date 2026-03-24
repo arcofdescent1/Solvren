@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { canReviewDomain, canViewChange } from "@/lib/access/changeAccess";
 
@@ -25,9 +26,7 @@ export async function resolveRecipientsForTemplate(
 
   const changeEventId = (payload.changeEventId ?? payload.change_event_id) as string | undefined;
   if (!changeEventId) return [];
-  const { data: change } = await db
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change } = await scopeActiveChangeEvents(db.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", changeEventId)
     .maybeSingle();
   if (!change) return [];

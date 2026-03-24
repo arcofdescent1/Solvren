@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -52,9 +53,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, status, intake")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, status, intake"))
     .eq("id", id)
     .single();
 
@@ -288,9 +287,7 @@ export async function PATCH(
       supabase,
       requireAssessment: true,
     });
-    const { data: currentRow } = await supabase
-      .from("change_events")
-      .select("status")
+    const { data: currentRow } = await scopeActiveChangeEvents(supabase.from("change_events").select("status"))
       .eq("id", id)
       .single();
     const currentStatus = String(currentRow?.status ?? "DRAFT");

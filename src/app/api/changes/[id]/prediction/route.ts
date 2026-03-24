@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPredictionBadgeForChange } from "@/services/risk/predictionBadge";
@@ -15,9 +16,7 @@ export async function GET(
   if (!userRes.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, estimated_mrr_affected, percent_customer_base_affected")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, estimated_mrr_affected, percent_customer_base_affected"))
     .eq("id", changeId)
     .maybeSingle();
 

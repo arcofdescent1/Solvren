@@ -1,6 +1,11 @@
 /**
  * Phase 1 — Stub ConnectorRuntime for providers not yet migrated.
  * Implements contract; all operations return minimal success or throw.
+ *
+ * Phase 2 compatibility: Jira and NetSuite use stub runtimes. The orchestrator and
+ * generic routes ([provider]/test, [provider]/health, etc.) are compatible — they
+ * delegate to the registry and receive safe stub responses. No full migration required
+ * for Phase 2; Jira/NetSuite continue to use their bespoke routes (config, oauth, etc.).
  */
 import type { ConnectorRuntime } from "../../contracts/runtime";
 import type { IntegrationProvider } from "../../contracts/types";

@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function getRevenueAtRisk30d(
@@ -6,11 +7,9 @@ export async function getRevenueAtRisk30d(
 ) {
   const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
 
-  const { data, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "estimated_mrr_affected, revenue_risk_score, base_risk_score, exposure_multiplier, revenue_surface, status, submitted_at"
-    )
+    ))
     .eq("org_id", args.orgId)
     .gte("submitted_at", since);
 

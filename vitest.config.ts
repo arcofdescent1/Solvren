@@ -24,7 +24,22 @@ export default defineConfig({
         test: {
           name: "unit",
           include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+          exclude: ["**/*.stories.*", "**/*.integration.test.ts"],
+        },
+      },
+      {
+        resolve: {
+          alias: {
+            "@": path.join(dirname, "src"),
+          },
+        },
+        test: {
+          name: "integration",
+          environment: "node",
+          include: ["src/**/*.integration.test.ts"],
           exclude: ["**/*.stories.*"],
+          testTimeout: 120_000,
+          hookTimeout: 120_000,
         },
       },
       {

@@ -11,6 +11,7 @@ import { signJiraState } from "@/lib/jira/state";
 import { JIRA_OAUTH_SCOPE_STRING } from "@/lib/jira/constants";
 import { IntegrationConnectionService } from "@/modules/integrations";
 import { IntegrationHealthService } from "@/modules/integrations";
+import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 
 const REFRESH_THRESHOLD_MS = 10 * 60 * 1000;
 
@@ -163,9 +164,10 @@ export class JiraAuthService {
 
     if (!cred) return null;
 
-    const accessToken = (cred as { access_token: string }).access_token;
-    const refreshToken = (cred as { refresh_token?: string | null }).refresh_token ?? null;
-    const expiresAt = (cred as { expires_at?: string | null }).expires_at ?? null;
+    const revealed = revealCredentialTokenFields(cred as Record<string, unknown>);
+    const accessToken = String((revealed as { access_token?: string }).access_token ?? "");
+    const refreshToken = (revealed as { refresh_token?: string | null }).refresh_token ?? null;
+    const expiresAt = (revealed as { expires_at?: string | null }).expires_at ?? null;
 
     const needsRefresh =
       expiresAt && new Date(expiresAt).getTime() - Date.now() < REFRESH_THRESHOLD_MS;
@@ -212,14 +214,14 @@ export class JiraAuthService {
       : null;
 
     await this.admin.from("integration_credentials").upsert(
-      {
+      sealCredentialTokenFields({
         org_id: orgId,
         provider: "jira",
         access_token: json.access_token!,
         refresh_token: json.refresh_token ?? refreshToken,
         expires_at: newExpiresAt,
         updated_at: new Date().toISOString(),
-      },
+      }),
       { onConflict: "org_id,provider" }
     );
 

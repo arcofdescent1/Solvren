@@ -65,23 +65,18 @@ export default function LoginPage() {
     }
   }, [searchParams, router]);
 
-  async function startSso(organizationId: string, providerId: string, protocol: string) {
+  async function startSso(organizationId: string, providerId: string, _protocol?: string) {
     setMsg(null);
     setLoading(true);
     try {
-      const path = protocol === "saml" ? "/api/auth/sso/saml/start" : "/api/auth/sso/oidc/start";
-      const res = await fetch(path, {
+      const res = await fetch("/api/auth/sso/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ organizationId, providerId }),
+        body: JSON.stringify({ organizationId, providerId, email: email.trim() || undefined }),
       });
       const data = await res.json();
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
-        return;
-      }
-      if (data.authorizeUrl) {
-        window.location.href = data.authorizeUrl;
         return;
       }
       setMsg(data.error ?? "SSO start failed");
@@ -205,7 +200,7 @@ export default function LoginPage() {
                       className="w-full"
                       disabled={loading || discoverLoading}
                       onClick={() =>
-                        startSso(ssoOrgs[0].id, ssoOrgs[0].providers[0].providerId, ssoOrgs[0].providers[0].providerType)
+                        startSso(ssoOrgs[0].id, ssoOrgs[0].providers[0].providerId)
                       }
                     >
                       {loading ? "Redirecting..." : `Continue with ${ssoOrgs[0].providers[0].displayName ?? "SSO"}`}
@@ -219,7 +214,7 @@ export default function LoginPage() {
                           variant="outline"
                           className="w-full"
                           disabled={loading || discoverLoading}
-                          onClick={() => startSso(org.id, prov.providerId, prov.providerType)}
+                          onClick={() => startSso(org.id, prov.providerId)}
                         >
                           {loading ? "Redirecting..." : `${org.name} – ${prov.displayName ?? prov.providerType}`}
                         </Button>

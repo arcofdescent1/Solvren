@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ChangeIntakeStepperClient } from "@/components/intake/ChangeIntakeStepperClient";
@@ -16,9 +17,7 @@ export default async function ChangeIntakePage({
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes.user) redirect("/login");
 
-  const { data: change, error } = await supabase
-    .from("change_events")
-    .select("*")
+  const { data: change, error } = await scopeActiveChangeEvents(supabase.from("change_events").select("*"))
     .eq("id", id)
     .single();
 

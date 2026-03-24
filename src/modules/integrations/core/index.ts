@@ -9,3 +9,4 @@ export * from "./integrationWebhookRepo";
 export * from "./integrationActionLogsRepo";
 export * from "./integrationHealthRepo";
 export * from "./integrationSupportedObjectsRepo";
+export * from "./providerAccountLinkService";

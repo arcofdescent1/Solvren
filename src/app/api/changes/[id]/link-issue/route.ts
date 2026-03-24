@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { linkChangeToIssue } from "@/modules/change-governance";
@@ -38,9 +39,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid linkType" }, { status: 400 });
 
   if (body.createIssue === true) {
-    const { data: change } = await supabase
-      .from("change_events")
-      .select("id, org_id, title, domain")
+    const { data: change } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, title, domain"))
       .eq("id", changeId)
       .single();
     if (!change || change.org_id !== auth.orgId)

@@ -5,6 +5,7 @@ import { auditLog } from "@/lib/audit";
 import { verifyJiraState } from "@/lib/jira/state";
 import { env } from "@/lib/env";
 import { JiraAuthService } from "@/services/jira/jiraAuthService";
+import { linkJiraIntegrationAccount } from "@/modules/integrations/providers/jira/accountLink";
 
 export async function GET(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -87,6 +88,12 @@ export async function GET(req: NextRequest) {
   const resource = resources[0];
   try {
     await authService.persistConnection(state.orgId, tokens, resource);
+    await linkJiraIntegrationAccount(admin, {
+      orgId: state.orgId,
+      userId: state.userId,
+      cloudId: resource.id,
+      siteName: resource.name,
+    });
   } catch {
     const base = new URL(req.url);
     return NextResponse.redirect(

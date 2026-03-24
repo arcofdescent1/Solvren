@@ -1,5 +1,6 @@
 /**
  * Phase 3 — Policy conflict resolver (§10.3).
+ * Phase 5 — Platform vs org precedence, merged approvals, autonomy cap flag.
  */
 import type { PolicyRuleMatch, AutonomyMode } from "../domain";
 import type { EvaluatedRuleMatch } from "./policy-evaluator.service";
@@ -13,6 +14,16 @@ const AUTONOMY_MODE_ORDER: AutonomyMode[] = [
   "full_trusted_autonomy",
 ];
 
+/** Lower tier wins (1 = strongest). */
+function conflictTier(m: EvaluatedRuleMatch): number {
+  const platform = m.policyOwnerType === "PLATFORM";
+  if (m.match.effect === "BLOCK" && m.match.hardBlock) return platform ? 1 : 2;
+  if (m.match.effect === "BLOCK") return platform ? 3 : 4;
+  if (m.match.effect === "REQUIRE_APPROVAL") return platform ? 5 : 6;
+  if (m.match.effect === "LIMIT_AUTONOMY_MODE") return platform ? 7 : 8;
+  return 100;
+}
+
 export type ResolvedDecision = {
   finalDisposition: "ALLOW" | "BLOCK" | "REQUIRE_APPROVAL";
   decisionReasonCode: string;
@@ -23,6 +34,10 @@ export type ResolvedDecision = {
   matchedRules: PolicyRuleMatch[];
   blockedByRules: PolicyRuleMatch[];
   approvalRules: PolicyRuleMatch[];
+  /** Canonical blocking rule for exception eligibility (Phase 5). */
+  primaryBlockingMatch: EvaluatedRuleMatch | null;
+  /** True when LIMIT_AUTONOMY rules capped requested mode (Phase 5 governance UX). */
+  autonomyLimited: boolean;
 };
 
 export function resolveConflict(
@@ -30,69 +45,117 @@ export function resolveConflict(
   requestedMode: AutonomyMode,
   defaultDisposition: "ALLOW" | "BLOCK"
 ): ResolvedDecision {
+  if (matchedRules.length === 0) {
+    return {
+      finalDisposition: defaultDisposition,
+      decisionReasonCode:
+        defaultDisposition === "BLOCK" ? "fail_safe_block" : "no_rules_matched",
+      decisionMessage:
+        defaultDisposition === "BLOCK"
+          ? "No matching policy; fail-safe block for write-capable action."
+          : "No policy rules matched; applying default.",
+      effectiveAutonomyMode: requestedMode,
+      requiredApproverRoles: [],
+      requiredApprovalCount: 0,
+      matchedRules: [],
+      blockedByRules: [],
+      approvalRules: [],
+      primaryBlockingMatch: null,
+      autonomyLimited: false,
+    };
+  }
+
   const matches = matchedRules.map((m) => m.match);
-  const hardBlocks = matches.filter((m) => m.hardBlock && m.effect === "BLOCK");
-  const blocks = matches.filter((m) => m.effect === "BLOCK");
-  const approvals = matches.filter((m) => m.effect === "REQUIRE_APPROVAL");
-  const limitAutonomy = matches.filter((m) => m.effect === "LIMIT_AUTONOMY_MODE");
+  const ranked = matchedRules
+    .map((m) => ({ m, t: conflictTier(m) }))
+    .sort((a, b) => a.t - b.t);
+  const minT = ranked[0]!.t;
 
-  let finalDisposition: "ALLOW" | "BLOCK" | "REQUIRE_APPROVAL" = "ALLOW";
-  let decisionReasonCode = "no_rules_matched";
-  let decisionMessage = "No policy rules matched; applying default.";
-  let effectiveAutonomyMode = requestedMode;
-  let requiredApproverRoles: string[] = [];
-  let requiredApprovalCount = 0;
+  if (minT <= 4) {
+    const blockMs = ranked.filter((x) => x.t === minT).map((x) => x.m);
+    const primary = blockMs[0]!;
+    return {
+      finalDisposition: "BLOCK",
+      decisionReasonCode: primary.match.reasonCode,
+      decisionMessage: primary.match.message,
+      effectiveAutonomyMode: requestedMode,
+      requiredApproverRoles: [],
+      requiredApprovalCount: 0,
+      matchedRules: matches,
+      blockedByRules: blockMs.map((x) => x.match),
+      approvalRules: [],
+      primaryBlockingMatch: primary,
+      autonomyLimited: false,
+    };
+  }
 
-  if (hardBlocks.length > 0) {
-    finalDisposition = "BLOCK";
-    const r = hardBlocks[0];
-    decisionReasonCode = r.reasonCode;
-    decisionMessage = r.message;
-  } else if (blocks.length > 0) {
-    finalDisposition = "BLOCK";
-    const r = blocks[0];
-    decisionReasonCode = r.reasonCode;
-    decisionMessage = r.message;
-  } else if (approvals.length > 0) {
-    finalDisposition = "REQUIRE_APPROVAL";
-    const am = matchedRules.find((m) => m.match.effect === "REQUIRE_APPROVAL");
-    if (am) {
-      const r = am.match;
-      decisionReasonCode = r.reasonCode;
-      decisionMessage = r.message;
-      if (am.rule.effect.type === "REQUIRE_APPROVAL") {
-        requiredApproverRoles = am.rule.effect.approverRoles ?? [];
-        requiredApprovalCount = am.rule.effect.approvalCount ?? 1;
+  if (minT <= 6) {
+    const appr = ranked.filter((x) => x.t === 5 || x.t === 6).map((x) => x.m);
+    const roles = new Set<string>();
+    let quorum = 1;
+    for (const m of appr) {
+      if (m.rule.effect.type === "REQUIRE_APPROVAL") {
+        for (const r of m.rule.effect.approverRoles ?? []) roles.add(r);
+        quorum = Math.max(quorum, m.rule.effect.approvalCount ?? 1);
       }
     }
-  } else if (limitAutonomy.length > 0) {
-    const am = matchedRules.find((m) => m.match.effect === "LIMIT_AUTONOMY_MODE");
-    if (am?.rule.effect.type === "LIMIT_AUTONOMY_MODE") {
-      const r = am.match;
-      const maxMode = am.rule.effect.maxMode;
+    const first = appr[0]!;
+    return {
+      finalDisposition: "REQUIRE_APPROVAL",
+      decisionReasonCode: first.match.reasonCode,
+      decisionMessage: first.match.message,
+      effectiveAutonomyMode: requestedMode,
+      requiredApproverRoles: [...roles],
+      requiredApprovalCount: quorum,
+      matchedRules: matches,
+      blockedByRules: [],
+      approvalRules: appr.map((x) => x.match),
+      primaryBlockingMatch: null,
+      autonomyLimited: false,
+    };
+  }
+
+  if (minT <= 8) {
+    const lim = ranked
+      .filter((x) => x.t === 7 || x.t === 8)
+      .sort((a, b) => a.t - b.t)
+      .map((x) => x.m);
+    let mode = requestedMode;
+    for (const m of lim) {
+      if (m.rule.effect.type !== "LIMIT_AUTONOMY_MODE") continue;
+      const maxMode = m.rule.effect.maxMode;
       const maxIdx = AUTONOMY_MODE_ORDER.indexOf(maxMode);
-      const reqIdx = AUTONOMY_MODE_ORDER.indexOf(requestedMode);
-      effectiveAutonomyMode = reqIdx <= maxIdx ? requestedMode : maxMode;
-      decisionReasonCode = r.reasonCode;
-      decisionMessage = r.message;
+      const curIdx = AUTONOMY_MODE_ORDER.indexOf(mode);
+      mode = curIdx <= maxIdx ? mode : maxMode;
     }
-  } else {
-    finalDisposition = defaultDisposition;
-    if (defaultDisposition === "BLOCK") {
-      decisionReasonCode = "fail_safe_block";
-      decisionMessage = "No matching policy; fail-safe block for write-capable action.";
-    }
+    const first = lim[0]!;
+    const autonomyLimited = mode !== requestedMode;
+    return {
+      finalDisposition: "ALLOW",
+      decisionReasonCode: first.match.reasonCode,
+      decisionMessage: first.match.message,
+      effectiveAutonomyMode: mode,
+      requiredApproverRoles: [],
+      requiredApprovalCount: 0,
+      matchedRules: matches,
+      blockedByRules: [],
+      approvalRules: [],
+      primaryBlockingMatch: null,
+      autonomyLimited,
+    };
   }
 
   return {
-    finalDisposition,
-    decisionReasonCode,
-    decisionMessage,
-    effectiveAutonomyMode,
-    requiredApproverRoles,
-    requiredApprovalCount,
+    finalDisposition: defaultDisposition,
+    decisionReasonCode: "no_effectual_rules",
+    decisionMessage: "No blocking or approval rules matched; applying default disposition.",
+    effectiveAutonomyMode: requestedMode,
+    requiredApproverRoles: [],
+    requiredApprovalCount: 0,
     matchedRules: matches,
-    blockedByRules: hardBlocks.length > 0 ? hardBlocks : blocks,
-    approvalRules: approvals,
+    blockedByRules: [],
+    approvalRules: [],
+    primaryBlockingMatch: null,
+    autonomyLimited: false,
   };
 }

@@ -4,6 +4,7 @@ import { auditLog } from "@/lib/audit";
 import { canGrantRestrictedAccess, canViewChange } from "@/lib/access/changeAccess";
 import { markRevenueImpactStale } from "@/services/revenueImpact/markRevenueImpactStale";
 import { markCoordinationPlanStale } from "@/services/coordination/markCoordinationPlanStale";
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 
 const REVENUE_SURFACES = [
   "PRICING", "BILLING", "PAYMENTS", "SUBSCRIPTIONS",
@@ -37,11 +38,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
-    .eq("id", id)
-    .single();
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(
+    supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted").eq("id", id)
+  ).single();
 
   if (ceErr || !change) {
     return NextResponse.json(

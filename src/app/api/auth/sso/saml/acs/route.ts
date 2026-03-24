@@ -24,11 +24,17 @@ export async function POST(req: NextRequest) {
 
   const { data: session, error: sessErr } = await admin
     .from("sso_auth_sessions")
-    .select("id, org_id, provider_id, redirect_success_url, redirect_failure_url")
+    .select("id, org_id, provider_id, redirect_success_url, redirect_failure_url, expires_at")
     .eq("state", relayState)
     .maybeSingle();
 
   if (sessErr || !session) {
+    return NextResponse.redirect(failureUrl);
+  }
+
+  const sess = session as { expires_at?: string | null };
+  if (sess.expires_at && new Date(sess.expires_at) < new Date()) {
+    await admin.from("sso_auth_sessions").delete().eq("state", relayState);
     return NextResponse.redirect(failureUrl);
   }
 
@@ -40,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   const { data: provider } = await admin
     .from("sso_providers")
-    .select("saml_certificate, allow_jit_provisioning, attribute_mappings")
+    .select("saml_certificate, allow_jit_provisioning, attribute_mappings, default_role")
     .eq("id", providerId)
     .eq("org_id", orgId)
     .maybeSingle();
@@ -53,6 +59,7 @@ export async function POST(req: NextRequest) {
     saml_certificate?: string | null;
     allow_jit_provisioning?: boolean;
     attribute_mappings?: Record<string, string>;
+    default_role?: string | null;
   };
 
   try {
@@ -72,6 +79,10 @@ export async function POST(req: NextRequest) {
     const { identity } = await parseSamlResponse(samlResponse, p.attribute_mappings ?? undefined);
     const allowJit = p.allow_jit_provisioning !== false;
 
+    const defaultRole = (p.default_role && ["owner","admin","reviewer","submitter","approver","viewer"].includes(p.default_role))
+      ? (p.default_role as "owner"|"admin"|"reviewer"|"submitter"|"approver"|"viewer")
+      : undefined;
+
     const result = await completeSsoLogin({
       admin,
       orgId,
@@ -79,6 +90,7 @@ export async function POST(req: NextRequest) {
       identity,
       protocol: "saml",
       allowJit,
+      defaultRole,
     });
 
     if (!result.ok) {

@@ -8,6 +8,7 @@ import { getActiveOrg } from "@/lib/org/activeOrg";
 import { PageHeader, Card, CardBody } from "@/ui";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { getDecisionLogById } from "@/modules/policy/repositories/policy-decision-logs.repository";
+import { GovernanceDecisionFeedback } from "@/components/learning/GovernanceDecisionFeedback";
 
 export default async function PolicyDecisionDetailPage({
   params,
@@ -97,6 +98,8 @@ export default async function PolicyDecisionDetailPage({
           </CardBody>
         </Card>
       )}
+
+      <GovernanceDecisionFeedback traceId={log.id} />
 
       {(log.blocked_rules_json as unknown[])?.length > 0 && (
         <Card>

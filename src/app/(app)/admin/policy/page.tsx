@@ -41,9 +41,14 @@ export default async function PolicyCenterPage() {
         title="Policy Center"
         description="Authoritative policy enforcement. Manage policies, view decision logs, and handle approval requests."
         right={
-          <Link href="/admin/policy/approvals" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-            Approval Queue →
-          </Link>
+          <div className="flex flex-wrap gap-3 justify-end">
+            <Link href="/admin/learning" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Learning →
+            </Link>
+            <Link href="/admin/policy/approvals" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Approval Queue →
+            </Link>
+          </div>
         }
       />
       <PolicyCenterClient

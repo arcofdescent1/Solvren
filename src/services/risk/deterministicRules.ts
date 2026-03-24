@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 export type ChangeType =
   | "PRICING"
   | "BILLING"
@@ -306,9 +307,7 @@ export async function evaluateDeterministicRules(
 ): Promise<EvaluateResult> {
   const { orgId, changeId } = args;
 
-  const { data: changeRow, error: changeErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, title, description, intake")
+  const { data: changeRow, error: changeErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, title, description, intake"))
     .eq("id", changeId)
     .maybeSingle();
 
@@ -356,11 +355,9 @@ export async function evaluateDeterministicRules(
     // Fall through to intake-based evaluation
   }
 
-  const { data: changeData, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: changeData, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "change_type,intake,systems_involved,revenue_impact_areas,impacts_active_customers,alters_pricing_visibility,backfill_required,data_migration_required,requires_code_deploy,reversible_via_config,requires_db_restore,requires_manual_data_correction,rollback_time_estimate_hours"
-    )
+    ))
     .eq("id", changeId)
     .maybeSingle();
 

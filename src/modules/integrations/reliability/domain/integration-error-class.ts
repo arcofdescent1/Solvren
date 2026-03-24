@@ -12,6 +12,17 @@ export enum IntegrationErrorClass {
   CONFLICT = "CONFLICT",
   TIMEOUT = "TIMEOUT",
   UNKNOWN = "UNKNOWN",
+  /** Phase 3 */
+  FILE_PARSE_ERROR = "FILE_PARSE_ERROR",
+  ROW_VALIDATION_ERROR = "ROW_VALIDATION_ERROR",
+  DB_CONNECTIVITY_ERROR = "DB_CONNECTIVITY_ERROR",
+  WAREHOUSE_QUERY_ERROR = "WAREHOUSE_QUERY_ERROR",
+  CURSOR_CORRUPTION = "CURSOR_CORRUPTION",
+  REPLAY_CONFLICT = "REPLAY_CONFLICT",
+  /** Phase 4 inbound */
+  SIGNATURE_INVALID = "SIGNATURE_INVALID",
+  ACCOUNT_RESOLUTION_FAILED = "ACCOUNT_RESOLUTION_FAILED",
+  RAW_EVENT_EMIT_FAILED = "RAW_EVENT_EMIT_FAILED",
 }
 
 const RETRYABLE: IntegrationErrorClass[] = [
@@ -26,6 +37,10 @@ const NON_RETRYABLE: IntegrationErrorClass[] = [
   IntegrationErrorClass.PERMISSION,
   IntegrationErrorClass.VALIDATION,
   IntegrationErrorClass.NOT_FOUND,
+  IntegrationErrorClass.FILE_PARSE_ERROR,
+  IntegrationErrorClass.ROW_VALIDATION_ERROR,
+  IntegrationErrorClass.CURSOR_CORRUPTION,
+  IntegrationErrorClass.REPLAY_CONFLICT,
 ];
 
 export function isRetryableErrorClass(cls: IntegrationErrorClass): boolean {

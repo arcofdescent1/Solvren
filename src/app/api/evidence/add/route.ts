@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { addTimelineEvent } from "@/services/timeline/addTimelineEvent";
@@ -30,9 +31,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", body.changeEventId)
     .single();
 

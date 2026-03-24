@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -10,9 +11,7 @@ export async function GET(req: Request) {
   const changeEventId = url.searchParams.get("changeEventId");
   if (!changeEventId) return NextResponse.json({ error: "Missing changeEventId" }, { status: 400 });
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", changeEventId)
     .maybeSingle();
 

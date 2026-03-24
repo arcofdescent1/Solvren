@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type EnqueueOptions = {
@@ -52,9 +53,7 @@ export async function enqueueNotificationEvents(
   }
 
   if (channels.length > 1) {
-    const { data: changeRow } = await db
-      .from("change_events")
-      .select("is_restricted")
+    const { data: changeRow } = await scopeActiveChangeEvents(db.from("change_events").select("is_restricted"))
       .eq("id", changeEventId)
       .maybeSingle();
     if (Boolean((changeRow as { is_restricted?: boolean | null } | null)?.is_restricted)) {

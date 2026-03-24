@@ -2,39 +2,38 @@
  * Phase 4 — GET /api/admin/integrations/executions/:executionId (§18.3).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActionExecution } from "@/modules/integrations/reliability/repositories/integration-action-executions.repository";
 import { listExecutionTargets } from "@/modules/integrations/reliability/repositories/integration-action-execution-targets.repository";
 import { listReconciliationChecksForExecution } from "@/modules/integrations/reliability/repositories/integration-reconciliation-checks.repository";
+import { authzErrorResponse, resolveResourceInOrg } from "@/lib/server/authz";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ executionId: string }> }
 ) {
-  const { executionId } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const { executionId } = await params;
 
-  const { data: execution } = await getActionExecution(supabase, executionId);
-  if (!execution) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const ctx = await resolveResourceInOrg({
+      table: "integration_action_executions",
+      resourceId: executionId,
+      permission: "admin.jobs.view",
+    });
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("org_id")
-    .eq("user_id", userRes.user.id)
-    .eq("org_id", execution.org_id)
-    .maybeSingle();
-  if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { data: execution } = await getActionExecution(ctx.supabase, executionId);
+    if (!execution) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const [{ data: targets }, { data: reconChecks }] = await Promise.all([
-    listExecutionTargets(supabase, executionId),
-    listReconciliationChecksForExecution(supabase, executionId),
-  ]);
+    const [{ data: targets }, { data: reconChecks }] = await Promise.all([
+      listExecutionTargets(ctx.supabase, executionId),
+      listReconciliationChecksForExecution(ctx.supabase, executionId),
+    ]);
 
-  return NextResponse.json({
-    execution,
-    targets: targets ?? [],
-    reconciliationChecks: reconChecks ?? [],
-  });
+    return NextResponse.json({
+      execution,
+      targets: targets ?? [],
+      reconciliationChecks: reconChecks ?? [],
+    });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

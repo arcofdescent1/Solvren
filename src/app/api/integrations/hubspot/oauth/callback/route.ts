@@ -1,3 +1,7 @@
+/**
+ * @deprecated Phase 2 compatibility route. HubSpot runs through the new runtime layer.
+ * OAuth callback for legacy setup wizard; to be folded into generic [provider]/connect/callback.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -5,6 +9,7 @@ import { verifyHubSpotState } from "@/lib/hubspot/state";
 import { auditLog } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
+import { sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 
 async function exchangeCode(code: string, redirectUri: string) {
   const body = new URLSearchParams({
@@ -66,13 +71,13 @@ export async function GET(req: NextRequest) {
   const expiresAt = tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000).toISOString() : null;
 
   await admin.from("integration_credentials").upsert(
-    {
+    sealCredentialTokenFields({
       org_id: state.orgId,
       provider: "hubspot",
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token ?? null,
       expires_at: expiresAt,
-    },
+    }),
     { onConflict: "org_id,provider" }
   );
 

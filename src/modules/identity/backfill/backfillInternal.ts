@@ -2,6 +2,7 @@
  * Phase 2 — Backfill internal Solvren objects into canonical model (§18.2 Step 3).
  * Idempotent: existing links are reused.
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveExternalObject } from "../services/entityResolutionService";
 
@@ -16,9 +17,7 @@ export async function backfillChanges(
   options: { dryRun?: boolean; limit?: number } = {}
 ): Promise<{ processed: number; linked: number; created: number; errors: number }> {
   const limit = options.limit ?? 500;
-  const { data: rows } = await supabase
-    .from("change_events")
-    .select("id, org_id, title, updated_at")
+  const { data: rows } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, title, updated_at"))
     .eq("org_id", orgId)
     .order("updated_at", { ascending: false })
     .limit(limit);

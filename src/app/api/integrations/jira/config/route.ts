@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { auditLog } from "@/lib/audit";
 import { registerJiraWebhooks } from "@/services/jira/jiraWebhookService";
 import { RG_CHANGE_STATUS_SET } from "@/lib/changes/statuses";
@@ -46,142 +45,113 @@ function validateConfig(config: Partial<JiraConfig>): { valid: boolean; errors: 
 }
 
 export async function GET(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
+  try {
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    if (!orgId) {
+      return NextResponse.json({ error: "orgId required" }, { status: 400 });
+    }
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.view");
+    const admin = createAdminClient();
 
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  if (!orgId) {
-    return NextResponse.json({ error: "orgId required" }, { status: 400 });
-  }
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-
-  if (!member) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const { data: conn } = await admin
+    const { data: conn } = await admin
     .from("integration_connections")
     .select("status, config, last_error, last_success_at, health_status")
-    .eq("org_id", orgId)
+    .eq("org_id", ctx.orgId)
     .eq("provider", "jira")
     .maybeSingle();
 
-  const c = conn as {
+    const c = conn as {
     status?: string;
     config?: JiraConfig;
     last_error?: string;
     last_success_at?: string;
     health_status?: string;
-  } | null;
+    } | null;
 
-  return NextResponse.json({
-    connected: c?.status === "connected",
-    config: c?.config ?? null,
-    lastError: c?.last_error ?? null,
-    lastSuccessAt: c?.last_success_at ?? null,
-    healthStatus: c?.health_status ?? null,
-  });
+    return NextResponse.json({
+      connected: c?.status === "connected",
+      config: c?.config ?? null,
+      lastError: c?.last_error ?? null,
+      lastSuccessAt: c?.last_success_at ?? null,
+      healthStatus: c?.health_status ?? null,
+    });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }
 
 export async function PUT(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
+  try {
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    if (!orgId) {
+      return NextResponse.json({ error: "orgId required" }, { status: 400 });
+    }
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.manage");
+    const admin = createAdminClient();
 
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  if (!orgId) {
-    return NextResponse.json({ error: "orgId required" }, { status: 400 });
-  }
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-
-  if (!member || !isAdminLikeRole(parseOrgRole((member as { role?: string }).role ?? null))) {
-    return NextResponse.json({ error: "Admin required" }, { status: 403 });
-  }
-
-  const { data: conn } = await admin
+    const { data: conn } = await admin
     .from("integration_connections")
     .select("id, status, config")
-    .eq("org_id", orgId)
+    .eq("org_id", ctx.orgId)
     .eq("provider", "jira")
     .maybeSingle();
 
-  const existing = conn as { id?: string; status?: string; config?: JiraConfig } | null;
-  const canEdit = existing?.status === "connected" || existing?.status === "configured";
-  if (!existing || !canEdit) {
-    return NextResponse.json(
-      { error: "Jira not connected for this organization" },
-      { status: 400 }
-    );
-  }
+    const existing = conn as { id?: string; status?: string; config?: JiraConfig } | null;
+    const canEdit = existing?.status === "connected" || existing?.status === "configured";
+    if (!existing || !canEdit) {
+      return NextResponse.json(
+        { error: "Jira not connected for this organization" },
+        { status: 400 }
+      );
+    }
 
-  let body: Partial<JiraConfig>;
-  try {
-    body = (await req.json()) as Partial<JiraConfig>;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+    let body: Partial<JiraConfig>;
+    try {
+      body = (await req.json()) as Partial<JiraConfig>;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
 
-  const { valid, errors } = validateConfig(body);
-  if (!valid) {
-    return NextResponse.json({ error: "Validation failed", details: errors }, { status: 400 });
-  }
+    const { valid, errors } = validateConfig(body);
+    if (!valid) {
+      return NextResponse.json({ error: "Validation failed", details: errors }, { status: 400 });
+    }
 
-  const merged: JiraConfig = {
-    ...(existing.config ?? {}),
-    ...body,
-    cloudId: body.cloudId ?? existing.config?.cloudId,
-    siteUrl: body.siteUrl ?? existing.config?.siteUrl,
-    siteName: body.siteName ?? existing.config?.siteName,
-  };
+    const merged: JiraConfig = {
+      ...(existing.config ?? {}),
+      ...body,
+      cloudId: body.cloudId ?? existing.config?.cloudId,
+      siteUrl: body.siteUrl ?? existing.config?.siteUrl,
+      siteName: body.siteName ?? existing.config?.siteName,
+    };
 
-  const { error } = await admin
-    .from("integration_connections")
-    .update({
-      config: merged,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("org_id", orgId)
-    .eq("provider", "jira");
+    const { error } = await admin
+      .from("integration_connections")
+      .update({
+        config: merged,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("org_id", ctx.orgId)
+      .eq("provider", "jira");
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-  if (merged.features?.webhookSync && merged.cloudId && merged.projects?.length) {
-    const connId = existing.id ?? "";
-    await registerJiraWebhooks(
-      admin,
-      orgId,
-      connId,
-      merged.cloudId,
-      merged.projects
-    );
-  }
+    if (merged.features?.webhookSync && merged.cloudId && merged.projects?.length) {
+      const connId = existing.id ?? "";
+      await registerJiraWebhooks(
+        admin,
+        ctx.orgId,
+        connId,
+        merged.cloudId,
+        merged.projects
+      );
+    }
 
-  await auditLog(supabase, {
-    orgId,
-    actorId: userRes.user.id,
+    await auditLog(ctx.supabase, {
+    orgId: ctx.orgId,
+    actorId: ctx.user.id,
     actorType: "USER",
     action: "jira.config.updated",
     entityType: "integration",
@@ -189,5 +159,8 @@ export async function PUT(req: NextRequest) {
     metadata: { projects: merged.projects, enabled: merged.enabled },
   });
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

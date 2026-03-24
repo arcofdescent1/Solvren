@@ -4,7 +4,8 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAction } from "@/modules/execution/registry/action-registry";
-import { evaluatePolicy } from "./policy-engine.service";
+import { getOrgAutonomySettings } from "../persistence/policies.repository";
+import { evaluateGovernance, deploymentGovernanceEnvironment } from "@/modules/governance";
 
 export type DecisionContext = {
   orgId: string;
@@ -34,15 +35,55 @@ export async function rankAndSelectAction(
   supabase: SupabaseClient,
   context: DecisionContext
 ): Promise<DecisionResult> {
-  const policyResult = await evaluatePolicy(supabase, {
-    orgId: context.orgId,
-    actionKey: undefined,
-    playbookKey: context.playbookKey,
-    amount: context.amount,
-    confidenceScore: context.confidenceScore,
-  });
+  const { data: autonomySettings } = await getOrgAutonomySettings(supabase, context.orgId);
+  if (autonomySettings?.automation_paused) {
+    return {
+      selectedAction: null,
+      rankedActions: [],
+      blockedActions: [...context.eligibleActions],
+      requiresApproval: true,
+      selectionReason: "Automation paused for org",
+    };
+  }
 
-  const blocked = new Set(policyResult.blockedActions);
+  const blocked = new Set<string>();
+  let requiresApproval = false;
+
+  for (const actionKey of context.eligibleActions) {
+    const { data: gov, error } = await evaluateGovernance(
+      supabase,
+      {
+        orgId: context.orgId,
+        environment: deploymentGovernanceEnvironment(),
+        actor: { actorType: "automation" },
+        target: {
+          resourceType: "integration_action",
+          actionKey,
+        },
+        issue: {
+          issueId: context.issueId,
+          impactAmount: context.amount,
+          confidence: context.confidenceScore,
+        },
+        autonomy: { requestedMode: "AUTO" },
+        extensions: context.playbookKey ? { playbookKey: context.playbookKey } : undefined,
+      },
+      { persistDecisionLog: false }
+    );
+
+    if (error) {
+      blocked.add(actionKey);
+      continue;
+    }
+    if (gov?.disposition === "BLOCK") {
+      blocked.add(actionKey);
+      continue;
+    }
+    if (gov?.disposition === "REQUIRE_APPROVAL") {
+      requiresApproval = true;
+    }
+  }
+
   const eligible = context.eligibleActions.filter((a) => !blocked.has(a));
 
   if (eligible.length === 0) {
@@ -51,7 +92,7 @@ export async function rankAndSelectAction(
       rankedActions: [],
       blockedActions: [...blocked],
       requiresApproval: true,
-      selectionReason: "No eligible actions after policy evaluation",
+      selectionReason: "No eligible actions after governance evaluation",
     };
   }
 
@@ -78,7 +119,7 @@ export async function rankAndSelectAction(
     selectedAction: selected,
     rankedActions: ranked,
     blockedActions: [...blocked],
-    requiresApproval: policyResult.requiresApproval,
+    requiresApproval,
     selectionReason: selected ? ranked[0].reason : "No selection",
   };
 }

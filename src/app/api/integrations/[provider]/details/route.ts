@@ -3,11 +3,13 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { getAccountByOrgAndProvider, getAccountById } from "@/modules/integrations/core/integrationAccountsRepo";
 import { getSupportedObjectsByAccountId } from "@/modules/integrations/core/integrationSupportedObjectsRepo";
 import { getSyncJobsByAccountId } from "@/modules/integrations/core/integrationSyncJobsRepo";
 import { getActionLogsByAccountId } from "@/modules/integrations/core/integrationActionLogsRepo";
 import { getWebhookEventsByAccountId } from "@/modules/integrations/core/integrationWebhookRepo";
+import { listInboundEventsByAccountId } from "@/modules/integrations/reliability/repositories/integration-inbound-events.repository";
 import { getProviderManifest } from "@/modules/integrations/registry/getProviderManifest";
 import { hasProvider } from "@/modules/integrations/registry/providerRegistry";
 
@@ -15,50 +17,55 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
 ) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) {
-    return NextResponse.json({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
-  }
+  try {
+    const { provider } = await params;
+    if (!hasProvider(provider)) {
+      return NextResponse.json({ ok: false, error: { code: "not_found", message: "Unknown provider" } }, { status: 404 });
+    }
 
-  const { provider } = await params;
-  if (!hasProvider(provider)) {
-    return NextResponse.json({ ok: false, error: { code: "not_found", message: "Unknown provider" } }, { status: 404 });
-  }
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    const integrationAccountId = req.nextUrl.searchParams.get("integrationAccountId");
+    const limit = Math.min(20, parseInt(req.nextUrl.searchParams.get("limit") ?? "10", 10) || 10);
 
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  const integrationAccountId = req.nextUrl.searchParams.get("integrationAccountId");
-  const limit = Math.min(20, parseInt(req.nextUrl.searchParams.get("limit") ?? "10", 10) || 10);
+    let ctx: Awaited<ReturnType<typeof requireOrgPermission>>;
+    let accountId: string | null;
 
-  let accountId: string | null = integrationAccountId;
-  if (!accountId && orgId) {
-    const { data: account } = await getAccountByOrgAndProvider(supabase, orgId, provider);
-    accountId = account?.id ?? null;
-  }
-  if (!accountId) {
-    return NextResponse.json({
-      ok: true,
-      data: { account: null, manifest: getProviderManifest(provider) ?? null, objectCoverage: [], activity: { syncJobs: [], actionLogs: [], webhookEvents: [] } },
-      meta: { timestamp: new Date().toISOString() },
-    });
-  }
+    if (integrationAccountId) {
+      const supabase = await createServerSupabaseClient();
+      const { data: account } = await getAccountById(supabase, integrationAccountId);
+      if (!account) {
+        return NextResponse.json({ ok: false, error: { code: "not_found", message: "Account not found" } }, { status: 404 });
+      }
+      ctx = await requireOrgPermission(parseRequestedOrgId(account.org_id), "integrations.view");
+      accountId = integrationAccountId;
+    } else if (orgId) {
+      ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.view");
+      const { data: account } = await getAccountByOrgAndProvider(ctx.supabase, ctx.orgId, provider);
+      accountId = account?.id ?? null;
+    } else {
+      return NextResponse.json({ ok: false, error: { code: "bad_request", message: "orgId or integrationAccountId required" } }, { status: 400 });
+    }
 
-  const { data: account } = await getAccountById(supabase, accountId);
-  if (!account) {
-    return NextResponse.json({ ok: false, error: { code: "not_found", message: "Account not found" } }, { status: 404 });
-  }
-  const { data: memberships } = await supabase.from("organization_members").select("org_id").eq("user_id", userRes.user.id);
-  const orgIds = (memberships ?? []).map((m) => (m as { org_id: string }).org_id);
-  if (!orgIds.includes(account.org_id)) {
-    return NextResponse.json({ ok: false, error: { code: "forbidden", message: "Forbidden" } }, { status: 403 });
-  }
+    if (!accountId) {
+      return NextResponse.json({
+        ok: true,
+        data: { account: null, manifest: getProviderManifest(provider) ?? null, objectCoverage: [], activity: { syncJobs: [], actionLogs: [], webhookEvents: [], inboundEvents: [] } },
+        meta: { timestamp: new Date().toISOString() },
+      });
+    }
 
-  const [objectsRes, syncRes, actionRes, webhookRes] = await Promise.all([
-    getSupportedObjectsByAccountId(supabase, accountId),
-    getSyncJobsByAccountId(supabase, accountId, limit),
-    getActionLogsByAccountId(supabase, accountId, limit),
-    getWebhookEventsByAccountId(supabase, accountId, limit),
-  ]);
+    const { data: account } = await getAccountById(ctx.supabase, accountId!);
+    if (!account || account.org_id !== ctx.orgId) {
+      return NextResponse.json({ ok: false, error: { code: "not_found", message: "Account not found" } }, { status: 404 });
+    }
+
+    const [objectsRes, syncRes, actionRes, webhookRes, inboundRes] = await Promise.all([
+      getSupportedObjectsByAccountId(ctx.supabase, accountId),
+      getSyncJobsByAccountId(ctx.supabase, accountId, limit),
+      getActionLogsByAccountId(ctx.supabase, accountId, limit),
+      getWebhookEventsByAccountId(ctx.supabase, accountId, limit),
+      listInboundEventsByAccountId(ctx.supabase, accountId, limit),
+    ]);
 
   const objectCoverage = (objectsRes.data ?? []).map((o) => ({
     objectType: o.object_type,
@@ -90,8 +97,17 @@ export async function GET(
         syncJobs: syncRes.data,
         actionLogs: actionRes.data,
         webhookEvents: webhookRes.data,
+        inboundEvents: (inboundRes.data ?? []).map((e) => ({
+          id: e.id,
+          eventType: e.event_type,
+          ingestStatus: e.ingest_status,
+          receivedAt: e.received_at,
+        })),
       },
     },
     meta: { timestamp: new Date().toISOString() },
   });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

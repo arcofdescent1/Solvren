@@ -30,11 +30,17 @@ export async function GET(req: NextRequest) {
 
   const { data: session, error: sessErr } = await admin
     .from("sso_auth_sessions")
-    .select("id, org_id, provider_id, nonce, redirect_success_url, redirect_failure_url")
+    .select("id, org_id, provider_id, nonce, redirect_success_url, redirect_failure_url, expires_at")
     .eq("state", state)
     .maybeSingle();
 
   if (sessErr || !session) {
+    return NextResponse.redirect(failureUrl);
+  }
+
+  const sess = session as { expires_at?: string | null };
+  if (sess.expires_at && new Date(sess.expires_at) < new Date()) {
+    await admin.from("sso_auth_sessions").delete().eq("state", state);
     return NextResponse.redirect(failureUrl);
   }
 
@@ -48,7 +54,7 @@ export async function GET(req: NextRequest) {
 
   const { data: provider } = await admin
     .from("sso_providers")
-    .select("issuer, token_endpoint, jwks_uri, client_id, client_secret, userinfo_endpoint, allow_jit_provisioning, attribute_mappings")
+    .select("issuer, token_endpoint, jwks_uri, client_id, client_secret, userinfo_endpoint, allow_jit_provisioning, attribute_mappings, default_role")
     .eq("id", providerId)
     .eq("org_id", orgId)
     .maybeSingle();
@@ -66,6 +72,7 @@ export async function GET(req: NextRequest) {
     userinfo_endpoint?: string;
     allow_jit_provisioning?: boolean;
     attribute_mappings?: Record<string, string>;
+    default_role?: string | null;
   };
 
   const redirectUri = `${baseUrl}/api/auth/sso/oidc/callback`;
@@ -99,6 +106,9 @@ export async function GET(req: NextRequest) {
     const claims = payload as Record<string, unknown>;
     const identity = normalizeOidcClaims(claims, p.attribute_mappings);
     const allowJit = p.allow_jit_provisioning !== false;
+    const defaultRole = (p.default_role && ["owner","admin","reviewer","submitter","approver","viewer"].includes(p.default_role))
+      ? (p.default_role as "owner"|"admin"|"reviewer"|"submitter"|"approver"|"viewer")
+      : undefined;
 
     const result = await completeSsoLogin({
       admin,
@@ -107,6 +117,7 @@ export async function GET(req: NextRequest) {
       identity,
       protocol: "oidc",
       allowJit,
+      defaultRole,
       successRedirectUrl: successUrl,
     });
 

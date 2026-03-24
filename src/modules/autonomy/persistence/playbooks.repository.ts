@@ -53,6 +53,14 @@ export async function getPlaybookDefinitionByKey(
   return { data: data as PlaybookDefinitionRow | null, error: error as Error | null };
 }
 
+export async function getPlaybookDefinitionById(
+  supabase: SupabaseClient,
+  id: string
+): Promise<{ data: PlaybookDefinitionRow | null; error: Error | null }> {
+  const { data, error } = await supabase.from("playbook_definitions").select("*").eq("id", id).maybeSingle();
+  return { data: data as PlaybookDefinitionRow | null, error: error as Error | null };
+}
+
 export async function getOrgPlaybookConfigs(
   supabase: SupabaseClient,
   orgId: string

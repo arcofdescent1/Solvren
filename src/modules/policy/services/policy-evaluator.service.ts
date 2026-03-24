@@ -1,5 +1,6 @@
 /**
  * Phase 3 — Policy evaluator service (§14.2).
+ * Phase 5 — Row metadata (policy id, owner) for governance precedence and audit.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
@@ -9,14 +10,30 @@ import type {
   PolicyRuleMatch,
 } from "../domain";
 import { evaluateConditionGroup } from "./policy-condition-evaluator";
-import { listPoliciesForEvaluation } from "../repositories/policies.repository";
+import { listPolicyRowsForEvaluation, type PolicyRow } from "../repositories/policies.repository";
+
+export type PolicyOwnerType = "PLATFORM" | "ORG";
 
 export type EvaluatedRuleMatch = {
   policyId: string;
   policyKey: string;
+  policyOwnerType: PolicyOwnerType;
+  policyRelaxationMode: "RELAXABLE" | "NON_RELAXABLE";
+  policySource: "canonical" | "revenue_adapter" | "approval_adapter";
   rule: PolicyRule;
   match: PolicyRuleMatch;
 };
+
+function rowOwnerMeta(row: PolicyRow): {
+  policyOwnerType: PolicyOwnerType;
+  policyRelaxationMode: "RELAXABLE" | "NON_RELAXABLE";
+} {
+  const owner =
+    row.policy_owner_type === "PLATFORM" || row.org_id == null ? "PLATFORM" : "ORG";
+  const relax =
+    row.relaxation_mode === "NON_RELAXABLE" ? "NON_RELAXABLE" : "RELAXABLE";
+  return { policyOwnerType: owner, policyRelaxationMode: relax };
+}
 
 export async function evaluatePolicies(
   supabase: SupabaseClient,
@@ -27,18 +44,21 @@ export async function evaluatePolicies(
   matchedRules: EvaluatedRuleMatch[];
   error: Error | null;
 }> {
-  const { data: policies, error } = await listPoliciesForEvaluation(supabase, orgId, environment);
+  void environment;
+  const { data: rows, error } = await listPolicyRowsForEvaluation(supabase, orgId);
   if (error) return { matchedRules: [], error };
 
   const matchedRules: EvaluatedRuleMatch[] = [];
-  for (const policy of policies) {
+  for (const row of rows) {
+    const policy = rowToDefinition(row);
     if (!scopeApplies(policy, context)) continue;
+    const { policyOwnerType, policyRelaxationMode } = rowOwnerMeta(row);
 
     for (const rule of policy.rules) {
       if (!evaluateConditionGroup(rule.match, context)) continue;
 
       const match: PolicyRuleMatch = {
-        policyId: "",
+        policyId: row.id,
         policyKey: policy.policyKey,
         ruleKey: rule.ruleKey,
         effect: rule.effect.type,
@@ -48,8 +68,11 @@ export async function evaluatePolicies(
         hardBlock: rule.hardBlock,
       };
       matchedRules.push({
-        policyId: "",
+        policyId: row.id,
         policyKey: policy.policyKey,
+        policyOwnerType,
+        policyRelaxationMode,
+        policySource: "canonical",
         rule,
         match,
       });
@@ -57,6 +80,22 @@ export async function evaluatePolicies(
   }
 
   return { matchedRules, error: null };
+}
+
+function rowToDefinition(row: PolicyRow): PolicyDefinition {
+  return {
+    policyKey: row.policy_key,
+    displayName: row.display_name,
+    description: row.description,
+    scope: row.scope as PolicyDefinition["scope"],
+    scopeRef: row.scope_ref ?? undefined,
+    priorityOrder: row.priority_order,
+    status: row.status as PolicyDefinition["status"],
+    rules: (row.rules_json ?? []) as PolicyDefinition["rules"],
+    defaultDisposition: row.default_disposition as PolicyDefinition["defaultDisposition"],
+    effectiveFrom: row.effective_from,
+    effectiveTo: row.effective_to ?? undefined,
+  };
 }
 
 function scopeApplies(policy: PolicyDefinition, ctx: PolicyEvaluationContext): boolean {

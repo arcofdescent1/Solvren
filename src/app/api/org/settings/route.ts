@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createPrivilegedClient } from "@/lib/server/adminClient";
 import { auditLog } from "@/lib/audit";
-import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
+import {
+  authzErrorResponse,
+  parseRequestedOrgId,
+  requireOrgPermission,
+} from "@/lib/server/authz";
 
 // --- Legacy POST body (OrgSettingsForm)
 type SaveBody = {
@@ -59,40 +62,17 @@ function isValidTimezone(tz: string): boolean {
   }
 }
 
-async function requireAdmin(orgId: string) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return { ok: false as const, status: 401, user: null, supabase };
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-  if (!member || !isAdminLikeRole(parseOrgRole(member.role ?? null)))
-    return { ok: false as const, status: 403, user: userRes.user, supabase };
-  return { ok: true as const, status: null, user: userRes.user, supabase };
-}
-
 /**
- * GET /api/org/settings?orgId= — Consolidated org settings (any org member).
+ * GET /api/org/settings?orgId= — Consolidated org settings (org.settings.view).
  * Returns Task 10 shape; legacy callers can still use response.settings for backward compat.
  */
 export async function GET(req: Request) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const orgId = new URL(req.url).searchParams.get("orgId");
-  if (!orgId) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-  if (!member) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  try {
+    const orgIdParam = new URL(req.url).searchParams.get("orgId");
+    if (!orgIdParam) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+    const orgId = parseRequestedOrgId(orgIdParam);
+    const ctx = await requireOrgPermission(orgId, "org.settings.view");
+    const supabase = ctx.supabase;
 
   const [orgRow, settingsResult, digestRow, domainsRows, slackRow] = await Promise.all([
     supabase.from("organizations").select("name").eq("id", orgId).maybeSingle(),
@@ -164,151 +144,198 @@ export async function GET(req: Request) {
     },
   };
 
-  return NextResponse.json({ ok: true, settings: payload });
+    return NextResponse.json({ ok: true, settings: payload });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }
 
 /**
- * PUT /api/org/settings — Update consolidated org settings (admin only). Body: { orgId, ...OrgSettingsPayload }.
+ * PUT /api/org/settings — Update consolidated org settings (org.settings.manage). Body: { orgId, ...OrgSettingsPayload }.
  */
 export async function PUT(req: NextRequest) {
-  let body: { orgId?: string; organization?: OrgSettingsPayload["organization"]; notifications?: OrgSettingsPayload["notifications"]; approvals?: OrgSettingsPayload["approvals"] };
   try {
-    body = (await req.json()) as typeof body;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-  const orgId = body.orgId;
-  if (!orgId) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
-
-  const auth = await requireAdmin(orgId);
-  if (!auth.ok) return NextResponse.json({ error: auth.status === 401 ? "Unauthorized" : "Forbidden" }, { status: auth.status! });
-
-  const org = body.organization;
-  const notifications = body.notifications;
-  const approvals = body.approvals;
-
-  // Validation
-  if (org?.name !== undefined) {
-    const name = String(org.name ?? "").trim();
-    if (!name) return NextResponse.json({ error: "Organization name is required" }, { status: 400 });
-  }
-  if (org?.timezone !== undefined) {
-    if (!isValidTimezone(org.timezone))
-      return NextResponse.json({ error: "Invalid timezone" }, { status: 400 });
-  }
-  if (org?.primaryNotificationEmail !== undefined && org.primaryNotificationEmail) {
-    const email = String(org.primaryNotificationEmail).trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      return NextResponse.json({ error: "Invalid primary notification email" }, { status: 400 });
-  }
-  if (notifications?.notificationEmails !== undefined) {
-    const emails = normalizeEmails(notifications.notificationEmails);
-    const invalid = (notifications.notificationEmails ?? []).filter(
-      (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e).trim())
-    );
-    if (invalid.length > 0)
-      return NextResponse.json({ error: "Invalid email address in notification list" }, { status: 400 });
-  }
-  if (approvals?.defaultReviewSlaHours !== undefined && approvals.defaultReviewSlaHours != null) {
-    const hours = Number(approvals.defaultReviewSlaHours);
-    if (!Number.isInteger(hours) || hours < 1 || hours > 720)
-      return NextResponse.json({ error: "Default review SLA must be between 1 and 720 hours" }, { status: 400 });
-  }
-
-  const admin = createAdminClient();
-  const actorId = auth.user!.id;
-
-  if (org?.name !== undefined) {
-    const { error: e } = await admin.from("organizations").update({ name: String(org.name).trim() }).eq("id", orgId);
-    if (e) return NextResponse.json({ error: e.message }, { status: 500 });
-    await auditLog(admin, { orgId, actorId, actorType: "USER", action: "organization_settings_updated", entityType: "organization", entityId: orgId, metadata: { section: "organization_profile" } });
-  }
-
-  const hasSettingsUpdates =
-    org?.timezone !== undefined ||
-    org?.primaryNotificationEmail !== undefined ||
-    notifications?.notificationEmails !== undefined ||
-    notifications?.dailyInboxEnabled !== undefined ||
-    notifications?.slack_enabled !== undefined ||
-    notifications?.slack_webhook_url !== undefined ||
-    notifications?.email_enabled !== undefined ||
-    approvals?.defaultReviewSlaHours !== undefined ||
-    approvals?.requireEvidenceBeforeApproval !== undefined;
-
-  if (hasSettingsUpdates) {
-    const { data: existing } = await admin
-      .from("organization_settings")
-      .select("*")
-      .eq("org_id", orgId)
-      .maybeSingle();
-    const cur = (existing ?? {}) as Record<string, unknown>;
-    const settingsUpdates: Record<string, unknown> = {
-      org_id: orgId,
-      slack_enabled: notifications?.slack_enabled ?? cur.slack_enabled ?? false,
-      slack_webhook_url: notifications?.slack_webhook_url !== undefined ? (notifications.slack_webhook_url?.trim() || null) : (cur.slack_webhook_url ?? null),
-      email_enabled: notifications?.email_enabled ?? cur.email_enabled ?? false,
-      notification_emails:
-        notifications?.notificationEmails !== undefined
-          ? (normalizeEmails(notifications.notificationEmails).length ? normalizeEmails(notifications.notificationEmails) : null)
-          : (cur.notification_emails ?? null),
-      timezone: org?.timezone !== undefined ? String(org.timezone).trim() || "UTC" : (cur.timezone ?? "UTC"),
-      primary_notification_email: org?.primaryNotificationEmail !== undefined ? org.primaryNotificationEmail?.trim() || null : (cur.primary_notification_email ?? null),
-      default_review_sla_hours: approvals?.defaultReviewSlaHours !== undefined ? approvals.defaultReviewSlaHours : (cur.default_review_sla_hours ?? null),
-      require_evidence_before_approval: approvals?.requireEvidenceBeforeApproval ?? cur.require_evidence_before_approval ?? true,
-      daily_inbox_enabled: notifications?.dailyInboxEnabled ?? cur.daily_inbox_enabled ?? false,
+    let body: {
+      orgId?: string;
+      organization?: OrgSettingsPayload["organization"];
+      notifications?: OrgSettingsPayload["notifications"];
+      approvals?: OrgSettingsPayload["approvals"];
     };
-    const { error: e } = await admin.from("organization_settings").upsert(settingsUpdates as Record<string, never>, { onConflict: "org_id" });
-    if (e) return NextResponse.json({ error: e.message }, { status: 500 });
-    await auditLog(admin, { orgId, actorId, actorType: "USER", action: "notification_settings_updated", entityType: "organization_settings", entityId: orgId, metadata: {} });
-    if (approvals?.defaultReviewSlaHours !== undefined || approvals?.requireEvidenceBeforeApproval !== undefined) {
-      await auditLog(admin, { orgId, actorId, actorType: "USER", action: "approval_defaults_updated", entityType: "organization_settings", entityId: orgId, metadata: {} });
+    try {
+      body = (await req.json()) as typeof body;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
-  }
+    if (!body.orgId) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+    const orgId = parseRequestedOrgId(body.orgId);
 
-  if (notifications?.weeklyDigestEnabled !== undefined) {
-    const tz = org?.timezone?.trim() || "UTC";
-    const { error: e } = await admin
-      .from("digest_settings")
-      .upsert(
-        { org_id: orgId, enabled: Boolean(notifications.weeklyDigestEnabled), timezone: tz },
-        { onConflict: "org_id" }
+    const ctx = await requireOrgPermission(orgId, "org.settings.manage");
+
+    const org = body.organization;
+    const notifications = body.notifications;
+    const approvals = body.approvals;
+
+    if (org?.name !== undefined) {
+      const name = String(org.name ?? "").trim();
+      if (!name) return NextResponse.json({ error: "Organization name is required" }, { status: 400 });
+    }
+    if (org?.timezone !== undefined) {
+      if (!isValidTimezone(org.timezone))
+        return NextResponse.json({ error: "Invalid timezone" }, { status: 400 });
+    }
+    if (org?.primaryNotificationEmail !== undefined && org.primaryNotificationEmail) {
+      const email = String(org.primaryNotificationEmail).trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return NextResponse.json({ error: "Invalid primary notification email" }, { status: 400 });
+    }
+    if (notifications?.notificationEmails !== undefined) {
+      const invalid = (notifications.notificationEmails ?? []).filter(
+        (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e).trim())
       );
-    if (e) return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+      if (invalid.length > 0)
+        return NextResponse.json({ error: "Invalid email address in notification list" }, { status: 400 });
+    }
+    if (approvals?.defaultReviewSlaHours !== undefined && approvals.defaultReviewSlaHours != null) {
+      const hours = Number(approvals.defaultReviewSlaHours);
+      if (!Number.isInteger(hours) || hours < 1 || hours > 720)
+        return NextResponse.json({ error: "Default review SLA must be between 1 and 720 hours" }, { status: 400 });
+    }
 
-  return NextResponse.json({ ok: true });
+    const admin = createPrivilegedClient("PUT /api/org/settings: org row + organization_settings upserts");
+    const actorId = ctx.user.id;
+
+    if (org?.name !== undefined) {
+      const { error: e } = await admin.from("organizations").update({ name: String(org.name).trim() }).eq("id", orgId);
+      if (e) return NextResponse.json({ error: e.message }, { status: 500 });
+      await auditLog(admin, {
+        orgId,
+        actorId,
+        actorType: "USER",
+        action: "organization_settings_updated",
+        entityType: "organization",
+        entityId: orgId,
+        metadata: { section: "organization_profile" },
+      });
+    }
+
+    const hasSettingsUpdates =
+      org?.timezone !== undefined ||
+      org?.primaryNotificationEmail !== undefined ||
+      notifications?.notificationEmails !== undefined ||
+      notifications?.dailyInboxEnabled !== undefined ||
+      notifications?.slack_enabled !== undefined ||
+      notifications?.slack_webhook_url !== undefined ||
+      notifications?.email_enabled !== undefined ||
+      approvals?.defaultReviewSlaHours !== undefined ||
+      approvals?.requireEvidenceBeforeApproval !== undefined;
+
+    if (hasSettingsUpdates) {
+      const { data: existing } = await admin
+        .from("organization_settings")
+        .select("*")
+        .eq("org_id", orgId)
+        .maybeSingle();
+      const cur = (existing ?? {}) as Record<string, unknown>;
+      const settingsUpdates: Record<string, unknown> = {
+        org_id: orgId,
+        slack_enabled: notifications?.slack_enabled ?? cur.slack_enabled ?? false,
+        slack_webhook_url:
+          notifications?.slack_webhook_url !== undefined
+            ? notifications.slack_webhook_url?.trim() || null
+            : (cur.slack_webhook_url ?? null),
+        email_enabled: notifications?.email_enabled ?? cur.email_enabled ?? false,
+        notification_emails:
+          notifications?.notificationEmails !== undefined
+            ? normalizeEmails(notifications.notificationEmails).length
+              ? normalizeEmails(notifications.notificationEmails)
+              : null
+            : (cur.notification_emails ?? null),
+        timezone: org?.timezone !== undefined ? String(org.timezone).trim() || "UTC" : (cur.timezone ?? "UTC"),
+        primary_notification_email:
+          org?.primaryNotificationEmail !== undefined
+            ? org.primaryNotificationEmail?.trim() || null
+            : (cur.primary_notification_email ?? null),
+        default_review_sla_hours:
+          approvals?.defaultReviewSlaHours !== undefined
+            ? approvals.defaultReviewSlaHours
+            : (cur.default_review_sla_hours ?? null),
+        require_evidence_before_approval:
+          approvals?.requireEvidenceBeforeApproval ?? cur.require_evidence_before_approval ?? true,
+        daily_inbox_enabled: notifications?.dailyInboxEnabled ?? cur.daily_inbox_enabled ?? false,
+      };
+      const { error: e } = await admin
+        .from("organization_settings")
+        .upsert(settingsUpdates as Record<string, never>, { onConflict: "org_id" });
+      if (e) return NextResponse.json({ error: e.message }, { status: 500 });
+      await auditLog(admin, {
+        orgId,
+        actorId,
+        actorType: "USER",
+        action: "notification_settings_updated",
+        entityType: "organization_settings",
+        entityId: orgId,
+        metadata: {},
+      });
+      if (approvals?.defaultReviewSlaHours !== undefined || approvals?.requireEvidenceBeforeApproval !== undefined) {
+        await auditLog(admin, {
+          orgId,
+          actorId,
+          actorType: "USER",
+          action: "approval_defaults_updated",
+          entityType: "organization_settings",
+          entityId: orgId,
+          metadata: {},
+        });
+      }
+    }
+
+    if (notifications?.weeklyDigestEnabled !== undefined) {
+      const tz = org?.timezone?.trim() || "UTC";
+      const { error: e } = await admin
+        .from("digest_settings")
+        .upsert(
+          { org_id: orgId, enabled: Boolean(notifications.weeklyDigestEnabled), timezone: tz },
+          { onConflict: "org_id" }
+        );
+      if (e) return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }
 
 /**
- * POST /api/org/settings — Legacy: update slack/email/notification_emails only (admin only).
+ * POST /api/org/settings — Legacy: update slack/email/notification_emails only (org.settings.manage).
  */
 export async function POST(req: Request) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const body = (await req.json().catch(() => null)) as SaveBody | null;
+    if (!body?.orgId) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
 
-  const body = (await req.json().catch(() => null)) as SaveBody | null;
-  if (!body?.orgId) return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
+    const orgId = parseRequestedOrgId(body.orgId);
+    const ctx = await requireOrgPermission(orgId, "org.settings.manage");
 
-  const auth = await requireAdmin(body.orgId);
-  if (!auth.ok) return NextResponse.json({ error: auth.status === 401 ? "Unauthorized" : "Forbidden" }, { status: auth.status! });
+    const slackWebhook =
+      body.slack_webhook_url && body.slack_webhook_url.trim().length > 0 ? body.slack_webhook_url.trim() : null;
+    const emails = normalizeEmails(body.notification_emails);
+    const { error } = await ctx.supabase
+      .from("organization_settings")
+      .upsert(
+        {
+          org_id: orgId,
+          slack_enabled: Boolean(body.slack_enabled),
+          slack_webhook_url: slackWebhook,
+          email_enabled: Boolean(body.email_enabled),
+          notification_emails: emails.length ? emails : null,
+        },
+        { onConflict: "org_id" }
+      );
 
-  const slackWebhook =
-    body.slack_webhook_url && body.slack_webhook_url.trim().length > 0 ? body.slack_webhook_url.trim() : null;
-  const emails = normalizeEmails(body.notification_emails);
-  const { error } = await supabase
-    .from("organization_settings")
-    .upsert(
-      {
-        org_id: body.orgId,
-        slack_enabled: Boolean(body.slack_enabled),
-        slack_webhook_url: slackWebhook,
-        email_enabled: Boolean(body.email_enabled),
-        notification_emails: emails.length ? emails : null,
-      },
-      { onConflict: "org_id" }
-    );
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

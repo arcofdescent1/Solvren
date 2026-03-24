@@ -1,37 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { getIntegrationsList } from "@/lib/integrations/list";
 
 /**
- * GET /api/integrations/list?orgId= — Unified integration status for an org.
- * Requires org membership.
+ * GET /api/integrations/list?orgId= — Unified integration status (integrations.view).
  */
 export async function GET(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    if (!orgId?.trim()) {
+      return NextResponse.json({ error: "orgId required" }, { status: 400 });
+    }
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.view");
+    const list = await getIntegrationsList(ctx.supabase, ctx.orgId);
+    return NextResponse.json({ ok: true, integrations: list });
+  } catch (e) {
+    return authzErrorResponse(e);
   }
-
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  if (!orgId) {
-    return NextResponse.json({ error: "orgId required" }, { status: 400 });
-  }
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("org_id")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-
-  if (!member) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const admin = createAdminClient();
-  const list = await getIntegrationsList(admin, orgId);
-
-  return NextResponse.json({ ok: true, integrations: list });
 }

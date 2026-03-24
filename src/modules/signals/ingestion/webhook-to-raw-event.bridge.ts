@@ -19,11 +19,16 @@ export type WebhookToRawEventInput = {
   headers?: Record<string, unknown> | null;
 };
 
+export type WebhookToRawEventInputWithCanonical = WebhookToRawEventInput & {
+  canonicalOutput?: Record<string, unknown> | null;
+};
+
 /** Persist webhook to raw_events. Use admin client for unauthenticated webhooks. */
 export async function persistWebhookToRawEvents(
   supabase: SupabaseClient,
-  input: WebhookToRawEventInput
+  input: WebhookToRawEventInput | WebhookToRawEventInputWithCanonical
 ): Promise<{ rawEventId: string; created: boolean } | { error: string }> {
+  const canonicalOutput = "canonicalOutput" in input ? (input as WebhookToRawEventInputWithCanonical).canonicalOutput : undefined;
   const result = await intakeRawEvent(supabase, {
     orgId: input.orgId,
     integrationAccountId: input.integrationAccountId ?? null,
@@ -36,6 +41,7 @@ export async function persistWebhookToRawEvents(
     eventTime: input.eventTime ?? null,
     payload: input.payload,
     headers: input.headers ?? null,
+    canonicalOutputJson: canonicalOutput ?? undefined,
   });
 
   if (!result.ok) return { error: result.error };

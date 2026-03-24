@@ -25,7 +25,7 @@ Use one name per concept:
 - **Stripe:** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_TEAM`, `STRIPE_PRICE_BUSINESS`
 - **Slack:** `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET`, `SLACK_BOT_TOKEN`, `SLACK_REDIRECT_URI`, `SLACK_STATE_SECRET`
 - **Cron:** `CRON_SECRET`
-- **Email:** `RESEND_API_KEY`, `EMAIL_FROM` (legacy: `RESEND_FROM`)
+- **Email:** `RESEND_API_KEY`, `EMAIL_FROM` (legacy: `RESEND_FROM`), `SECURITY_REQUEST_RECIPIENT` (Trust Center security request form)
 
 ### Required to boot
 

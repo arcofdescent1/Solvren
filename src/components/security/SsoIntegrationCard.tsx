@@ -134,17 +134,25 @@ export default function SsoIntegrationCard({ orgId, isAdmin }: Props) {
                 variant="outline"
                 size="sm"
                 disabled={creating}
-                onClick={() => handleCreateProvider("oidc_custom", "oidc")}
+                onClick={() => handleCreateProvider("okta", "saml")}
               >
-                Add OIDC provider
+                Add Okta (SAML)
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 disabled={creating}
-                onClick={() => handleCreateProvider("okta", "oidc")}
+                onClick={() => handleCreateProvider("saml_custom", "saml")}
               >
-                Add Okta
+                Add SAML provider
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={creating}
+                onClick={() => handleCreateProvider("oidc_custom", "oidc")}
+              >
+                Add OIDC provider
               </Button>
             </div>
           )}

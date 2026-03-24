@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RiskDomain } from "@/types/risk";
 import type { RiskBucket } from "@/services/risk/requirements";
@@ -27,9 +28,7 @@ export async function getReadyStatus(
   // Deprecated wrapper: use the canonical readiness engine in services/risk/readyStatus.
   // Keep this to avoid churn in older UI callers.
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", changeId)
     .maybeSingle();
   if (ceErr) throw new Error(ceErr.message);

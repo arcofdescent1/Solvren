@@ -1,6 +1,7 @@
 import type { OrgRole } from "./roles";
 
-export type Permission =
+/** Canonical permissions (stored in RBAC checks). */
+export type CanonicalPermission =
   | "dashboard.view"
   | "change.view"
   | "change.create"
@@ -12,12 +13,44 @@ export type Permission =
   | "queue.view"
   | "queue.admin.view"
   | "org.users.manage"
+  | "org.settings.view"
   | "org.settings.manage"
   | "approval.mappings.manage"
-  | "admin.jobs.view";
+  | "admin.jobs.view"
+  | "integrations.view"
+  | "integrations.manage"
+  | "admin.simulations.manage"
+  | "policy.manage"
+  | "domains.manage"
+  | "identity.view";
 
-const ROLE_PERMISSIONS: Record<OrgRole, Set<Permission>> = {
-  OWNER: new Set<Permission>([
+/** Phase 0 spec aliases — normalize via normalizePermission() before role lookup. */
+export type PermissionAlias =
+  | "changes.view"
+  | "changes.create"
+  | "changes.edit"
+  | "changes.submit"
+  | "changes.approve";
+
+export type Permission = CanonicalPermission | PermissionAlias;
+
+const ALIAS_TO_CANONICAL: Record<PermissionAlias, CanonicalPermission> = {
+  "changes.view": "change.view",
+  "changes.create": "change.create",
+  "changes.edit": "change.edit.own_draft",
+  "changes.submit": "change.submit",
+  "changes.approve": "change.approve",
+};
+
+export function normalizePermission(p: Permission): CanonicalPermission {
+  if (p in ALIAS_TO_CANONICAL) {
+    return ALIAS_TO_CANONICAL[p as PermissionAlias];
+  }
+  return p as CanonicalPermission;
+}
+
+const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
+  OWNER: new Set<CanonicalPermission>([
     "dashboard.view",
     "change.view",
     "change.create",
@@ -29,11 +62,18 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<Permission>> = {
     "queue.view",
     "queue.admin.view",
     "org.users.manage",
+    "org.settings.view",
     "org.settings.manage",
     "approval.mappings.manage",
     "admin.jobs.view",
+    "integrations.view",
+    "integrations.manage",
+    "admin.simulations.manage",
+    "policy.manage",
+    "domains.manage",
+    "identity.view",
   ]),
-  ADMIN: new Set<Permission>([
+  ADMIN: new Set<CanonicalPermission>([
     "dashboard.view",
     "change.view",
     "change.create",
@@ -45,19 +85,29 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<Permission>> = {
     "queue.view",
     "queue.admin.view",
     "org.users.manage",
+    "org.settings.view",
     "org.settings.manage",
     "approval.mappings.manage",
     "admin.jobs.view",
+    "integrations.view",
+    "integrations.manage",
+    "admin.simulations.manage",
+    "policy.manage",
+    "domains.manage",
+    "identity.view",
   ]),
-  REVIEWER: new Set<Permission>([
+  REVIEWER: new Set<CanonicalPermission>([
     "dashboard.view",
     "change.view",
     "change.approve",
     "change.comment",
     "change.evidence.provide",
     "queue.view",
+    "org.settings.view",
+    "integrations.view",
+    "identity.view",
   ]),
-  SUBMITTER: new Set<Permission>([
+  SUBMITTER: new Set<CanonicalPermission>([
     "dashboard.view",
     "change.view",
     "change.create",
@@ -66,10 +116,19 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<Permission>> = {
     "change.comment",
     "change.evidence.provide",
     "queue.view",
+    "org.settings.view",
+    "integrations.view",
   ]),
-  VIEWER: new Set<Permission>(["dashboard.view", "change.view", "queue.view"]),
+  VIEWER: new Set<CanonicalPermission>([
+    "dashboard.view",
+    "change.view",
+    "queue.view",
+    "org.settings.view",
+    "integrations.view",
+  ]),
 };
 
 export function canRole(role: OrgRole, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role].has(permission);
+  const canonical = normalizePermission(permission);
+  return ROLE_PERMISSIONS[role].has(canonical);
 }

@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
@@ -64,21 +65,17 @@ export default async function DashboardPage() {
     new Set((myApprovalRows ?? []).map((r) => r.change_event_id))
   );
 
-  const { data: inReviewRows } = await supabase
-    .from("change_events")
-    .select(
+  const { data: inReviewRows } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, title, domain, systems_involved, submitted_at, due_at, created_by, status, sla_status, org_id, is_restricted"
-    )
+    ))
     .in("org_id", orgIds)
     .eq("status", "IN_REVIEW")
     .order("submitted_at", { ascending: false })
     .limit(15);
 
-  const { data: overdueRows } = await supabase
-    .from("change_events")
-    .select(
+  const { data: overdueRows } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, title, domain, systems_involved, submitted_at, due_at, created_by, status, sla_status, org_id, is_restricted"
-    )
+    ))
     .in("org_id", orgIds)
     .eq("status", "IN_REVIEW")
     .lt("due_at", new Date().toISOString())
@@ -86,11 +83,9 @@ export default async function DashboardPage() {
     .limit(15);
 
   const { data: myApprovalChanges } = myApprovalChangeIds.length
-    ? await supabase
-        .from("change_events")
-        .select(
+    ? await scopeActiveChangeEvents(supabase.from("change_events").select(
           "id, title, domain, systems_involved, submitted_at, due_at, created_by, status, sla_status, org_id, is_restricted"
-        )
+        ))
         .in("id", myApprovalChangeIds)
         .limit(20)
     : { data: [] };
@@ -110,9 +105,7 @@ export default async function DashboardPage() {
       .eq("status", "FAILED");
     const failedChangeIds = Array.from(new Set((failedOutbox ?? []).map((o) => o.change_event_id).filter(Boolean)));
     if (failedChangeIds.length > 0) {
-      const { data: failedChanges } = await supabase
-        .from("change_events")
-        .select("id, org_id, domain, status, created_by, is_restricted")
+      const { data: failedChanges } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
         .in("id", failedChangeIds);
       const visibleFailed = await filterVisibleChanges(supabase, data.user.id, failedChanges ?? []);
       failedOutboxCount = visibleFailed.length;

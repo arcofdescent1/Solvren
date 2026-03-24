@@ -2,37 +2,29 @@
  * Phase 4 — GET /api/admin/integrations/executions (§18.2).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listActionExecutions } from "@/modules/integrations/reliability/repositories/integration-action-executions.repository";
+import { authzErrorResponse, requireAnyOrgPermission } from "@/lib/server/authz";
 
 export async function GET(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const ctx = await requireAnyOrgPermission("admin.jobs.view");
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("org_id")
-    .eq("user_id", userRes.user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!membership?.org_id) return NextResponse.json({ error: "No org" }, { status: 403 });
+    const { searchParams } = new URL(req.url);
+    const provider = searchParams.get("provider") ?? undefined;
+    const status = searchParams.get("status") ?? undefined;
+    const issueId = searchParams.get("issueId") ?? undefined;
+    const reconciliationStatus = searchParams.get("reconciliationStatus") ?? undefined;
 
-  const orgId = (membership as { org_id: string }).org_id;
-  const { searchParams } = new URL(req.url);
-  const provider = searchParams.get("provider") ?? undefined;
-  const status = searchParams.get("status") ?? undefined;
-  const issueId = searchParams.get("issueId") ?? undefined;
-  const reconciliationStatus = searchParams.get("reconciliationStatus") ?? undefined;
+    const { data, error } = await listActionExecutions(
+      ctx.supabase,
+      ctx.orgId,
+      { provider, status, issueId, reconciliationStatus },
+      50
+    );
 
-  const { data, error } = await listActionExecutions(supabase, orgId, {
-    provider,
-    status,
-    issueId,
-    reconciliationStatus,
-  }, 50);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ executions: data ?? [] });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ executions: data ?? [] });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

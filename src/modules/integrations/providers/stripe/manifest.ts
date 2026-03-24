@@ -21,7 +21,7 @@ export function getStripeManifest(): ConnectorManifest {
     ],
     supportedObjectTypes: ["customers", "subscriptions", "invoices", "payment_intents", "charges", "disputes"],
     supportedInboundEvents: ["customer.subscription.updated", "invoice.payment_failed", "charge.failed"],
-    supportedOutboundActions: ["retry_payment", "update_payment_method", "apply_discount"],
+    supportedOutboundActions: ["retry_payment"],
     requiredScopes: [],
     optionalScopes: [],
     installPrerequisites: ["Stripe account", "API key (secret key)"],

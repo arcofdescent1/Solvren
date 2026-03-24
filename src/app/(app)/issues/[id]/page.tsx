@@ -2,6 +2,7 @@
  * Phase 0 — Issue detail with full panels.
  * Phase 1 Gap 1 — Entities, evidence, signals, lineage.
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { redirect, notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getIssueDetail } from "@/modules/issues";
@@ -106,7 +107,7 @@ export default async function IssueDetailPage({
   const changeIds = (linkRows ?? []).map((l: { change_id: string }) => l.change_id);
   let changeTitles: Map<string, string> = new Map();
   if (changeIds.length > 0) {
-    const { data: changeData } = await supabase.from("change_events").select("id, title").in("id", changeIds);
+    const { data: changeData } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title")).in("id", changeIds);
     changeTitles = new Map((changeData ?? []).map((c: { id: string; title: string | null }) => [c.id, c.title ?? ""]));
   }
   const changes = (linkRows ?? []).map((l: { change_id: string; link_type: string }) => ({

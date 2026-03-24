@@ -26,6 +26,7 @@ import {
   recordExecutionFailure,
 } from "../reliability/services/integration-health.service";
 import { insertDeadLetter } from "../reliability/repositories/integration-dead-letters.repository";
+import { preExecutionCheck } from "@/modules/policy/enforcement/preExecutionCheck";
 
 export type ExecuteActionParams = {
   orgId: string;
@@ -34,6 +35,10 @@ export type ExecuteActionParams = {
   params: Record<string, unknown>;
   issueId?: string | null;
   userId?: string | null;
+  /** When true, skip redundant governance (caller already ran preExecutionCheck / evaluateGovernance). */
+  policyAlreadyEnforced?: boolean;
+  /** policy_decision_logs.id from the governance evaluation that allowed execution (Phase 6 learning join). */
+  governanceTraceId?: string | null;
 };
 
 export type ExecuteActionResult = {
@@ -79,6 +84,7 @@ export async function executeActionWithReliability(
     requestPayload: params.params,
     issueId: params.issueId ?? null,
     maxAttempts: DEFAULT_MAX_ATTEMPTS,
+    governanceTraceId: params.governanceTraceId ?? null,
   };
 
   const ensureResult = await ensureActionExecutionRecord(supabase, ensureInput);
@@ -148,6 +154,39 @@ async function runExecution(
 
   const currentStatus = exec.execution_status as "PENDING" | "EXECUTING" | "RETRYING";
   assertValidTransition(currentStatus, "EXECUTING");
+
+  if (!params.policyAlreadyEnforced) {
+    const fullActionKey = params.actionKey.includes(".") ? params.actionKey : `${provider}.${params.actionKey}`;
+    const policyCheck = await preExecutionCheck(supabase, {
+      orgId: params.orgId,
+      actionKey: fullActionKey,
+      issueId: params.issueId ?? undefined,
+      actorUserId: params.userId ?? null,
+      provider,
+      requestedMode: "approve_then_execute",
+    });
+    if ("blocked" in policyCheck && policyCheck.blocked) {
+      return {
+        success: false,
+        executionId,
+        errorCode: "policy_blocked",
+        errorMessage: policyCheck.reason,
+      };
+    }
+    if ("requiresApproval" in policyCheck && policyCheck.requiresApproval) {
+      return {
+        success: false,
+        executionId,
+        errorCode: "approval_required",
+        errorMessage: `Approval required (request ${policyCheck.approvalRequestId})`,
+      };
+    }
+    if ("allowed" in policyCheck && policyCheck.allowed && policyCheck.governanceTraceId) {
+      await updateActionExecution(supabase, executionId, {
+        governance_trace_id: policyCheck.governanceTraceId,
+      });
+    }
+  }
 
   const attemptCount = (exec.attempt_count ?? 0) + 1;
   await updateActionExecution(supabase, executionId, {

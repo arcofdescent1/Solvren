@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getReadyStatus } from "@/services/risk/readyStatus";
@@ -28,11 +29,9 @@ async function buildApprovalPacketMarkdown({
   changeId: string;
   orgId: string;
 }) {
-  const { data: change, error: changeErr } = await supabase
-    .from("change_events")
-    .select(
+  const { data: change, error: changeErr } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, org_id, title, change_type, status, domain, intake, systems_involved, revenue_impact_areas, submitted_at, due_at, sla_status, escalated_at, risk_explanation, last_notified_at"
-    )
+    ))
     .eq("id", changeId)
     .maybeSingle();
 
@@ -337,9 +336,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: changeOrgRow, error: orgErr } = await supabase
-    .from("change_events")
-    .select("org_id")
+  const { data: changeOrgRow, error: orgErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("org_id"))
     .eq("id", changeId)
     .maybeSingle();
 

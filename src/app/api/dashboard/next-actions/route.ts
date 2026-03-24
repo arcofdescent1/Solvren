@@ -2,6 +2,7 @@
  * GET /api/dashboard/next-actions
  * Gap 1: Role-aware list of next actions for the Overview dashboard.
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
@@ -47,9 +48,7 @@ export async function GET() {
       .eq("decision", "PENDING");
     const changeIds = Array.from(new Set((approvalRows ?? []).map((r) => r.change_event_id)));
     if (changeIds.length > 0) {
-      const { data: changes } = await supabase
-        .from("change_events")
-        .select("id, org_id, domain, systems_involved, created_by, is_restricted, status")
+      const { data: changes } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, systems_involved, created_by, is_restricted, status"))
         .in("id", changeIds);
       const visible = await filterVisibleChanges(supabase, userRes.user.id, changes ?? []);
       if (visible.length > 0) {
@@ -65,9 +64,7 @@ export async function GET() {
   }
 
   // In-review / blocked / overdue (links to Changes with view)
-  const { data: inReviewRows } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, systems_involved, created_by, is_restricted, due_at, status")
+  const { data: inReviewRows } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, systems_involved, created_by, is_restricted, due_at, status"))
     .in("org_id", orgIds)
     .eq("status", "IN_REVIEW")
     .limit(50);

@@ -20,7 +20,7 @@ export function getJiraManifest(): ConnectorManifest {
     ],
     supportedObjectTypes: ["issues", "projects", "users"],
     supportedInboundEvents: [],
-    supportedOutboundActions: ["create_issue", "update_issue_status", "add_comment", "attach_issue_link"],
+    supportedOutboundActions: ["create_issue"],
     requiredScopes: ["read:jira-work", "write:jira-work"],
     optionalScopes: ["read:jira-user"],
     installPrerequisites: ["Atlassian account", "Jira Cloud site"],

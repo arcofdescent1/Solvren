@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { trainLogReg } from "@/services/risk/ml/logreg";
 import { featuresForChange } from "@/services/risk/ml/features";
@@ -11,9 +12,7 @@ export async function trainOrgDomainModel(
 
   if (!enableMl) return { trained: false, reason: "ml_disabled" as const };
 
-  const { data: changes, error } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, created_at, estimated_mrr_affected, percent_customer_base_affected, revenue_surface")
+  const { data: changes, error } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, created_at, estimated_mrr_affected, percent_customer_base_affected, revenue_surface"))
     .eq("org_id", orgId)
     .eq("domain", domainKey)
     .order("created_at", { ascending: false })

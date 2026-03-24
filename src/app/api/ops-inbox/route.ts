@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -84,9 +85,7 @@ export async function GET() {
 
   let myQueue: MyQueueItem[] = [];
   if (myChangeIds.length > 0) {
-    const { data: myChanges } = await supabase
-      .from("change_events")
-      .select("id, title, domain, due_at")
+    const { data: myChanges } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title, domain, due_at"))
       .in("id", myChangeIds);
     const { data: myAssessments } = await supabase
       .from("impact_assessments")
@@ -123,9 +122,7 @@ export async function GET() {
   }
 
   // In review: all IN_REVIEW changes with latest assessment
-  const { data: inReviewChanges } = await supabase
-    .from("change_events")
-    .select("id, title, domain, status, due_at")
+  const { data: inReviewChanges } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title, domain, status, due_at"))
     .in("org_id", orgIds)
     .eq("status", "IN_REVIEW")
     .order("due_at", { ascending: true });
@@ -167,9 +164,7 @@ export async function GET() {
   });
 
   // Overdue: IN_REVIEW and (due_at < now or sla_status OVERDUE/ESCALATED)
-  const { data: overdueChanges } = await supabase
-    .from("change_events")
-    .select("id, title, domain, due_at, sla_status")
+  const { data: overdueChanges } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title, domain, due_at, sla_status"))
     .in("org_id", orgIds)
     .eq("status", "IN_REVIEW")
     .or("due_at.lt." + nowIso + ",sla_status.eq.OVERDUE,sla_status.eq.ESCALATED");

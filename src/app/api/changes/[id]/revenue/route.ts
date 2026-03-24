@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { recomputeAndPersistRevenueFields } from "@/services/risk/revenuePersist";
@@ -25,9 +26,7 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { data: change, error: changeErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: changeErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", changeId)
     .maybeSingle();
 

@@ -1,11 +1,19 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { authStateFromUser } from "@/lib/auth";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 
+/**
+ * Legacy helper: first org + owner/admin role + verified email.
+ * Prefer `requireOrgPermission(orgId, "org.settings.manage")` or `policy.manage` for new routes.
+ */
 export async function requireAdminOrg() {
   const supabase = await createServerSupabaseClient();
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes.user) {
     return { ok: false as const, status: 401 as const, supabase, user: null, orgId: null };
+  }
+  if (!authStateFromUser(userRes.user).isVerified) {
+    return { ok: false as const, status: 403 as const, supabase, user: userRes.user, orgId: null };
   }
   const { data: row } = await supabase
     .from("organization_members")

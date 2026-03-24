@@ -3,29 +3,19 @@
  * Integration health dashboard data.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 
 export async function GET(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
 
-  const { searchParams } = new URL(req.url);
-  const orgId = searchParams.get("orgId");
-  if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.view");
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("org_id")
-    .eq("user_id", userRes.user.id)
-    .eq("org_id", orgId)
-    .maybeSingle();
-  if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-  const { data: health, error } = await supabase
+    const { data: health, error } = await ctx.supabase
     .from("integration_health")
     .select("*")
-    .eq("org_id", orgId);
+    .eq("org_id", ctx.orgId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -40,4 +30,7 @@ export async function GET(req: NextRequest) {
       updatedAt: h.updated_at,
     })),
   });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

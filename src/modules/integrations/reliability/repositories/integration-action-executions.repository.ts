@@ -28,6 +28,7 @@ export type IntegrationActionExecutionRow = {
   next_retry_at: string | null;
   created_at: string;
   updated_at: string;
+  governance_trace_id: string | null;
 };
 
 export type InsertActionExecutionInput = {
@@ -43,6 +44,7 @@ export type InsertActionExecutionInput = {
   risk_level?: string | null;
   max_attempts?: number;
   reconciliation_required?: boolean;
+  governance_trace_id?: string | null;
 };
 
 export async function insertActionExecution(
@@ -133,6 +135,7 @@ export async function updateActionExecution(
     reconciliation_status: string;
     executed_at: string | null;
     next_retry_at: string | null;
+    governance_trace_id: string | null;
   }>
 ): Promise<{ error: Error | null }> {
   const { error } = await supabase

@@ -1,6 +1,7 @@
 /**
  * Phase 0 — Link a change to an issue (change_issue_links).
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type ChangeIssueLinkType = "origin" | "related" | "caused" | "mitigates" | "blocked_by";
@@ -11,9 +12,7 @@ export async function linkChangeToIssue(
   issueId: string,
   linkType: ChangeIssueLinkType
 ): Promise<{ ok: boolean; error?: string }> {
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", changeId)
     .single();
   if (ceErr || !change) return { ok: false, error: "Change not found" };

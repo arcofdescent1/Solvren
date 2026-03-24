@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -62,11 +63,9 @@ export async function POST(req: Request) {
   const db = isInternal ? admin : supabase;
 
   // Pull change context (includes Phase 1A exposure fields)
-  const { data: change, error: ceErr } = await db
-    .from("change_events")
-    .select(
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(db.from("change_events").select(
       "id, org_id, domain, created_by, revenue_surface, estimated_mrr_affected, percent_customer_base_affected, customers_affected_count"
-    )
+    ))
     .eq("id", body.changeEventId)
     .single();
 

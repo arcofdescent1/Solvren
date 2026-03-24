@@ -1,79 +1,67 @@
 /**
  * GET /api/integrations/:provider/health
- * Standardized health endpoint for all providers.
+ * Runtime-based health endpoint for all providers.
  */
 import { NextRequest, NextResponse } from "next/server";
-
-export const maxDuration = 15;
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { IntegrationHealthService, getCapabilities, INTEGRATION_PROVIDERS } from "@/modules/integrations";
-import type { IntegrationProvider } from "@/modules/integrations/types";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission, resolveDefaultOrgForUser } from "@/lib/server/authz";
+import { getAccountByOrgAndProvider, getAccountById } from "@/modules/integrations/core/integrationAccountsRepo";
+import { getRegistryRuntime, hasProvider } from "@/modules/integrations/registry/providerRegistry";
+import type { IntegrationProvider } from "@/modules/integrations/contracts/types";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
 ) {
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
-
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const provider = (await params).provider as IntegrationProvider;
-  if (!INTEGRATION_PROVIDERS.includes(provider)) {
-    return NextResponse.json({ error: "Unknown provider" }, { status: 400 });
-  }
-
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  if (!orgId) {
-    return NextResponse.json({ error: "orgId required" }, { status: 400 });
-  }
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("org_id")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-
-  if (!member) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   try {
-    const healthSvc = new IntegrationHealthService(admin);
-    const health = await healthSvc.getHealth(orgId, provider);
-    const capabilities = getCapabilities(provider);
+    const { provider } = await params;
+    if (!hasProvider(provider)) {
+      return NextResponse.json(
+        { ok: false, error: { code: "not_found", message: "Unknown provider" } },
+        { status: 404 }
+      );
+    }
+    const orgIdRaw = req.nextUrl.searchParams.get("orgId");
+    const accountIdRaw = req.nextUrl.searchParams.get("integrationAccountId");
 
-    const { data: connRow } = await admin
-      .from("integration_connections")
-      .select("status")
-      .eq("org_id", orgId)
-      .eq("provider", provider)
-      .maybeSingle();
+    let accountId: string;
+    let orgId: string;
+    if (accountIdRaw) {
+      const ctx = orgIdRaw
+        ? await requireOrgPermission(parseRequestedOrgId(orgIdRaw), "integrations.view")
+        : await resolveDefaultOrgForUser();
+      const { data: account } = await getAccountById(ctx.supabase, accountIdRaw);
+      if (!account || account.provider !== provider) {
+        return NextResponse.json({ ok: false, error: { code: "not_found", message: "Account not found" } }, { status: 404 });
+      }
+      if (account.org_id !== ctx.orgId) {
+        return NextResponse.json({ ok: false, error: { code: "forbidden", message: "Forbidden" } }, { status: 403 });
+      }
+      accountId = account.id;
+      orgId = account.org_id;
+    } else {
+      const ctx = orgIdRaw
+        ? await requireOrgPermission(parseRequestedOrgId(orgIdRaw), "integrations.view")
+        : await resolveDefaultOrgForUser();
+      const { data: account } = await getAccountByOrgAndProvider(ctx.supabase, ctx.orgId, provider);
+      if (!account) {
+        return NextResponse.json({ ok: false, error: { code: "not_found", message: "Integration not installed" } }, { status: 404 });
+      }
+      accountId = account.id;
+      orgId = account.org_id;
+    }
 
-    const connectionStatus = (connRow as { status?: string } | null)?.status ?? "disconnected";
-
+    const runtime = getRegistryRuntime(provider as IntegrationProvider);
+    const health = await runtime.getHealth({ orgId, integrationAccountId: accountId });
     return NextResponse.json({
-    provider,
-    connectionStatus,
-    healthStatus: health?.healthStatus ?? null,
-    lastSuccessAt: health?.lastSuccessAt ?? null,
-    lastError: health?.lastError ?? null,
-    capabilities: {
-      supportsWebhooks: capabilities.supportsWebhooks ?? false,
-      supportsRetry: capabilities.supportsRetry ?? false,
-      supportsStatusSync: capabilities.supportsStatusSync ?? false,
-    },
-  });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Health check failed";
-    return NextResponse.json(
-      { error: msg, provider, connectionStatus: "unknown", healthStatus: null },
-      { status: 503 }
-    );
+      ok: true,
+      data: {
+        provider,
+        integrationAccountId: accountId,
+        health,
+      },
+      meta: { timestamp: new Date().toISOString() },
+    });
+  } catch (e) {
+    return authzErrorResponse(e);
   }
 }

@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { fetchMitigationsForSignals } from "@/services/risk/mitigationsDb";
@@ -13,9 +14,7 @@ export async function GET(
   if (!userRes.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: change, error } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain")
+  const { data: change, error } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain"))
     .eq("id", changeId)
     .maybeSingle();
 
@@ -80,9 +79,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { data: change, error: cErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain")
+  const { data: change, error: cErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain"))
     .eq("id", changeId)
     .maybeSingle();
 

@@ -103,6 +103,10 @@ export const env = {
   get emailFrom(): string | undefined {
     return optional(process.env.EMAIL_FROM ?? process.env.RESEND_FROM);
   },
+  /** Recipient for Trust Center security info requests. When set with RESEND_API_KEY, emails are sent. */
+  get securityRequestRecipient(): string | undefined {
+    return optional(process.env.SECURITY_REQUEST_RECIPIENT ?? process.env.SECURITY_REQUEST_EMAIL);
+  },
 
   /** Sentry (optional). */
   get sentryDsn(): string | undefined {
@@ -346,15 +350,69 @@ export const env = {
       optional(process.env.GITHUB_PRIVATE_KEY_BASE64)
     );
   },
+
+  /**
+   * Phase 1 — AES key for integration token envelopes (server-only). Separate from Supabase keys.
+   * If unset, encryptSecret/decryptSecret throw when called.
+   */
+  get integrationEncryptionKey(): string | undefined {
+    return optional(process.env.ENCRYPTION_KEY);
+  },
+
+  /**
+   * Phase 1 rotation — decrypt legacy `slv1:` payloads sealed with the prior key while ENCRYPTION_KEY is new.
+   * Omit once all rows are re-sealed with the current key.
+   */
+  get integrationEncryptionKeyPrevious(): string | undefined {
+    return optional(process.env.ENCRYPTION_KEY_PREVIOUS);
+  },
 };
 
 /**
  * Validate required env vars at startup. Call from instrumentation.ts.
  * Throws if any required var is missing.
  */
+const PLACEHOLDER_PATTERNS = [
+  /^placeholder/i,
+  /placeholder\.supabase\.co/i,
+  /anon-key-for-ci/i,
+  /service-role-key-for-ci/i,
+];
+
+function looksLikePlaceholderSecret(value: string): boolean {
+  return PLACEHOLDER_PATTERNS.some((re) => re.test(value));
+}
+
+/**
+ * Fails fast on dummy credentials when running as real production (not Preview/CI).
+ * Set ENFORCE_PRODUCTION_SECRETS=1 locally to test. Preview/CI may use placeholders.
+ */
+export function validateProductionSecurityEnv(): void {
+  if (process.env.NODE_ENV !== "production") return;
+  const enforce =
+    process.env.VERCEL_ENV === "production" || process.env.ENFORCE_PRODUCTION_SECRETS === "1";
+  if (!enforce) return;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const appUrl = process.env.APP_URL ?? "";
+
+  if (looksLikePlaceholderSecret(url) || looksLikePlaceholderSecret(anon) || looksLikePlaceholderSecret(service)) {
+    throw new Error(
+      "Production security: Supabase env vars look like CI/placeholder values. Set real project credentials."
+    );
+  }
+
+  if (appUrl.startsWith("http://") && !appUrl.includes("localhost")) {
+    throw new Error("Production security: APP_URL must use HTTPS outside local development.");
+  }
+}
+
 export function validateRequiredEnv(): void {
   required("APP_URL", process.env.APP_URL);
   required("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
   required("NEXT_PUBLIC_SUPABASE_ANON_KEY", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   required("SUPABASE_SERVICE_ROLE_KEY", process.env.SUPABASE_SERVICE_ROLE_KEY);
+  validateProductionSecurityEnv();
 }

@@ -42,6 +42,8 @@ export type PolicyRule = {
   match: PolicyConditionGroup;
   effect: PolicyRuleEffect;
   hardBlock: boolean;
+  /** When false on a blocking rule, policy exceptions may not override the block. Default true (legacy). */
+  exceptionEligible?: boolean;
 };
 
 export type { PolicyConditionGroup };

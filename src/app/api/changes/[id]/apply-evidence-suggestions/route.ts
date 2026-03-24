@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
@@ -22,9 +23,7 @@ export async function POST(
 
   const { id: changeId } = await ctx.params;
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("id, org_id")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
     .eq("id", changeId)
     .maybeSingle();
   if (chErr) return NextResponse.json({ error: chErr.message }, { status: 500 });

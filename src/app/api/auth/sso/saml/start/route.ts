@@ -47,6 +47,7 @@ export async function POST(req: Request) {
   const spEntityId = `${baseUrl}/api/auth/sso/saml/metadata`;
 
   const state = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   await admin.from("sso_auth_sessions").insert({
     state,
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
     provider_id: providerId,
     redirect_success_url: `${baseUrl}/dashboard`,
     redirect_failure_url: `${baseUrl}/login?error=sso_failed`,
+    expires_at: expiresAt,
   });
 
   const redirectUrl = buildAuthnRequest(acsUrl, spEntityId, idpSsoUrl, idpEntityId ?? "", state);

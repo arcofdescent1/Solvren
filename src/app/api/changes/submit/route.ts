@@ -16,6 +16,12 @@ import { canRole } from "@/lib/rbac/permissions";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { runRevenueImpactGeneration } from "@/services/revenueImpact/runRevenueImpactGeneration";
 import { runCoordinationPlanGeneration } from "@/services/coordination/runCoordinationPlanGeneration";
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
+import {
+  evaluateGovernance,
+  bindGovernanceApprovalRequest,
+  deploymentGovernanceEnvironment,
+} from "@/modules/governance";
 
 type Body = { changeEventId: string; createdByUserId?: string };
 
@@ -94,11 +100,11 @@ export async function POST(req: Request) {
 
   const db = isInternal ? admin : supabase;
 
-  const { data: change, error: ceErr } = await db
-    .from("change_events")
-    .select("*")
-    .eq("id", body.changeEventId)
-    .single();
+  const changeRowQuery = isInternal
+    ? admin.from("change_events").select("*").eq("id", body.changeEventId)
+    : scopeActiveChangeEvents(supabase.from("change_events").select("*")).eq("id", body.changeEventId);
+
+  const { data: change, error: ceErr } = await changeRowQuery.single();
 
   if (ceErr || !change)
     return NextResponse.json(
@@ -478,6 +484,136 @@ export async function POST(req: Request) {
       entityId: body.changeEventId,
       metadata: { stage: "submit-precheck" },
     });
+  }
+
+  // 7.7) Phase 5 — Unified governance before transition to IN_REVIEW
+  let submitterRoleKeys: string[] | undefined;
+  if (actorId) {
+    const { data: gm } = await db
+      .from("organization_members")
+      .select("role")
+      .eq("org_id", change.org_id)
+      .eq("user_id", actorId)
+      .maybeSingle();
+    if (gm && (gm as { role?: string | null }).role) {
+      submitterRoleKeys = [String((gm as { role: string }).role)];
+    }
+  }
+
+  const {
+    data: govDecision,
+    policyContext: govPolicyCtx,
+    error: govEvalErr,
+  } = await evaluateGovernance(db, {
+    orgId: change.org_id as string,
+    environment: deploymentGovernanceEnvironment(),
+    actor: {
+      userId: actorId || undefined,
+      actorType: isInternal ? "system" : "user",
+      roleKeys: submitterRoleKeys,
+    },
+    target: {
+      resourceType: "change",
+      resourceId: body.changeEventId,
+      transitionKey: "submit",
+    },
+    change: {
+      changeId: body.changeEventId,
+      domain: (change.domain as string | null) ?? undefined,
+      riskLevel: (latestAssessment.risk_bucket as string | null) ?? undefined,
+    },
+    autonomy: { requestedMode: "ASSISTED" },
+  });
+
+  if (govEvalErr || !govDecision) {
+    await auditLog(db, {
+      orgId: change.org_id,
+      actorId,
+      action: "change_submit_governance_error",
+      entityType: "change",
+      entityId: body.changeEventId,
+      metadata: { message: govEvalErr?.message ?? "no_decision" },
+    });
+    return NextResponse.json(
+      { error: govEvalErr?.message ?? "Governance evaluation failed" },
+      { status: 500 }
+    );
+  }
+
+  if (govDecision.disposition === "BLOCK") {
+    await auditLog(db, {
+      orgId: change.org_id,
+      actorId,
+      action: "change_submit_blocked_governance",
+      entityType: "change",
+      entityId: body.changeEventId,
+      metadata: {
+        traceId: govDecision.traceId,
+        reasonCodes: govDecision.reasonCodes,
+      },
+    });
+    return NextResponse.json(
+      {
+        error: govDecision.explainability.headline,
+        governance: {
+          traceId: govDecision.traceId,
+          disposition: govDecision.disposition,
+          reasonCodes: govDecision.reasonCodes,
+        },
+      },
+      { status: 403 }
+    );
+  }
+
+  if (govDecision.disposition === "REQUIRE_APPROVAL") {
+    if (!govPolicyCtx) {
+      return NextResponse.json(
+        { error: "Governance requires approval but context was not available" },
+        { status: 500 }
+      );
+    }
+    const { approvalRequestId, error: bindErr } = await bindGovernanceApprovalRequest(
+      db,
+      govDecision,
+      govPolicyCtx,
+      {
+        createdByUserId: actorId || null,
+        createdByType: isInternal ? "system" : "user",
+      }
+    );
+    if (!approvalRequestId) {
+      await auditLog(db, {
+        orgId: change.org_id,
+        actorId,
+        action: "change_submit_approval_bind_failed",
+        entityType: "change",
+        entityId: body.changeEventId,
+        metadata: { message: bindErr?.message },
+      });
+      return NextResponse.json(
+        { error: bindErr?.message ?? "Could not create approval request for governed submit" },
+        { status: 500 }
+      );
+    }
+    await auditLog(db, {
+      orgId: change.org_id,
+      actorId,
+      action: "change_submit_pending_governance_approval",
+      entityType: "change",
+      entityId: body.changeEventId,
+      metadata: {
+        approvalRequestId,
+        governanceTraceId: govDecision.traceId,
+      },
+    });
+    return NextResponse.json(
+      {
+        error: "Change submission requires approval under governance policy",
+        approvalRequestId,
+        governanceTraceId: govDecision.traceId,
+      },
+      { status: 202 }
+    );
   }
 
   // 8) Update change_events to IN_REVIEW + SLA (then enqueue notifications)

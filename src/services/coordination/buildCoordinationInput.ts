@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { createHash } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CoordinationInput } from "./coordinationTypes";
@@ -28,9 +29,7 @@ export async function buildCoordinationInput(args: {
   supabase: SupabaseClient;
   changeId: string;
 }): Promise<CoordinationInput> {
-  const { data: change, error: chErr } = await args.supabase
-    .from("change_events")
-    .select("*")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(args.supabase.from("change_events").select("*"))
     .eq("id", args.changeId)
     .maybeSingle();
   if (chErr) throw new Error(chErr.message);

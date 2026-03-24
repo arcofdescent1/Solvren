@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { auditLog } from "@/lib/audit";
@@ -39,9 +40,7 @@ async function ensureExecApprovals(
 ): Promise<number> {
   const { orgId, changeId } = args;
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, domain")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, domain"))
     .eq("id", changeId)
     .maybeSingle();
   if (ceErr || !change) return 0;
@@ -170,11 +169,9 @@ export async function POST(req: Request) {
   const now = new Date();
   const nowIso = now.toISOString();
 
-  const { data: changes, error: ceErr } = await supabase
-    .from("change_events")
-    .select(
+  const { data: changes, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, org_id, status, due_at, sla_status, escalated_at, submitted_at, domain"
-    )
+    ))
     .eq("status", "IN_REVIEW")
     .limit(500);
 

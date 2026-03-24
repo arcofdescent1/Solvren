@@ -23,7 +23,7 @@ export function getHubSpotManifest(): ConnectorManifest {
     ],
     supportedObjectTypes: ["contacts", "companies", "deals", "owners", "tasks", "engagements"],
     supportedInboundEvents: ["contact.creation", "contact.propertyChange", "deal.creation", "deal.propertyChange"],
-    supportedOutboundActions: ["create_task", "assign_owner", "add_note", "update_stage", "fill_missing_field"],
+    supportedOutboundActions: ["create_task"],
     requiredScopes: ["crm.objects.contacts.read", "crm.objects.deals.read", "crm.objects.companies.read"],
     optionalScopes: ["crm.objects.contacts.write", "crm.objects.deals.write", "tickets"],
     installPrerequisites: ["HubSpot account", "Admin or OAuth scope grant"],

@@ -4,6 +4,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
 import { verifySlackState } from "@/lib/slack/state";
 import { env } from "@/lib/env";
+import { sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { linkSlackIntegrationAccount } from "@/modules/integrations/providers/slack/accountLink";
 
 async function slackOAuthAccess(code: string, redirectUri: string) {
   const body = new URLSearchParams();
@@ -159,13 +161,13 @@ export async function GET(req: NextRequest) {
   };
 
   await admin.from("integration_credentials").upsert(
-    {
+    sealCredentialTokenFields({
       org_id: state.orgId,
       provider: "slack",
       access_token: botToken,
       refresh_token: null,
       expires_at: null,
-    },
+    }),
     { onConflict: "org_id,provider" }
   );
 
@@ -197,6 +199,13 @@ export async function GET(req: NextRequest) {
       { onConflict: "org_id" }
     );
   }
+
+  await linkSlackIntegrationAccount(admin, {
+    orgId: state.orgId,
+    userId: state.userId,
+    teamId,
+    teamName,
+  });
 
   await auditLog(supabase, {
     orgId: state.orgId,

@@ -4,6 +4,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { runValidationRules } from "./validationRules";
 import { buildResult, type ValidationResult } from "./validationTypes";
 import { computeEvidenceScore } from "@/lib/governance/EvidenceScoringService";
@@ -26,11 +27,9 @@ export async function validateChange(
 ): Promise<ValidationResult> {
   const { changeId, supabase, requireAssessment = true, requireEvidenceThreshold = true } = options;
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("*")
-    .eq("id", changeId)
-    .maybeSingle();
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(
+    supabase.from("change_events").select("*").eq("id", changeId)
+  ).maybeSingle();
 
   if (ceErr) {
     return buildResult([

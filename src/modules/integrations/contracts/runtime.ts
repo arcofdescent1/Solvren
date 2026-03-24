@@ -92,6 +92,8 @@ export interface FetchSchemaInput {
 
 export interface ProviderSchemaResult {
   objectTypes: { key: string; label: string; syncable: boolean }[];
+  /** Object type -> fields for mapping UI (Phase 2) */
+  objectFields?: Record<string, Array<{ path: string; type: string; label?: string }>>;
   error?: string;
 }
 
@@ -165,7 +167,70 @@ export interface ActionExecutionResult {
   errorMessage?: string;
 }
 
-/** §6.3 ConnectorRuntime — every provider implements this */
+/** Phase 3 — Source preview (CSV/DB/warehouse) */
+export interface PreviewSourceDataInput {
+  orgId: string;
+  integrationAccountId: string;
+  sourceObjectType?: string;
+  limit?: number;
+  config?: Record<string, unknown>;
+}
+
+export interface ColumnMeta {
+  name: string;
+  type: string;
+  nullable?: boolean;
+}
+
+export interface PreviewSourceDataResult {
+  rows: unknown[];
+  columns?: ColumnMeta[];
+  error?: string;
+}
+
+/** Phase 3 — Cursor checkpoint retrieval */
+export interface GetCheckpointInput {
+  orgId: string;
+  integrationAccountId: string;
+  sourceObjectType: string;
+}
+
+export interface GetCheckpointResult {
+  checkpoint?: Record<string, unknown>;
+  error?: string;
+}
+
+/** Phase 3 — Replay support */
+export interface ReplayEventsInput {
+  orgId: string;
+  integrationAccountId: string;
+  scopeType: "record" | "job" | "time_range" | "full_source";
+  scopeJson: Record<string, unknown>;
+  safeReprocess?: boolean;
+}
+
+export interface ReplayEventsResult {
+  replayJobId: string;
+  status: "queued" | "running";
+  error?: string;
+}
+
+/** Phase 3 — Source metadata (schema discovery) */
+export interface FetchSourceMetadataInput {
+  orgId: string;
+  integrationAccountId: string;
+  sourceObjectType?: string;
+}
+
+export interface FetchSourceMetadataResult {
+  objectTypes?: { key: string; label: string }[];
+  columns?: { name: string; type: string }[];
+  primaryKeyCandidates?: string[];
+  updatedAtCandidates?: string[];
+  error?: string;
+}
+
+/** §6.3 ConnectorRuntime — every provider implements this. Phase 3 methods are optional. */
 export interface ConnectorRuntime {
   connect(input: ConnectStartInput): Promise<ConnectStartResult>;
   handleCallback(input: ConnectCallbackInput): Promise<ConnectCallbackResult>;
@@ -179,4 +244,13 @@ export interface ConnectorRuntime {
   receiveWebhook(input: ReceiveWebhookInput): Promise<WebhookReceiptResult>;
   reconcileWebhooks(input: ReconcileWebhookInput): Promise<ReconcileWebhookResult>;
   executeAction(input: ExecuteActionInput): Promise<ActionExecutionResult>;
+
+  /** Phase 3 — Optional: preview source data (CSV/DB/warehouse) */
+  previewSourceData?(input: PreviewSourceDataInput): Promise<PreviewSourceDataResult>;
+  /** Phase 3 — Optional: get checkpoint for incremental sync */
+  getCheckpoint?(input: GetCheckpointInput): Promise<GetCheckpointResult>;
+  /** Phase 3 — Optional: replay events */
+  replayEvents?(input: ReplayEventsInput): Promise<ReplayEventsResult>;
+  /** Phase 3 — Optional: extended source metadata */
+  fetchSourceMetadata?(input: FetchSourceMetadataInput): Promise<FetchSourceMetadataResult>;
 }

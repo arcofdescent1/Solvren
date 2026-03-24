@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getRevenueAtRisk30d } from "@/services/revenue/executiveMetrics";
@@ -31,11 +32,9 @@ export async function GET() {
     Date.now() - 30 * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data: rows, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: rows, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, title, status, submitted_at, due_at, sla_status, domain, estimated_mrr_affected, percent_customer_base_affected, revenue_surface"
-    )
+    ))
     .eq("org_id", orgId)
     .gte("submitted_at", sinceIso);
 

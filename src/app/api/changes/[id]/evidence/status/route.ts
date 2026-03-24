@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
@@ -5,6 +6,11 @@ import { addTimelineEvent } from "@/services/timeline/addTimelineEvent";
 import { canRole } from "@/lib/rbac/permissions";
 import { parseOrgRole } from "@/lib/rbac/roles";
 import { canViewChange } from "@/lib/access/changeAccess";
+import {
+  evaluateGovernance,
+  bindGovernanceApprovalRequest,
+  deploymentGovernanceEnvironment,
+} from "@/modules/governance";
 
 type Body = {
   evidenceId: string;
@@ -30,9 +36,7 @@ export async function POST(
 
   const { id: changeId } = await ctx.params;
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", changeId)
     .maybeSingle();
   if (chErr) return NextResponse.json({ error: chErr.message }, { status: 500 });
@@ -49,6 +53,75 @@ export async function POST(
     .maybeSingle();
   if (!member || !canRole(parseOrgRole((member as { role?: string | null }).role ?? null), "change.evidence.provide")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (body.status === "WAIVED") {
+    const roleKeys = (member as { role?: string | null }).role
+      ? [String((member as { role: string }).role)]
+      : undefined;
+    const { data: gov, policyContext, error: govErr } = await evaluateGovernance(supabase, {
+      orgId,
+      environment: deploymentGovernanceEnvironment(),
+      actor: {
+        userId: userRes.user.id,
+        actorType: "user",
+        roleKeys,
+      },
+      target: {
+        resourceType: "evidence_waiver",
+        resourceId: body.evidenceId,
+        transitionKey: "waive",
+      },
+      change: {
+        changeId,
+        domain: (change as { domain?: string | null }).domain ?? undefined,
+      },
+      autonomy: { requestedMode: "ASSISTED" },
+    });
+
+    if (govErr || !gov) {
+      return NextResponse.json(
+        { error: govErr?.message ?? "Governance evaluation failed" },
+        { status: 500 }
+      );
+    }
+    if (gov.disposition === "BLOCK") {
+      return NextResponse.json(
+        {
+          error: gov.explainability.headline,
+          governance: { traceId: gov.traceId, disposition: gov.disposition },
+        },
+        { status: 403 }
+      );
+    }
+    if (gov.disposition === "REQUIRE_APPROVAL") {
+      if (!policyContext) {
+        return NextResponse.json(
+          { error: "Governance requires approval but context was not available" },
+          { status: 500 }
+        );
+      }
+      const { approvalRequestId, error: bindErr } = await bindGovernanceApprovalRequest(
+        supabase,
+        gov,
+        policyContext,
+        { createdByUserId: userRes.user.id, createdByType: "user" }
+      );
+      if (!approvalRequestId) {
+        return NextResponse.json(
+          { error: bindErr?.message ?? "Could not create approval request" },
+          { status: 500 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: "Waiving this evidence requires approval under governance policy",
+          approvalRequestId,
+          governanceTraceId: gov.traceId,
+        },
+        { status: 202 }
+      );
+    }
   }
 
   const updatePayload: Record<string, unknown> = { status: body.status };

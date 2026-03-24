@@ -15,7 +15,7 @@ export function getSlackManifest(): ConnectorManifest {
     capabilities: ["execute_actions", "health_checks"],
     supportedObjectTypes: ["channels", "users"],
     supportedInboundEvents: [],
-    supportedOutboundActions: ["post_message", "post_issue_summary", "create_thread", "post_alert"],
+    supportedOutboundActions: ["post_message", "post_issue_summary"],
     requiredScopes: ["chat:write", "channels:read", "users:read"],
     optionalScopes: ["chat:write.public", "groups:read"],
     installPrerequisites: ["Slack workspace", "App installation"],

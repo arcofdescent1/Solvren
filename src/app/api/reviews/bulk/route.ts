@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
@@ -68,9 +69,7 @@ export async function POST(req: Request) {
     );
     if (!changeEventIds.length) throw new Error("Forbidden outbox id");
 
-    const { data: changes, error: ceErr } = await supabase
-      .from("change_events")
-      .select("id, org_id")
+    const { data: changes, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
       .in("id", changeEventIds);
     if (ceErr) throw new Error(ceErr.message);
 
@@ -91,9 +90,7 @@ export async function POST(req: Request) {
 
   async function assertChangeIdsInOrg() {
     if (!changeIds.length) return;
-    const { data, error } = await supabase
-      .from("change_events")
-      .select("id, org_id")
+    const { data, error } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
       .in("id", changeIds);
     if (error) throw new Error(error.message);
     const ok = (data ?? []).every((c) => orgIds.includes(c.org_id));
@@ -213,9 +210,7 @@ export async function POST(req: Request) {
         );
       const channel = body.channel ?? "IN_APP";
       const nowIso = new Date().toISOString();
-      const { data: changes, error: ceErr } = await supabase
-        .from("change_events")
-        .select("id, org_id")
+      const { data: changes, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
         .in("id", changeIds);
       if (ceErr) throw new Error(ceErr.message);
 

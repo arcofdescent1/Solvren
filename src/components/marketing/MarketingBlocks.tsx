@@ -66,6 +66,7 @@ export function HeroSection({
   subtitle,
   primaryCta = { href: "/signup", label: "Get Started" },
   secondaryCta = { href: "/demo", label: "Book Demo" },
+  tertiaryCta,
   trustItems,
 }: {
   eyebrow?: string;
@@ -73,6 +74,7 @@ export function HeroSection({
   subtitle: string;
   primaryCta?: { href: string; label: string };
   secondaryCta?: { href: string; label: string };
+  tertiaryCta?: { href: string; label: string };
   trustItems?: string[];
 }) {
   const items = trustItems ?? TRUST_BAR.items;
@@ -104,6 +106,11 @@ export function HeroSection({
                 {secondaryCta.label}
               </Button>
             </Link>
+            {tertiaryCta && (
+              <Link href={tertiaryCta.href} className="text-sm font-medium text-cyan-300 underline-offset-4 hover:underline">
+                {tertiaryCta.label}
+              </Link>
+            )}
           </div>
           <div className="mt-10 grid max-w-2xl gap-3 text-sm text-slate-300 sm:grid-cols-3">
             {items.map((item) => (

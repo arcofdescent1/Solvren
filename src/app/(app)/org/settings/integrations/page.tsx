@@ -47,6 +47,26 @@ const PROVIDER_ROUTES: Record<
     href: "/org/settings/integrations/stripe",
     setupHref: "/org/settings/integrations/stripe",
   },
+  csv: {
+    href: "/org/settings/integrations/csv",
+    setupHref: "/org/settings/integrations/csv",
+  },
+  postgres_readonly: {
+    href: "/org/settings/integrations/postgres-readonly",
+    setupHref: "/org/settings/integrations/postgres-readonly",
+  },
+  mysql_readonly: {
+    href: "/org/settings/integrations/mysql-readonly",
+    setupHref: "/org/settings/integrations/mysql-readonly",
+  },
+  snowflake: {
+    href: "/org/settings/integrations/snowflake",
+    setupHref: "/org/settings/integrations/snowflake",
+  },
+  bigquery: {
+    href: "/org/settings/integrations/bigquery",
+    setupHref: "/org/settings/integrations/bigquery",
+  },
 };
 
 function ReadinessBadge({ tier }: { tier: ReadinessTier }) {
@@ -112,6 +132,11 @@ export default async function IntegrationsMarketplacePage() {
     "stripe",
     "netsuite",
     "github",
+    "csv",
+    "postgres_readonly",
+    "mysql_readonly",
+    "snowflake",
+    "bigquery",
   ] as const;
 
   return (
@@ -125,9 +150,14 @@ export default async function IntegrationsMarketplacePage() {
         title="Integrations"
         description="Connect systems for risk detection and governance. Each integration shows its readiness tier."
         right={
-          <Link href="/org/settings" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-            ← Settings
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/integrations/mappings" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Mappings
+            </Link>
+            <Link href="/org/settings" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              ← Settings
+            </Link>
+          </div>
         }
       />
 

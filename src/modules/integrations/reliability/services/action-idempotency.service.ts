@@ -20,6 +20,7 @@ export type CreateExecutionInput = {
   riskLevel?: string | null;
   maxAttempts?: number;
   reconciliationRequired?: boolean;
+  governanceTraceId?: string | null;
 };
 
 export type CreateExecutionResult =
@@ -65,6 +66,7 @@ export async function ensureActionExecutionRecord(
     risk_level: input.riskLevel,
     max_attempts: input.maxAttempts ?? 5,
     reconciliation_required: input.reconciliationRequired ?? false,
+    governance_trace_id: input.governanceTraceId ?? null,
   });
 
   if (error) return { error: error.message };

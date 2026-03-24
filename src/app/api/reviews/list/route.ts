@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getRequiredEvidenceAndApprovalAreas } from "@/services/domains/approvalRequirements";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 
 type View = "my" | "in_review" | "blocked" | "overdue" | "delivery";
 
@@ -158,26 +159,29 @@ export async function GET(req: Request) {
         lastComputedAt,
         counts: { my: 0, in_review: 0, blocked: 0, overdue: 0, delivery: 0 },
       });
-    const { data: changes, error: ceErr } = await supabase
-      .from("change_events")
-      .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
-      .in("id", ids);
+    const { data: changes, error: ceErr } = await scopeActiveChangeEvents(
+      supabase
+        .from("change_events")
+        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+    ).in("id", ids);
     if (ceErr)
       return NextResponse.json({ error: ceErr.message }, { status: 500 });
     changeRows = changes ?? [];
   } else if (viewParam === "overdue") {
-    const { data: overdueDue } = await supabase
-      .from("change_events")
-      .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
-      .in("org_id", orgIds)
-      .eq("status", "IN_REVIEW")
-      .lt("due_at", nowIso);
-    const { data: overdueEsc } = await supabase
-      .from("change_events")
-      .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
-      .in("org_id", orgIds)
-      .eq("status", "IN_REVIEW")
-      .eq("sla_status", "ESCALATED");
+    const { data: overdueDue } = await scopeActiveChangeEvents(
+      supabase
+        .from("change_events")
+        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .in("org_id", orgIds)
+        .eq("status", "IN_REVIEW")
+    ).lt("due_at", nowIso);
+    const { data: overdueEsc } = await scopeActiveChangeEvents(
+      supabase
+        .from("change_events")
+        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .in("org_id", orgIds)
+        .eq("status", "IN_REVIEW")
+    ).eq("sla_status", "ESCALATED");
     const overdueById = new Map(
       [...(overdueDue ?? []), ...(overdueEsc ?? [])].map((c) => [c.id, c])
     );
@@ -205,19 +209,22 @@ export async function GET(req: Request) {
         lastComputedAt,
         counts: { my: 0, in_review: 0, blocked: 0, overdue: 0, delivery: 0 },
       });
-    const { data: changes, error: ceErr } = await supabase
-      .from("change_events")
-      .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
-      .in("id", ids);
+    const { data: changes, error: ceErr } = await scopeActiveChangeEvents(
+      supabase
+        .from("change_events")
+        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+    ).in("id", ids);
     if (ceErr)
       return NextResponse.json({ error: ceErr.message }, { status: 500 });
     changeRows = changes ?? [];
   } else {
-    const q = supabase
-      .from("change_events")
-      .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
-      .in("org_id", orgIds)
-      .eq("status", "IN_REVIEW");
+    const q = scopeActiveChangeEvents(
+      supabase
+        .from("change_events")
+        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .in("org_id", orgIds)
+        .eq("status", "IN_REVIEW")
+    );
     const { data: changes, error: ceErr } = await q
       .order("due_at", { ascending: true })
       .limit(viewParam === "blocked" ? 500 : 100);
@@ -488,23 +495,13 @@ export async function GET(req: Request) {
       .in("org_id", orgIds)
       .eq("approver_user_id", userId)
       .eq("decision", "PENDING"),
-      supabase
-        .from("change_events")
-        .select("id")
-        .in("org_id", orgIds)
-        .eq("status", "IN_REVIEW"),
-      supabase
-        .from("change_events")
-        .select("id")
-        .in("org_id", orgIds)
-        .eq("status", "IN_REVIEW")
-        .lt("due_at", nowIso),
-      supabase
-        .from("change_events")
-        .select("id")
-        .in("org_id", orgIds)
-        .eq("status", "IN_REVIEW")
-        .eq("sla_status", "ESCALATED"),
+    scopeActiveChangeEvents(supabase.from("change_events").select("id").in("org_id", orgIds).eq("status", "IN_REVIEW")),
+      scopeActiveChangeEvents(
+        supabase.from("change_events").select("id").in("org_id", orgIds).eq("status", "IN_REVIEW")
+      ).lt("due_at", nowIso),
+      scopeActiveChangeEvents(
+        supabase.from("change_events").select("id").in("org_id", orgIds).eq("status", "IN_REVIEW")
+      ).eq("sla_status", "ESCALATED"),
       supabase
         .from("notification_outbox")
         .select("change_event_id")
@@ -512,28 +509,31 @@ export async function GET(req: Request) {
         .in("status", ["FAILED", "PENDING"]),
     ]);
 
-  const inReviewIds = (inReviewData ?? []).map((c) => c.id);
+  const inReviewIds = ((inReviewData ?? []) as { id: string }[]).map((c) => c.id);
   const rawOverdueIds = [
-    ...(overdueDueData ?? []).map((c) => c.id),
-    ...(overdueEscData ?? []).map((c) => c.id),
+    ...((overdueDueData ?? []) as { id: string }[]).map((c) => c.id),
+    ...((overdueEscData ?? []) as { id: string }[]).map((c) => c.id),
   ];
   const rawDeliveryChangeIds = uniq(
-    (deliveryOutbox ?? []).map((o) => o.change_event_id).filter(Boolean)
+    ((deliveryOutbox ?? []) as { change_event_id?: string | null }[])
+      .map((o) => o.change_event_id)
+      .filter((x): x is string => Boolean(x))
   );
 
   async function toVisibleIds(ids: string[]) {
     const uniqIds = uniq(ids);
     if (uniqIds.length === 0) return [] as string[];
-    const { data: rowsForVisibility } = await supabase
-      .from("change_events")
-      .select("id, org_id, domain, status, created_by")
-      .in("id", uniqIds);
+    const { data: rowsForVisibility } = await scopeActiveChangeEvents(
+      supabase.from("change_events").select("id, org_id, domain, status, created_by")
+    ).in("id", uniqIds);
     const visibleRows = await filterVisibleChanges(supabase, userId, rowsForVisibility ?? []);
     return visibleRows.map((r) => r.id);
   }
 
   const myChangeIds = await toVisibleIds(
-    (myApprovalsData ?? []).map((a) => a.change_event_id).filter(Boolean)
+    ((myApprovalsData ?? []) as { change_event_id?: string | null }[])
+      .map((a) => a.change_event_id)
+      .filter((x): x is string => Boolean(x))
   );
   const visibleInReviewIds = await toVisibleIds(inReviewIds);
   const overdueIds = new Set(await toVisibleIds(rawOverdueIds));
@@ -542,12 +542,14 @@ export async function GET(req: Request) {
   let blockedCount = 0;
   if (visibleInReviewIds.length > 0) {
     const assessForBlocked = await loadLatestAssessments(visibleInReviewIds);
-    const { data: inReviewWithDomain } = await supabase
-      .from("change_events")
-      .select("id, domain")
-      .in("id", visibleInReviewIds);
-    const domainByChange = new Map(
-      (inReviewWithDomain ?? []).map((c) => [c.id, c.domain ?? "REVENUE"])
+    const { data: inReviewWithDomain } = await scopeActiveChangeEvents(
+      supabase.from("change_events").select("id, domain")
+    ).in("id", visibleInReviewIds);
+    const domainByChange = new Map<string, string>(
+      ((inReviewWithDomain ?? []) as { id: string; domain?: string | null }[]).map((c) => [
+        c.id,
+        c.domain ?? "REVENUE",
+      ])
     );
     const { data: evBlocked } = await supabase
       .from("change_evidence")

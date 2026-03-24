@@ -2,7 +2,7 @@
  * Phase 3 — Signal domain types (§6).
  */
 
-export const SOURCE_CHANNELS = ["webhook", "incremental_sync", "backfill", "warehouse", "internal"] as const;
+export const SOURCE_CHANNELS = ["webhook", "incremental_sync", "backfill", "warehouse", "internal", "file_import", "db_read"] as const;
 export type SourceChannel = (typeof SOURCE_CHANNELS)[number];
 
 export const PROCESSING_STATUSES = ["pending", "processing", "processed", "failed", "dead_letter"] as const;
@@ -30,6 +30,7 @@ export type RawEventRow = {
   last_error_message: string | null;
   mapper_key: string | null;
   mapper_version: string | null;
+  canonical_output_json?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 };

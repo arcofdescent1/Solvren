@@ -10,6 +10,7 @@ export function SecurityPage({ noShell = false }: { noShell?: boolean }) {
         subtitle="Solvren combines role-based access control, domain permissions, restricted change visibility, evidence enforcement, timelines, and job-backed notifications to support disciplined operational governance."
         primaryCta={{ href: "/pricing", label: "Book trust walkthrough" }}
         secondaryCta={{ href: "/for-engineering", label: "See engineering controls" }}
+        tertiaryCta={{ href: "/trust", label: "View Trust Center →" }}
       />
       <SecurityGrid />
       <FeatureShowcaseSection

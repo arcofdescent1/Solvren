@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { auditLog } from "@/lib/audit";
 import { IntegrationHealthService } from "@/modules/integrations";
 import { syncInstallation, syncRepositories } from "@/services/github/GitHubInstallationService";
+import { linkGitHubIntegrationAccount } from "@/modules/integrations/providers/github/accountLink";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -74,9 +75,18 @@ export async function GET(req: NextRequest) {
     const healthSvc = new IntegrationHealthService(admin);
     await healthSvc.markHealthy(orgId, "github");
 
+    const { data: userData } = await supabase.auth.getUser();
+    const actorId = userData?.user?.id ?? null;
+    await linkGitHubIntegrationAccount(admin, {
+      orgId,
+      userId: actorId,
+      installationId,
+      accountLogin,
+    });
+
     await auditLog(supabase, {
       orgId,
-      actorId: (await supabase.auth.getUser()).data.user?.id ?? null,
+      actorId,
       actorType: "USER",
       action: "github.connected",
       entityType: "integration",

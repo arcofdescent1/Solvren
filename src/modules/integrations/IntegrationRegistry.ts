@@ -60,6 +60,54 @@ const REGISTRY: Record<IntegrationProvider, IntegrationCapability> = {
     supportsManualTest: true,
     supportsDisconnect: true,
   },
+  stripe: {
+    provider: "stripe",
+    supportsOauth: false,
+    supportsWebhooks: true,
+    supportsHealthCheck: true,
+    supportsManualTest: true,
+    supportsDisconnect: true,
+  },
+  csv: {
+    provider: "csv",
+    supportsOauth: false,
+    supportsWebhooks: false,
+    supportsHealthCheck: false,
+    supportsManualTest: false,
+    supportsDisconnect: false,
+  },
+  postgres_readonly: {
+    provider: "postgres_readonly",
+    supportsOauth: false,
+    supportsWebhooks: false,
+    supportsHealthCheck: true,
+    supportsManualTest: true,
+    supportsDisconnect: true,
+  },
+  mysql_readonly: {
+    provider: "mysql_readonly",
+    supportsOauth: false,
+    supportsWebhooks: false,
+    supportsHealthCheck: true,
+    supportsManualTest: true,
+    supportsDisconnect: true,
+  },
+  snowflake: {
+    provider: "snowflake",
+    supportsOauth: false,
+    supportsWebhooks: false,
+    supportsHealthCheck: true,
+    supportsManualTest: true,
+    supportsDisconnect: true,
+  },
+  bigquery: {
+    provider: "bigquery",
+    supportsOauth: false,
+    supportsWebhooks: false,
+    supportsHealthCheck: true,
+    supportsManualTest: true,
+    supportsDisconnect: true,
+  },
 };
 
 export const INTEGRATION_PROVIDERS: IntegrationProvider[] = [
@@ -69,6 +117,12 @@ export const INTEGRATION_PROVIDERS: IntegrationProvider[] = [
   "hubspot",
   "netsuite",
   "salesforce",
+  "stripe",
+  "csv",
+  "postgres_readonly",
+  "mysql_readonly",
+  "snowflake",
+  "bigquery",
 ];
 
 export function getCapabilities(provider: IntegrationProvider): IntegrationCapability {

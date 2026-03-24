@@ -20,6 +20,16 @@ import { getGitHubManifest } from "../providers/github/manifest";
 import { getGitHubRuntime } from "../providers/github/runtime";
 import { getNetSuiteManifest } from "../providers/netsuite/manifest";
 import { getNetSuiteRuntime } from "../providers/netsuite/runtime";
+import { getCsvManifest } from "../providers/csv/manifest";
+import { getCsvRuntime } from "../providers/csv/runtime";
+import { getPostgresReadonlyManifest } from "../providers/postgres-readonly/manifest";
+import { getPostgresReadonlyRuntime } from "../providers/postgres-readonly/runtime";
+import { getMysqlReadonlyManifest } from "../providers/mysql-readonly/manifest";
+import { getMysqlReadonlyRuntime } from "../providers/mysql-readonly/runtime";
+import { getSnowflakeManifest } from "../providers/snowflake/manifest";
+import { getSnowflakeRuntime } from "../providers/snowflake/runtime";
+import { getBigQueryManifest } from "../providers/bigquery/manifest";
+import { getBigQueryRuntime } from "../providers/bigquery/runtime";
 
 type ManifestGetter = () => ConnectorManifest;
 type RuntimeGetter = () => ConnectorRuntime;
@@ -32,6 +42,11 @@ const MANIFESTS: Record<IntegrationProvider, ManifestGetter> = {
   jira: getJiraManifest,
   github: getGitHubManifest,
   netsuite: getNetSuiteManifest,
+  csv: getCsvManifest,
+  postgres_readonly: getPostgresReadonlyManifest,
+  mysql_readonly: getMysqlReadonlyManifest,
+  snowflake: getSnowflakeManifest,
+  bigquery: getBigQueryManifest,
 };
 
 const RUNTIMES: Record<IntegrationProvider, RuntimeGetter> = {
@@ -42,6 +57,11 @@ const RUNTIMES: Record<IntegrationProvider, RuntimeGetter> = {
   jira: getJiraRuntime,
   github: getGitHubRuntime,
   netsuite: getNetSuiteRuntime,
+  csv: getCsvRuntime,
+  postgres_readonly: getPostgresReadonlyRuntime,
+  mysql_readonly: getMysqlReadonlyRuntime,
+  snowflake: getSnowflakeRuntime,
+  bigquery: getBigQueryRuntime,
 };
 
 export const INTEGRATION_PROVIDERS_PHASE1: IntegrationProvider[] = [
@@ -52,6 +72,14 @@ export const INTEGRATION_PROVIDERS_PHASE1: IntegrationProvider[] = [
   "jira",
   "github",
   "netsuite",
+];
+
+export const INTEGRATION_PROVIDERS_PHASE3: IntegrationProvider[] = [
+  "csv",
+  "postgres_readonly",
+  "mysql_readonly",
+  "snowflake",
+  "bigquery",
 ];
 
 export function getRegistryManifest(provider: IntegrationProvider): ConnectorManifest {

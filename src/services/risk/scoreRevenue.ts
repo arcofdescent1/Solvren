@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeRevenueExposureMultiplier } from "@/services/risk/exposure";
 import { getLearnedMultiplierForSignals } from "@/services/risk/learnedMultiplier";
@@ -18,11 +19,9 @@ export async function scoreRevenueChange(
 ) {
   const { changeId, orgId, domain = "REVENUE", detectedSignals, baseRisk } = args;
 
-  const { data: c, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: c, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "estimated_mrr_affected,percent_customer_base_affected,revenue_surface,revenue_exposure_multiplier"
-    )
+    ))
     .eq("id", changeId)
     .maybeSingle();
 

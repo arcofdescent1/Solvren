@@ -1,6 +1,7 @@
 /**
  * Pass 7 — Search service: standardized scope, ranking, visibility.
  */
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
 
@@ -190,9 +191,7 @@ export async function executeSearch(
   async function addAccessible(changeIds: string[]) {
     const deduped = [...new Set(changeIds.filter(Boolean))];
     if (deduped.length === 0) return;
-    const { data: rows } = await supabase
-      .from("change_events")
-      .select("id, org_id, domain, status, created_by, is_restricted")
+    const { data: rows } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
       .in("id", deduped);
     const visible = await filterVisibleChanges(supabase, userId, rows ?? []);
     for (const r of visible) accessibleChangeIds.add(r.id);
@@ -216,9 +215,7 @@ export async function executeSearch(
 
     if (ftsData?.length) {
       const rankedIds = (ftsData as { change_id: string }[]).map((r) => r.change_id);
-      const { data: full } = await supabase
-        .from("change_events")
-        .select("id, title, status, change_type, structured_change_type, domain, systems_involved, submitted_at, org_id, is_restricted, created_by")
+      const { data: full } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title, status, change_type, structured_change_type, domain, systems_involved, submitted_at, org_id, is_restricted, created_by"))
         .in("id", rankedIds);
 
       const fullRows = full ?? [];
@@ -275,9 +272,7 @@ export async function executeSearch(
 
   // Systems
   if (entityTypes.includes("systems")) {
-    const { data: changeRows } = await supabase
-      .from("change_events")
-      .select("id, org_id, domain, status, created_by, is_restricted, systems_involved")
+    const { data: changeRows } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted, systems_involved"))
       .in("org_id", orgIds);
     const visible = await filterVisibleChanges(supabase, userId, changeRows ?? []);
     const allSystems = new Set<string>();
@@ -307,7 +302,7 @@ export async function executeSearch(
     if (apprRows?.length) {
       await addAccessible(apprRows.map((a) => a.change_event_id));
       const changeIds = [...new Set(apprRows.map((a) => a.change_event_id))];
-      const { data: chData } = await supabase.from("change_events").select("id, title").in("id", changeIds);
+      const { data: chData } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title")).in("id", changeIds);
       const titleByChange = new Map((chData ?? []).map((c) => [c.id, c.title]));
       for (const a of apprRows) {
         if (!accessibleChangeIds.has(a.change_event_id)) continue;
@@ -326,9 +321,7 @@ export async function executeSearch(
       }
     }
     if (result.approvals.length === 0) {
-      const { data: chRows } = await supabase
-        .from("change_events")
-        .select("id, title")
+      const { data: chRows } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title"))
         .in("org_id", orgIds)
         .ilike("title", pattern)
         .limit(limit);
@@ -372,7 +365,7 @@ export async function executeSearch(
     if (evRows?.length) {
       await addAccessible(evRows.map((e) => e.change_event_id));
       const changeIds = [...new Set(evRows.map((e) => e.change_event_id))];
-      const { data: chData } = await supabase.from("change_events").select("id, title").in("id", changeIds);
+      const { data: chData } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title")).in("id", changeIds);
       const titleByChange = new Map((chData ?? []).map((c) => [c.id, c.title]));
       for (const e of evRows) {
         if (!accessibleChangeIds.has(e.change_event_id)) continue;
@@ -389,7 +382,7 @@ export async function executeSearch(
         });
       }
     }
-    const { data: orgChangeIds } = await supabase.from("change_events").select("id").in("org_id", orgIds).limit(500);
+    const { data: orgChangeIds } = await scopeActiveChangeEvents(supabase.from("change_events").select("id")).in("org_id", orgIds).limit(500);
     const cids = (orgChangeIds ?? []).map((c) => c.id);
     if (cids.length && result.evidence.length < limit) {
       const itemOr = `kind.ilike.%${safeQ}%,label.ilike.%${safeQ}%`;
@@ -402,7 +395,7 @@ export async function executeSearch(
       if (itemRows?.length) {
         await addAccessible(itemRows.map((i) => i.change_event_id));
         const changeIds = [...new Set(itemRows.map((i) => i.change_event_id))];
-        const { data: chData } = await supabase.from("change_events").select("id, title").in("id", changeIds);
+        const { data: chData } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title")).in("id", changeIds);
         const titleByChange = new Map((chData ?? []).map((c) => [c.id, c.title]));
         for (const i of itemRows) {
           if (result.evidence.length >= limit) break;

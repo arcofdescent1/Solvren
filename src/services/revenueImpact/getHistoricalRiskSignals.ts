@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { HistoricalRiskSignals, SignalStrength } from "./revenueImpactTypes";
 
@@ -28,9 +29,7 @@ export async function getHistoricalRiskSignals(args: {
   const since = new Date();
   since.setMonth(since.getMonth() - 18);
 
-  const { data: similarChanges } = await args.supabase
-    .from("change_events")
-    .select("id, change_type, structured_change_type, domain, systems_involved, revenue_impact_areas")
+  const { data: similarChanges } = await scopeActiveChangeEvents(args.supabase.from("change_events").select("id, change_type, structured_change_type, domain, systems_involved, revenue_impact_areas"))
     .eq("org_id", args.orgId)
     .neq("id", args.changeId)
     .gte("created_at", since.toISOString())

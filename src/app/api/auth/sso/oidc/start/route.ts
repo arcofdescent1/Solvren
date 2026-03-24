@@ -65,6 +65,8 @@ export async function POST(req: Request) {
   const baseUrl = env.appUrl.replace(/\/$/, "");
   const redirectUri = `${baseUrl}/api/auth/sso/oidc/callback`;
 
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
   await admin.from("sso_auth_sessions").insert({
     state,
     nonce,
@@ -73,6 +75,7 @@ export async function POST(req: Request) {
     redirect_success_url: `${baseUrl}/dashboard`,
     redirect_failure_url: `${baseUrl}/login?error=sso_failed`,
     login_hint: loginHint ?? null,
+    expires_at: expiresAt,
   });
 
   const authorizeUrl = buildAuthorizeUrl(

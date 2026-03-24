@@ -13,7 +13,7 @@ export type InboundWebhookInput = {
   orgId: string;
   integrationAccountId: string;
   provider: string;
-  sourceChannel: "webhook" | "sync" | "backfill" | "warehouse" | "internal";
+  sourceChannel: "webhook" | "sync" | "backfill" | "warehouse" | "internal" | "reconcile" | "salesforce_cdc";
   externalEventId?: string | null;
   externalObjectType?: string | null;
   externalObjectId?: string | null;
@@ -21,6 +21,8 @@ export type InboundWebhookInput = {
   eventTime?: string | null;
   payload: Record<string, unknown>;
   headers?: Record<string, unknown> | null;
+  /** When already validated before persist (e.g. signature + resolution done). */
+  initialStatus?: "RECEIVED" | "VALIDATED";
 };
 
 export type InboundIngestResult =
@@ -68,6 +70,7 @@ export async function ingestInboundEvent(
     headers_json: input.headers ?? null,
     payload_hash: payloadHash,
     idempotency_key: idempotencyKey,
+    initial_status: input.initialStatus ?? "RECEIVED",
   });
 
   if (error) return { persisted: false, error: error.message };

@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { getApprovalRequirementsForChange } from "@/services/domains/approvalRequirements";
 import { getGovernanceTemplate } from "@/services/risk/governance";
 import { evaluateEvidenceStatus } from "@/services/evidence";
@@ -78,9 +79,7 @@ export async function getReadyStatus(
 ): Promise<ReadyStatus> {
   const { changeId } = args;
 
-  const { data: change, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, sla_status")
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, sla_status"))
     .eq("id", changeId)
     .single();
 

@@ -1,51 +1,49 @@
+/**
+ * @deprecated Phase 2 compatibility route. Salesforce runs through the new runtime layer.
+ * Use generic POST /api/integrations/salesforce/test when possible.
+ */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { IntegrationHealthService } from "@/modules/integrations";
-import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { SalesforceClient } from "@/services/salesforce/SalesforceClient";
 import { env } from "@/lib/env";
+import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 
 export async function POST(req: NextRequest) {
-  if (!env.salesforceIntegrationEnabled) return NextResponse.json({ error: "Salesforce not configured" }, { status: 503 });
+  try {
+    if (!env.salesforceIntegrationEnabled) return NextResponse.json({ error: "Salesforce not configured" }, { status: 503 });
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.view");
+    const admin = createAdminClient();
 
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
-
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-  if (!member || !isAdminLikeRole(parseOrgRole((member as { role?: string }).role ?? null))) {
-    return NextResponse.json({ error: "Admin required" }, { status: 403 });
-  }
-
-  const { data: sfOrg } = await admin
+    const { data: sfOrg } = await admin
     .from("salesforce_orgs")
     .select("id, environment, instance_url, auth_mode")
-    .eq("org_id", orgId)
+    .eq("org_id", ctx.orgId)
     .maybeSingle();
 
-  const { data: creds } = await admin
+  const { data: credsRaw } = await admin
     .from("integration_credentials")
     .select("client_id, client_secret, salesforce_username, jwt_private_key_base64")
-    .eq("org_id", orgId)
+    .eq("org_id", ctx.orgId)
     .eq("provider", "salesforce")
     .maybeSingle();
 
-  if (!sfOrg || !creds) {
+  if (!sfOrg || !credsRaw) {
     return NextResponse.json({ status: "error", error: "Salesforce not connected" }, { status: 400 });
   }
 
-  const clientId = (creds as { client_id?: string }).client_id;
-  const clientSecret = (creds as { client_secret?: string }).client_secret;
+  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+    client_id?: string;
+    client_secret?: string;
+    salesforce_username?: string;
+    jwt_private_key_base64?: string;
+  };
+
+  const clientId = creds.client_id;
+  const clientSecret = creds.client_secret;
   const envType = (sfOrg as { environment: string }).environment as "production" | "sandbox";
   const authMode = (sfOrg as { auth_mode: string }).auth_mode as "jwt_bearer" | "client_credentials";
 
@@ -87,8 +85,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "error", checks, error: msg }, { status: 500 });
   }
 
-  const healthSvc = new IntegrationHealthService(admin);
-  await healthSvc.markHealthy(orgId, "salesforce");
+    const healthSvc = new IntegrationHealthService(admin);
+    await healthSvc.markHealthy(ctx.orgId, "salesforce");
 
-  return NextResponse.json({ status: "ok", checks });
+    return NextResponse.json({ status: "ok", checks });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

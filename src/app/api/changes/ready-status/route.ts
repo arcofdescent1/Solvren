@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getReadyStatus } from "@/services/risk/readyStatus";
@@ -25,9 +26,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: memErr.message }, { status: 500 });
   const orgIds = (memberships ?? []).map((m) => m.org_id);
 
-  const { data: ce, error: ceErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, status")
+  const { data: ce, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, status"))
     .eq("id", changeId)
     .maybeSingle();
 
@@ -48,9 +47,7 @@ export async function GET(req: Request) {
         supabase,
         requireAssessment: true,
       });
-      const changeRow = await supabase
-        .from("change_events")
-        .select("domain")
+      const changeRow = await scopeActiveChangeEvents(supabase.from("change_events").select("domain"))
         .eq("id", changeId)
         .single();
       const domain = (changeRow.data as { domain?: string } | null)?.domain ?? "REVENUE";

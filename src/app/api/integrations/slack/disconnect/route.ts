@@ -1,55 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { auditLog } from "@/lib/audit";
 import { IntegrationConnectionService } from "@/modules/integrations";
 
 export async function POST(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
-
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: { organizationId?: string };
   try {
-    body = (await req.json()) as { organizationId?: string };
-  } catch {
-    body = {};
+    let body: { organizationId?: string };
+    try {
+      body = (await req.json()) as { organizationId?: string };
+    } catch {
+      body = {};
+    }
+    const orgId = body.organizationId ?? req.nextUrl.searchParams.get("orgId");
+    if (!orgId) return NextResponse.json({ error: "organizationId required" }, { status: 400 });
+
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.manage");
+    const admin = createAdminClient();
+
+    const connSvc = new IntegrationConnectionService(admin);
+    await connSvc.disconnectProvider(ctx.orgId, "slack");
+
+    await admin.from("slack_installations").update({ status: "DISCONNECTED" }).eq("org_id", ctx.orgId);
+
+    await auditLog(ctx.supabase, {
+      orgId: ctx.orgId,
+      actorId: ctx.user.id,
+      actorType: "USER",
+      action: "slack.disconnected",
+      entityType: "integration",
+      entityId: "slack",
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    return authzErrorResponse(e);
   }
-  const orgId = body.organizationId ?? req.nextUrl.searchParams.get("orgId");
-
-  if (!orgId) {
-    return NextResponse.json({ error: "organizationId required" }, { status: 400 });
-  }
-
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-
-  if (!member || !isAdminLikeRole(parseOrgRole((member as { role?: string }).role ?? null))) {
-    return NextResponse.json({ error: "Admin required" }, { status: 403 });
-  }
-
-  const connSvc = new IntegrationConnectionService(admin);
-  await connSvc.disconnectProvider(orgId, "slack");
-
-  await admin.from("slack_installations").update({ status: "DISCONNECTED" }).eq("org_id", orgId);
-
-  await auditLog(supabase, {
-    orgId,
-    actorId: userRes.user.id,
-    actorType: "USER",
-    action: "slack.disconnected",
-    entityType: "integration",
-    entityId: "slack",
-  });
-
-  return NextResponse.json({ success: true });
 }

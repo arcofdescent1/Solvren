@@ -18,6 +18,8 @@ type PolicyRow = {
   rules_json: unknown[];
   effective_from: string;
   effective_to: string | null;
+  policy_owner_type?: string | null;
+  relaxation_mode?: string | null;
 };
 
 export function PolicyDetailClient({ policy }: { policy: PolicyRow }) {
@@ -44,13 +46,27 @@ export function PolicyDetailClient({ policy }: { policy: PolicyRow }) {
   }>;
 
   const isSystemPolicy = (policy as { is_system_policy?: boolean }).is_system_policy;
+  const platformNonRelaxable =
+    String(policy.policy_owner_type ?? "").toUpperCase() === "PLATFORM" &&
+    String(policy.relaxation_mode ?? "").toUpperCase() === "NON_RELAXABLE";
 
   return (
     <div className="space-y-4">
+      {platformNonRelaxable && (
+        <Card className="border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardBody className="text-sm text-[var(--text-muted)]">
+            <p className="font-medium text-[var(--text)]">Platform policy (non-relaxable)</p>
+            <p className="mt-1">
+              Rules, scope, priority, and disposition cannot be weakened via the API. Deactivate/archive is blocked.
+              Display name and description may still be updated for clarity.
+            </p>
+          </CardBody>
+        </Card>
+      )}
       <Card>
         <CardBody>
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            {policy.status === "active" && (
+            {policy.status === "active" && !platformNonRelaxable && (
               <button
                 onClick={() => runAction("deactivate", `/api/admin/policies/${policy.id}/deactivate`)}
                 disabled={!!loading}
@@ -89,7 +105,7 @@ export function PolicyDetailClient({ policy }: { policy: PolicyRow }) {
             >
               Duplicate
             </button>
-            {!isSystemPolicy && (
+            {!isSystemPolicy && !platformNonRelaxable && (
               <button
                 onClick={() => runAction("archive", `/api/admin/policies/${policy.id}/archive`)}
                 disabled={!!loading}

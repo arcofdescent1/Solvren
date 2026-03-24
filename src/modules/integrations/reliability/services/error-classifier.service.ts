@@ -38,6 +38,24 @@ export function classifyError(
   if (code.includes("ECONNRESET") || code.includes("ENOTFOUND") || code.includes("NETWORK")) {
     return IntegrationErrorClass.TRANSIENT_NETWORK;
   }
+  if (code.includes("FILE_PARSE") || msg.includes("parse") && msg.includes("csv")) {
+    return IntegrationErrorClass.FILE_PARSE_ERROR;
+  }
+  if (code.includes("ROW_VALIDATION") || msg.includes("row validation")) {
+    return IntegrationErrorClass.ROW_VALIDATION_ERROR;
+  }
+  if (code.includes("DB_CONNECTIVITY") || msg.includes("connection refused") && msg.includes("postgres")) {
+    return IntegrationErrorClass.DB_CONNECTIVITY_ERROR;
+  }
+  if (code.includes("WAREHOUSE_QUERY") || msg.includes("snowflake") || msg.includes("bigquery")) {
+    return IntegrationErrorClass.WAREHOUSE_QUERY_ERROR;
+  }
+  if (code.includes("CURSOR_CORRUPTION")) {
+    return IntegrationErrorClass.CURSOR_CORRUPTION;
+  }
+  if (code.includes("REPLAY_CONFLICT")) {
+    return IntegrationErrorClass.REPLAY_CONFLICT;
+  }
 
   return IntegrationErrorClass.UNKNOWN;
 }

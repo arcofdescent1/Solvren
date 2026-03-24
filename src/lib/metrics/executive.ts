@@ -4,6 +4,7 @@
  * Governance Coverage = Approved / Total risk events (in window).
  */
 
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { auditLog } from "@/lib/audit";
 
@@ -53,9 +54,7 @@ export async function computeExecutiveMetrics(
   const governanceCoverage =
     events.length > 0 ? Math.round((approvedCount / events.length) * 100) : 100;
 
-  const { data: inReviewRows } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: inReviewRows } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("org_id", orgId)
     .eq("status", "IN_REVIEW");
 

@@ -1,36 +1,32 @@
+/**
+ * @deprecated Phase 2 compatibility route. Salesforce runs through the new runtime layer.
+ * OAuth/client config for legacy setup wizard; to be folded into generic provider config.
+ */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
+import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { auditLog } from "@/lib/audit";
 import { env } from "@/lib/env";
+import { sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 
 export async function GET(req: NextRequest) {
-  if (!env.salesforceIntegrationEnabled) return NextResponse.json({ connected: false });
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
-  const orgId = req.nextUrl.searchParams.get("orgId");
-  if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-  if (!member) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  try {
+    if (!env.salesforceIntegrationEnabled) return NextResponse.json({ connected: false });
+    const orgId = req.nextUrl.searchParams.get("orgId");
+    if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgId), "integrations.view");
+    const admin = createAdminClient();
 
-  const { data: sfOrg } = await admin
+    const { data: sfOrg } = await admin
     .from("salesforce_orgs")
     .select("sf_org_id, instance_url, environment, cdc_enabled, pubsub_enabled")
-    .eq("org_id", orgId)
+    .eq("org_id", ctx.orgId)
     .maybeSingle();
 
   const { data: conn } = await admin
     .from("integration_connections")
     .select("health_status, last_success_at")
-    .eq("org_id", orgId)
+    .eq("org_id", ctx.orgId)
     .eq("provider", "salesforce")
     .maybeSingle();
 
@@ -54,15 +50,15 @@ export async function GET(req: NextRequest) {
       failedEventCount: 0,
     },
   });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }
 
 export async function PUT(req: NextRequest) {
-  if (!env.salesforceIntegrationEnabled) return NextResponse.json({ error: "Salesforce not configured" }, { status: 503 });
-  const supabase = await createServerSupabaseClient();
-  const admin = createAdminClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  let body: {
+  try {
+    if (!env.salesforceIntegrationEnabled) return NextResponse.json({ error: "Salesforce not configured" }, { status: 503 });
+    let body: {
     organizationId?: string;
     environment?: "production" | "sandbox";
     authMode?: "jwt_bearer" | "client_credentials";
@@ -77,23 +73,16 @@ export async function PUT(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const orgId = body.organizationId ?? req.nextUrl.searchParams.get("orgId");
-  if (!orgId) return NextResponse.json({ error: "organizationId required" }, { status: 400 });
-  const { data: member } = await supabase
-    .from("organization_members")
-    .select("role")
-    .eq("org_id", orgId)
-    .eq("user_id", userRes.user.id)
-    .maybeSingle();
-  if (!member || !isAdminLikeRole(parseOrgRole((member as { role?: string }).role ?? null))) {
-    return NextResponse.json({ error: "Admin required" }, { status: 403 });
-  }
+    const orgIdRaw = body.organizationId ?? req.nextUrl.searchParams.get("orgId");
+    if (!orgIdRaw) return NextResponse.json({ error: "organizationId required" }, { status: 400 });
+    const ctx = await requireOrgPermission(parseRequestedOrgId(orgIdRaw), "integrations.manage");
+    const admin = createAdminClient();
 
-  const environment = (body.environment ?? "production") as "production" | "sandbox";
+    const environment = (body.environment ?? "production") as "production" | "sandbox";
   const authMode = body.authMode ?? "client_credentials";
 
-  if (body.objects && Array.isArray(body.objects)) {
-    const { data: sfOrgRow } = await admin.from("salesforce_orgs").select("id").eq("org_id", orgId).maybeSingle();
+    if (body.objects && Array.isArray(body.objects)) {
+    const { data: sfOrgRow } = await admin.from("salesforce_orgs").select("id").eq("org_id", ctx.orgId).maybeSingle();
     const sfOrgIdUuid = (sfOrgRow as { id?: string } | null)?.id;
     if (sfOrgIdUuid) {
       for (const obj of body.objects) {
@@ -101,7 +90,7 @@ export async function PUT(req: NextRequest) {
           .from("salesforce_object_configs")
           .upsert(
             {
-              org_id: orgId,
+              org_id: ctx.orgId,
               salesforce_org_id: sfOrgIdUuid,
               object_api_name: obj.objectApiName,
               enabled: obj.enabled ?? true,
@@ -141,7 +130,7 @@ export async function PUT(req: NextRequest) {
       .from("integration_connections")
       .upsert(
         {
-          org_id: orgId,
+          org_id: ctx.orgId,
           provider: "salesforce",
           status: "connected",
           config: { sfOrgId, instanceUrl, environment, authMode },
@@ -154,7 +143,7 @@ export async function PUT(req: NextRequest) {
     const connId = (conn as { id?: string })?.id;
     await admin.from("salesforce_orgs").upsert(
       {
-        org_id: orgId,
+        org_id: ctx.orgId,
         integration_connection_id: connId,
         sf_org_id: sfOrgId,
         instance_url: instanceUrl,
@@ -168,18 +157,18 @@ export async function PUT(req: NextRequest) {
     );
 
     await admin.from("integration_credentials").upsert(
-      {
-        org_id: orgId,
+      sealCredentialTokenFields({
+        org_id: ctx.orgId,
         provider: "salesforce",
         client_id: body.clientId,
         client_secret: body.clientSecret ?? null,
         salesforce_username: body.username ?? null,
         jwt_private_key_base64: body.jwtPrivateKeyBase64 ?? null,
-      },
+      }),
       { onConflict: "org_id,provider" }
     );
 
-    const sfOrgRow = await admin.from("salesforce_orgs").select("id").eq("org_id", orgId).eq("sf_org_id", sfOrgId).single();
+    const sfOrgRow = await admin.from("salesforce_orgs").select("id").eq("org_id", ctx.orgId).eq("sf_org_id", sfOrgId).single();
     const sfOrgIdUuid = (sfOrgRow.data as { id?: string })?.id;
 
     if (body.objects && Array.isArray(body.objects) && sfOrgIdUuid) {
@@ -188,7 +177,7 @@ export async function PUT(req: NextRequest) {
           .from("salesforce_object_configs")
           .upsert(
             {
-              org_id: orgId,
+              org_id: ctx.orgId,
               salesforce_org_id: sfOrgIdUuid,
               object_api_name: obj.objectApiName,
               enabled: obj.enabled ?? true,
@@ -202,14 +191,17 @@ export async function PUT(req: NextRequest) {
     }
   }
 
-  await auditLog(supabase, {
-    orgId,
-    actorId: userRes.user.id,
+    await auditLog(ctx.supabase, {
+      orgId: ctx.orgId,
+      actorId: ctx.user.id,
     actorType: "USER",
     action: "salesforce.config.updated",
     entityType: "integration",
     entityId: "salesforce",
     metadata: {},
   });
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    return authzErrorResponse(e);
+  }
 }

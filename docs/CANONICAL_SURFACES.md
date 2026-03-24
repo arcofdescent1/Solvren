@@ -45,7 +45,7 @@ Use this as the single reference for canonical UI routes and API families. Befor
 
 | Route | Replacement |
 |-------|-------------|
-| `GET /api/changes/[id]/impact-report/latest` | `GET /api/changes/[id]/revenue-impact` |
+| `GET /api/changes/[id]/impact-report/latest` | Redirects (308) to `GET /api/changes/[id]/revenue-impact` |
 
 ---
 

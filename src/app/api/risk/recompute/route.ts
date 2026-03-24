@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recomputeSignalStatsRevenueAware } from "@/services/risk/recomputeSignalStats";
@@ -28,11 +29,9 @@ export async function POST(req: Request) {
     Date.now() - days * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data: changes, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: changes, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, org_id, domain, status, submitted_at"
-    )
+    ))
     .eq("org_id", orgId)
     .eq("domain", "REVENUE")
     .gte("submitted_at", sinceIso)

@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   EVIDENCE_KIND_LABEL,
@@ -43,11 +44,9 @@ export async function generateEvidenceDraft(
 ): Promise<EvidenceDraft> {
   const { changeId, kind } = args;
 
-  const { data: change, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: change, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id,title,change_type,status,domain,intake,systems_involved,revenue_impact_areas,requested_release_at,due_at,sla_status,risk_explanation"
-    )
+    ))
     .eq("id", changeId)
     .maybeSingle();
 

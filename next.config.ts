@@ -3,6 +3,49 @@ import path from "path";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    const supabaseHost = (() => {
+      try {
+        return supabaseUrl ? new URL(supabaseUrl).origin : "";
+      } catch {
+        return "";
+      }
+    })();
+    const connectSrc = ["'self'", "https:", "wss:"];
+    if (supabaseHost) connectSrc.push(supabaseHost);
+
+    const security: { key: string; value: string }[] = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=()",
+      },
+      {
+        key: "Content-Security-Policy",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob: https:",
+          "font-src 'self' data:",
+          `connect-src ${connectSrc.join(" ")}`,
+          "frame-ancestors 'self'",
+        ].join("; "),
+      },
+    ];
+
+    if (process.env.NODE_ENV === "production") {
+      security.unshift({
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      });
+    }
+
+    return [{ source: "/:path*", headers: security }];
+  },
   // Explicitly pass Supabase env into client bundle (ensures Vercel build sees them)
   env:
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

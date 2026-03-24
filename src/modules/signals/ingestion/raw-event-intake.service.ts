@@ -19,6 +19,7 @@ export type IntakeRawEventInput = {
   eventTime?: string | null;
   payload: Record<string, unknown>;
   headers?: Record<string, unknown> | null;
+  canonicalOutputJson?: Record<string, unknown> | null;
 };
 
 export type IntakeRawEventResult =
@@ -71,6 +72,7 @@ export async function intakeRawEvent(
     last_error_message: null,
     mapper_key: null,
     mapper_version: null,
+    canonical_output_json: input.canonicalOutputJson ?? null,
   });
 
   if (error) return { ok: false, error: error.message };

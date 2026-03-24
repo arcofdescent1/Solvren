@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -13,9 +14,7 @@ export async function GET(
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: change } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", id)
     .maybeSingle();
   if (!change) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -79,9 +78,7 @@ export async function POST(
   }
   if (!body.userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
 
-  const { data: change } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", id)
     .maybeSingle();
   if (!change) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -130,9 +127,7 @@ export async function DELETE(
   const grantId = url.searchParams.get("grantId");
   if (!grantId) return NextResponse.json({ error: "grantId required" }, { status: 400 });
 
-  const { data: change } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", id)
     .maybeSingle();
   if (!change) return NextResponse.json({ error: "Not found" }, { status: 404 });

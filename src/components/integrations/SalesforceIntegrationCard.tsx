@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, CardBody, Input, Stack } from "@/ui";
+import { IntegrationSetupActions } from "./IntegrationSetupActions";
 
 type Props = {
   orgId: string;
@@ -173,6 +174,9 @@ export default function SalesforceIntegrationCard({
                   </Button>
                 )}
               </div>
+              {connected && (
+                <IntegrationSetupActions orgId={orgId} provider="salesforce" connected />
+              )}
             </>
           )}
           {msg && <p className="text-sm text-[var(--text-muted)]">{msg}</p>}

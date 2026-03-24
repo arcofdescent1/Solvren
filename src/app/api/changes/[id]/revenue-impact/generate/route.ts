@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { canReviewDomain, canViewChange } from "@/lib/access/changeAccess";
@@ -12,9 +13,7 @@ export async function POST(
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: change, error: chErr } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change, error: chErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", changeId)
     .maybeSingle();
   if (chErr) return NextResponse.json({ error: chErr.message }, { status: 500 });

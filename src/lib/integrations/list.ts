@@ -5,7 +5,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type IntegrationListEntry = {
-  provider: "jira" | "github" | "netsuite" | "salesforce" | "hubspot" | "slack" | "stripe";
+  provider: "jira" | "github" | "netsuite" | "salesforce" | "hubspot" | "slack" | "stripe" | "csv" | "postgres_readonly" | "mysql_readonly" | "snowflake" | "bigquery";
   connected: boolean;
   meta?: Record<string, unknown>;
 };
@@ -18,6 +18,11 @@ export type IntegrationsList = {
   hubspot: IntegrationListEntry & { provider: "hubspot" };
   slack: IntegrationListEntry & { provider: "slack" };
   stripe: IntegrationListEntry & { provider: "stripe" };
+  csv: IntegrationListEntry & { provider: "csv" };
+  postgres_readonly: IntegrationListEntry & { provider: "postgres_readonly" };
+  mysql_readonly: IntegrationListEntry & { provider: "mysql_readonly" };
+  snowflake: IntegrationListEntry & { provider: "snowflake" };
+  bigquery: IntegrationListEntry & { provider: "bigquery" };
 };
 
 export async function getIntegrationsList(
@@ -31,6 +36,7 @@ export async function getIntegrationsList(
     { data: salesforceOrg },
     { data: hubspotAccount },
     { data: slackInstall },
+    { data: dbAccounts },
   ] = await Promise.all([
     client.from("integration_connections").select("provider, status, config, health_status, last_success_at, last_error").eq("org_id", orgId),
     client.from("github_installations").select("github_installation_id, github_account_login").eq("org_id", orgId).maybeSingle(),
@@ -38,6 +44,7 @@ export async function getIntegrationsList(
     client.from("salesforce_orgs").select("sf_org_id").eq("org_id", orgId).maybeSingle(),
     client.from("hubspot_accounts").select("hub_id").eq("org_id", orgId).maybeSingle(),
     client.from("slack_installations").select("team_id, team_name").eq("org_id", orgId).maybeSingle(),
+    client.from("integration_accounts").select("provider, status, config_json, last_success_at, last_error_message").eq("org_id", orgId).in("provider", ["postgres_readonly", "mysql_readonly", "snowflake", "bigquery"]),
   ]);
 
   const connByProvider = new Map(
@@ -62,6 +69,19 @@ export async function getIntegrationsList(
   const nsConn = connByProvider.get("netsuite");
 
   const stripeConn = connByProvider.get("stripe") ?? null;
+  const csvConn = connByProvider.get("csv") ?? null;
+
+  const dbAccountByProvider = new Map(
+    (dbAccounts ?? []).map((a) => [
+      (a as { provider: string }).provider,
+      a as { status?: string; config_json?: Record<string, unknown>; last_success_at?: string; last_error_message?: string },
+    ])
+  );
+  const pgAcc = dbAccountByProvider.get("postgres_readonly");
+  const mysqlAcc = dbAccountByProvider.get("mysql_readonly");
+  const sfAcc = dbAccountByProvider.get("snowflake");
+  const bqAcc = dbAccountByProvider.get("bigquery");
+
   return {
     jira: { provider: "jira", connected: jc?.status === "connected", meta: jiraMeta },
     github: { provider: "github", connected: !!githubInst, meta: { accountLogin: gi?.github_account_login, health_status: githubConn?.health_status, last_success_at: githubConn?.last_success_at } },
@@ -70,5 +90,10 @@ export async function getIntegrationsList(
     hubspot: { provider: "hubspot", connected: !!hubspotAccount, meta: { hubId: ha?.hub_id, health_status: hsConn?.health_status, last_success_at: hsConn?.last_success_at } },
     slack: { provider: "slack", connected: Boolean(si ?? slackInstall), meta: { teamName: si?.team_name, health_status: slackConn?.health_status, last_success_at: slackConn?.last_success_at } },
     stripe: { provider: "stripe", connected: stripeConn?.status === "connected", meta: stripeConn ? { health_status: stripeConn.health_status, last_success_at: stripeConn.last_success_at } : undefined },
+    csv: { provider: "csv", connected: csvConn?.status === "connected", meta: csvConn ? { health_status: csvConn.health_status } : undefined },
+    postgres_readonly: { provider: "postgres_readonly", connected: pgAcc?.status === "connected", meta: pgAcc ? { last_success_at: pgAcc.last_success_at, config: pgAcc.config_json } : undefined },
+    mysql_readonly: { provider: "mysql_readonly", connected: mysqlAcc?.status === "connected", meta: mysqlAcc ? { last_success_at: mysqlAcc.last_success_at, config: mysqlAcc.config_json } : undefined },
+    snowflake: { provider: "snowflake", connected: sfAcc?.status === "connected", meta: sfAcc ? { last_success_at: sfAcc.last_success_at, config: sfAcc.config_json } : undefined },
+    bigquery: { provider: "bigquery", connected: bqAcc?.status === "connected", meta: bqAcc ? { last_success_at: bqAcc.last_success_at, config: bqAcc.config_json } : undefined },
   };
 }

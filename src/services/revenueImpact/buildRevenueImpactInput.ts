@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { createHash } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getHistoricalRiskSignals } from "./getHistoricalRiskSignals";
@@ -41,9 +42,7 @@ export async function buildRevenueImpactInput(args: {
   supabase: SupabaseClient;
   changeId: string;
 }): Promise<RevenueImpactInput> {
-  const { data: change, error: changeErr } = await args.supabase
-    .from("change_events")
-    .select("*")
+  const { data: change, error: changeErr } = await scopeActiveChangeEvents(args.supabase.from("change_events").select("*"))
     .eq("id", args.changeId)
     .maybeSingle();
 

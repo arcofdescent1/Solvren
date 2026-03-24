@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { applyExposure } from "./exposureMultiplier";
 import { getSurfaceWeight } from "@/services/domains/surfaceWeights";
@@ -12,11 +13,9 @@ export async function recomputeAndPersistRevenueFields(
 ) {
   const { changeId } = args;
 
-  const { data: c, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: c, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, domain, estimated_mrr_affected, percent_customer_base_affected, revenue_surface"
-    )
+    ))
     .eq("id", changeId)
     .maybeSingle();
 

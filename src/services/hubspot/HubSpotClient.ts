@@ -97,6 +97,45 @@ export class HubSpotClient {
   }
 
   /**
+   * Create a CRM task.
+   * HubSpot Tasks API: POST /crm/v3/objects/tasks
+   */
+  async createTask(params: {
+    subject: string;
+    ownerId?: string;
+    dueDate?: string;
+    associationType: "contact" | "deal" | "company";
+    associationId: string;
+  }): Promise<{ id: string }> {
+    const typeToId: Record<string, number> = {
+      contact: 1,
+      company: 2,
+      deal: 3,
+    };
+    const associationTypeId = typeToId[params.associationType] ?? 1;
+    const properties: Record<string, string> = {
+      hs_timestamp: params.dueDate ?? new Date().toISOString(),
+      hs_task_subject: params.subject,
+    };
+    if (params.ownerId) properties.hubspot_owner_id = params.ownerId;
+
+    const body: Record<string, unknown> = {
+      properties,
+      associations: [
+        {
+          to: { id: params.associationId },
+          types: [{ associationCategory: "HUBSPOT_DEFINED", associationTypeId }],
+        },
+      ],
+    };
+    const data = (await this.request<{ id: string }>("/crm/v3/objects/tasks", {
+      method: "POST",
+      body: JSON.stringify(body),
+    })) as { id?: string };
+    return { id: data.id ?? "" };
+  }
+
+  /**
    * Lightweight connectivity test.
    */
   async testConnection(): Promise<void> {

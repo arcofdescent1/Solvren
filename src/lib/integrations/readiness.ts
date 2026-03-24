@@ -110,6 +110,14 @@ const GITHUB_META: IntegrationReadinessMeta = {
   docsPath: "integrations/github",
 };
 
+const CSV_META: IntegrationReadinessMeta = {
+  tier: "beta",
+  name: "CSV Import",
+  shortDescription: "Import data from CSV files for customer exports and historical backfill.",
+  whatWeMonitor: ["Uploaded file rows", "Mapped canonical objects"],
+  whatWeDoNotMonitor: ["Recurring file drops", "Auto-refresh"],
+};
+
 const STRIPE_META: IntegrationReadinessMeta = {
   tier: "beta",
   name: "Stripe",
@@ -126,16 +134,53 @@ const STRIPE_META: IntegrationReadinessMeta = {
   docsPath: "integrations/stripe",
 };
 
+const POSTGRES_META: IntegrationReadinessMeta = {
+  tier: "beta",
+  name: "PostgreSQL",
+  shortDescription: "Sync read-only data from PostgreSQL for revenue context.",
+  whatWeMonitor: ["Table snapshots", "Incremental sync with cursor"],
+  whatWeDoNotMonitor: ["Write operations", "DDL changes"],
+};
+
+const MYSQL_META: IntegrationReadinessMeta = {
+  tier: "beta",
+  name: "MySQL",
+  shortDescription: "Sync read-only data from MySQL for revenue context.",
+  whatWeMonitor: ["Table snapshots", "Incremental sync with cursor"],
+  whatWeDoNotMonitor: ["Write operations", "DDL changes"],
+};
+
+const SNOWFLAKE_META: IntegrationReadinessMeta = {
+  tier: "beta",
+  name: "Snowflake",
+  shortDescription: "Sync data from Snowflake warehouse for revenue context.",
+  whatWeMonitor: ["Table/query snapshots", "Warehouse data sync"],
+  whatWeDoNotMonitor: ["Real-time streams", "Write operations"],
+};
+
+const BIGQUERY_META: IntegrationReadinessMeta = {
+  tier: "beta",
+  name: "BigQuery",
+  shortDescription: "Sync data from BigQuery for revenue context.",
+  whatWeMonitor: ["Table snapshots", "Warehouse data sync"],
+  whatWeDoNotMonitor: ["Real-time streams", "Write operations"],
+};
+
 export type IntegrationProvider = keyof typeof INTEGRATION_READINESS;
 
 export const INTEGRATION_READINESS: Record<string, IntegrationReadinessMeta> = {
   jira: JIRA_META,
   slack: SLACK_META,
+  csv: CSV_META,
   salesforce: SALESFORCE_META,
   hubspot: HUBSPOT_META,
   netsuite: NETSUITE_META,
   github: GITHUB_META,
   stripe: STRIPE_META,
+  postgres_readonly: POSTGRES_META,
+  mysql_readonly: MYSQL_META,
+  snowflake: SNOWFLAKE_META,
+  bigquery: BIGQUERY_META,
 };
 
 export function getReadinessMeta(provider: string): IntegrationReadinessMeta | null {

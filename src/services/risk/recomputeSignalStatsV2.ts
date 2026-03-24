@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { betaPosteriorFromCounts, mitigationLiftBayes } from "@/services/risk/bayesian";
 import { betaPosteriorFromEffectiveCounts } from "@/services/risk/bayesianDecay";
@@ -120,9 +121,7 @@ export async function recomputeSignalStatsV2(
     Date.now() - windowDays * 86400000
   ).toISOString();
 
-  const { data: changes, error } = await supabaseAdmin
-    .from("change_events")
-    .select("id, revenue_at_risk, submitted_at, estimated_mrr_affected, percent_customer_base_affected")
+  const { data: changes, error } = await scopeActiveChangeEvents(supabaseAdmin.from("change_events").select("id, revenue_at_risk, submitted_at, estimated_mrr_affected, percent_customer_base_affected"))
     .eq("org_id", orgId)
     .eq("domain", domain)
     .gte("submitted_at", sinceIso);

@@ -143,6 +143,9 @@ export default async function OrgSettingsPage() {
                 <Link href="/settings/system/diagnostics" className="text-sm font-medium text-[var(--primary)] hover:underline">
                   System diagnostics
                 </Link>
+                <Link href="/admin/security-operations" className="text-sm font-medium text-[var(--primary)] hover:underline">
+                  Security operations
+                </Link>
               </>
             )}
           </div>

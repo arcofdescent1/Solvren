@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { canViewChange } from "@/lib/access/changeAccess";
@@ -11,9 +12,7 @@ export async function GET(
   if (!userRes.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id: changeId } = await ctx.params;
-  const { data: change } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, status, created_by, is_restricted")
+  const { data: change } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted"))
     .eq("id", changeId)
     .maybeSingle();
   if (!change) return NextResponse.json({ error: "Not found" }, { status: 404 });

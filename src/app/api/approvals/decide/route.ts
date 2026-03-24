@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getReadyStatus } from "@/services/risk/readyStatus";
@@ -10,6 +11,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { canRole } from "@/lib/rbac/permissions";
 import { parseOrgRole } from "@/lib/rbac/roles";
 import { canReviewDomain } from "@/lib/access/changeAccess";
+import {
+  evaluateGovernance,
+  bindGovernanceApprovalRequest,
+  deploymentGovernanceEnvironment,
+} from "@/modules/governance";
 
 type Body = {
   approvalId: string;
@@ -74,9 +80,7 @@ export async function POST(req: Request) {
 
   // Idempotency: don't overwrite already decided approvals
   if (approval.decision !== "PENDING") {
-    const { data: ce } = await supabase
-      .from("change_events")
-      .select("status")
+    const { data: ce } = await scopeActiveChangeEvents(supabase.from("change_events").select("status"))
       .eq("id", approval.change_event_id)
       .maybeSingle();
     return NextResponse.json({
@@ -134,9 +138,7 @@ export async function POST(req: Request) {
 
   // (Optional) Gate approval when SLA is escalated — Item 4 meets Approval Control Plane.
   // When sla_status === "ESCALATED", require extra approval tier (e.g. EXEC / RISK_OWNER).
-  const { data: ceSla } = await supabase
-    .from("change_events")
-    .select("sla_status, org_id, domain")
+  const { data: ceSla } = await scopeActiveChangeEvents(supabase.from("change_events").select("sla_status, org_id, domain"))
     .eq("id", approval.change_event_id)
     .maybeSingle();
   if (body.decision === "APPROVED" && ceSla?.sla_status === "ESCALATED") {
@@ -238,6 +240,122 @@ export async function POST(req: Request) {
           code: "ESCALATED_REQUIRES_EXEC",
         },
         { status: 400 }
+      );
+    }
+  }
+
+  if (body.decision === "APPROVED") {
+    const { data: changeRow } = await scopeActiveChangeEvents(
+      supabase.from("change_events").select("id, org_id, domain")
+    )
+      .eq("id", approval.change_event_id)
+      .maybeSingle();
+
+    const { data: latestAssessment } = await supabase
+      .from("impact_assessments")
+      .select("risk_bucket")
+      .eq("change_event_id", approval.change_event_id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const roleKeys = (membership as { role?: string | null } | null)?.role
+      ? [String((membership as { role: string }).role)]
+      : undefined;
+
+    const {
+      data: govApprove,
+      policyContext: govApproveCtx,
+      error: govApproveErr,
+    } = await evaluateGovernance(supabase, {
+      orgId: approval.org_id,
+      environment: deploymentGovernanceEnvironment(),
+      actor: {
+        userId: userRes.user.id,
+        actorType: "user",
+        roleKeys,
+      },
+      target: {
+        resourceType: "change",
+        resourceId: approval.change_event_id,
+        transitionKey: "approve",
+      },
+      change: {
+        changeId: approval.change_event_id,
+        domain: (changeRow as { domain?: string | null } | null)?.domain ?? undefined,
+        riskLevel: (latestAssessment as { risk_bucket?: string | null } | null)?.risk_bucket ?? undefined,
+      },
+      autonomy: { requestedMode: "ASSISTED" },
+    });
+
+    if (govApproveErr || !govApprove) {
+      return NextResponse.json(
+        { error: govApproveErr?.message ?? "Governance evaluation failed" },
+        { status: 500 }
+      );
+    }
+    if (govApprove.disposition === "BLOCK") {
+      await auditLog(supabase, {
+        orgId: approval.org_id,
+        changeEventId: approval.change_event_id,
+        actorId: userRes.user.id,
+        action: "approval_blocked_governance",
+        entityType: "change",
+        entityId: approval.change_event_id,
+        metadata: {
+          traceId: govApprove.traceId,
+          reasonCodes: govApprove.reasonCodes,
+        },
+      });
+      return NextResponse.json(
+        {
+          error: govApprove.explainability.headline,
+          code: "GOVERNANCE_BLOCK",
+          governance: {
+            traceId: govApprove.traceId,
+            disposition: govApprove.disposition,
+            reasonCodes: govApprove.reasonCodes,
+          },
+        },
+        { status: 403 }
+      );
+    }
+    if (govApprove.disposition === "REQUIRE_APPROVAL") {
+      if (!govApproveCtx) {
+        return NextResponse.json(
+          { error: "Governance requires approval but context was not available" },
+          { status: 500 }
+        );
+      }
+      const { approvalRequestId, error: bindApprErr } = await bindGovernanceApprovalRequest(
+        supabase,
+        govApprove,
+        govApproveCtx,
+        { createdByUserId: userRes.user.id, createdByType: "user" }
+      );
+      await auditLog(supabase, {
+        orgId: approval.org_id,
+        changeEventId: approval.change_event_id,
+        actorId: userRes.user.id,
+        action: "approval_deferred_governance_policy",
+        entityType: "change",
+        entityId: approval.change_event_id,
+        metadata: {
+          governanceTraceId: govApprove.traceId,
+          policyApprovalRequestId: approvalRequestId,
+          bindError: bindApprErr?.message,
+        },
+      });
+      return NextResponse.json(
+        {
+          error:
+            govApprove.explainability.headline ||
+            "Additional policy approval is required before this approval can be recorded",
+          code: "GOVERNANCE_REQUIRE_APPROVAL",
+          approvalRequestId,
+          governanceTraceId: govApprove.traceId,
+        },
+        { status: 403 }
       );
     }
   }

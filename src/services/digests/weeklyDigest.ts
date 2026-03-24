@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 function fmtMoney(n: number) {
@@ -35,11 +36,9 @@ export async function buildWeeklyDigest(
     Date.now() - 7 * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data: changesRaw, error } = await supabase
-    .from("change_events")
-    .select(
+  const { data: changesRaw, error } = await scopeActiveChangeEvents(supabase.from("change_events").select(
       "id, title, status, submitted_at, due_at, sla_status, revenue_at_risk, revenue_surface"
-    )
+    ))
     .eq("org_id", orgId)
     .gte("submitted_at", sinceIso);
 

@@ -2,16 +2,9 @@
  * Phase 1 + Gap 4 — Action execution with idempotency, state machine, retries.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { executeActionWithReliability } from "./actionExecutionWithReliability";
+import { executeActionWithReliability, type ExecuteActionParams } from "./actionExecutionWithReliability";
 
-export type ExecuteActionParams = {
-  orgId: string;
-  integrationAccountId: string;
-  actionKey: string;
-  params: Record<string, unknown>;
-  issueId?: string | null;
-  userId?: string | null;
-};
+export type { ExecuteActionParams };
 
 export type ExecuteActionResult = {
   success: boolean;

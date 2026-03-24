@@ -1,3 +1,4 @@
+import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { scoreRevenueChange } from "@/services/risk/scoreRevenue";
 import { recomputeAndPersistRevenueFields } from "@/services/risk/revenuePersist";
@@ -15,9 +16,7 @@ export async function rescoreRevenueChange(
 ) {
   const { changeId, orgId } = args;
 
-  const { data: change, error } = await supabase
-    .from("change_events")
-    .select("id, org_id, domain, detected_signals")
+  const { data: change, error } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id, domain, detected_signals"))
     .eq("id", changeId)
     .maybeSingle();
 
