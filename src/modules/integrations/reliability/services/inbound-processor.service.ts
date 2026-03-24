@@ -39,7 +39,7 @@ export async function processOneInboundEvent(
   evt: IntegrationInboundEventRow
 ): Promise<"processed" | "failed" | "dead_lettered"> {
   const status = evt.ingest_status as "RECEIVED" | "VALIDATED" | "QUEUED";
-  const nextStatus: "QUEUED" = "QUEUED";
+  const nextStatus = "QUEUED" as const;
   if (status === "RECEIVED" || status === "VALIDATED") {
     assertValidInboundTransition(status, nextStatus);
     await updateInboundEventStatus(supabase, evt.id, { ingest_status: nextStatus });

@@ -8,10 +8,11 @@ import nextTs from "eslint-config-next/typescript";
 const UI_PRIMITIVES = "src/ui/primitives/**/*.{ts,tsx}";
 const UI_LAYOUT = "src/ui/layout/**/*.{ts,tsx}";
 
-const eslintConfig = defineConfig([...nextVitals, ...nextTs, globalIgnores([
+const eslintConfig = defineConfig([...nextVitals, ...nextTs,   globalIgnores([
   ".next/**",
   "out/**",
   "build/**",
+  "storybook-static/**",
   "next-env.d.ts",
 ]), /* Design system enforcement (Stage B): raw HTML, inline styles, palette colors, spacing */
 {
