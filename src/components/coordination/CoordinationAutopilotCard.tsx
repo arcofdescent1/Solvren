@@ -56,6 +56,41 @@ type PlanResponse = {
   error?: string;
 };
 
+type CoordinationPlan = NonNullable<PlanResponse["plan"]>;
+
+/** DB plan_json may be partial or legacy; never assume nested objects exist. */
+function normalizeCoordinationPlan(raw: PlanResponse["plan"]): CoordinationPlan | null {
+  if (raw == null || typeof raw !== "object") return null;
+  const p = raw as Partial<CoordinationPlan>;
+  return {
+    summary: {
+      coordinationSummary: p.summary?.coordinationSummary ?? "",
+      whyTheseRecommendationsExist: p.summary?.whyTheseRecommendationsExist ?? "",
+    },
+    approvals: {
+      suggestedApprovers: Array.isArray(p.approvals?.suggestedApprovers)
+        ? p.approvals.suggestedApprovers
+        : [],
+      missingCoverage: Array.isArray(p.approvals?.missingCoverage) ? p.approvals.missingCoverage : [],
+    },
+    evidence: {
+      requiredItems: Array.isArray(p.evidence?.requiredItems) ? p.evidence.requiredItems : [],
+      recommendedItems: Array.isArray(p.evidence?.recommendedItems) ? p.evidence.recommendedItems : [],
+    },
+    notifications: {
+      suggestedRecipients: Array.isArray(p.notifications?.suggestedRecipients)
+        ? p.notifications.suggestedRecipients
+        : [],
+    },
+    blockers: Array.isArray(p.blockers) ? p.blockers : [],
+    actions: {
+      canApplyApprovers: Boolean(p.actions?.canApplyApprovers),
+      canApplyEvidence: Boolean(p.actions?.canApplyEvidence),
+      canApplyNotifications: Boolean(p.actions?.canApplyNotifications),
+    },
+  };
+}
+
 export function CoordinationAutopilotCard({
   changeId,
   compact = false,
@@ -135,7 +170,7 @@ export function CoordinationAutopilotCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoGenerate, loading, state?.stale, Boolean(state?.plan)]);
 
-  const plan = state?.plan ?? null;
+  const plan = normalizeCoordinationPlan(state?.plan ?? null);
   if (loading) return <div className="text-sm text-[var(--text-muted)]">Generating Coordination Plan...</div>;
 
   if (compact) {
@@ -208,7 +243,7 @@ export function CoordinationAutopilotCard({
 
           <div>
             <div className="mb-2 text-sm font-semibold">Suggested Notification Routing</div>
-            {plan.notifications.suggestedRecipients.length === 0 ? (
+            {(plan.notifications.suggestedRecipients ?? []).length === 0 ? (
               <div className="text-sm text-[var(--text-muted)]">No notification routing suggestions.</div>
             ) : (
               <div className="space-y-2">
