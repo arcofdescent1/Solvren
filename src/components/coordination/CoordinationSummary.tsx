@@ -27,7 +27,7 @@ export function CoordinationSummary({
   const errorCount = plan.blockers.filter((b) => b.severity === "ERROR").length;
 
   return (
-    <div className="rounded border border-[var(--border)] p-3 text-sm space-y-1">
+    <div className="rounded border border-[var(--border)] bg-white p-3 text-sm shadow-sm space-y-1">
       <div className="font-semibold">Coordination Summary</div>
       <div>{plan.summary.coordinationSummary}</div>
       <div className="text-xs text-[var(--text-muted)]">{plan.summary.whyTheseRecommendationsExist}</div>

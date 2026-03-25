@@ -14,7 +14,7 @@ export function CoordinationBlockersList({ items }: { items: Blocker[] }) {
   return (
     <div className="space-y-2">
       {items.map((b) => (
-        <div key={`${b.code}:${b.description}`} className="rounded border border-[var(--border)] p-3">
+        <div key={`${b.code}:${b.description}`} className="rounded border border-[var(--border)] bg-white p-3 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{b.title}</span>
             <span

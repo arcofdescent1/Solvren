@@ -16,7 +16,7 @@ export function SuggestedApproversList({ items }: { items: SuggestedApprover[] }
   return (
     <div className="space-y-2">
       {items.map((a) => (
-        <div key={`${a.userId}:${a.role}`} className="rounded border border-[var(--border)] p-2 text-sm">
+        <div key={`${a.userId}:${a.role}`} className="rounded border border-[var(--border)] bg-white p-2 shadow-sm text-sm">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold">{a.displayName}</span>
             <span className="text-xs text-[var(--text-muted)]">{a.role}</span>

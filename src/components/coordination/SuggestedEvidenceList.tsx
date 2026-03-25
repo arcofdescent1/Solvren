@@ -15,7 +15,7 @@ export function SuggestedEvidenceList({
   items: EvidenceItem[];
 }) {
   return (
-    <div className="rounded border border-[var(--border)] p-3">
+    <div className="rounded border border-[var(--border)] bg-white p-3 shadow-sm">
       <div className="text-sm font-semibold">{title}</div>
       {items.length === 0 ? (
         <div className="text-sm text-[var(--text-muted)] mt-1">None</div>

@@ -163,7 +163,7 @@ export function CoordinationAutopilotCard({
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-4 space-y-4">
+    <div className="rounded-2xl border bg-white p-4 shadow-sm space-y-4">
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="text-sm font-semibold">Coordination Autopilot</div>
