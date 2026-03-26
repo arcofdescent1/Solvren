@@ -1,230 +1,190 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  PageHeader,
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/ui";
+import { Card, CardBody, EmptyState, Grid, PageHeaderV2, SectionHeader, Stack } from "@/ui";
+import { MetricHelpTooltip, PageHelpDrawer } from "@/components/help";
 
-function fmtMoney(n: number, code = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: code,
-    maximumFractionDigits: 0,
-  }).format(n);
-}
+type RevenueSummary = {
+  criticalPending?: Array<{ id: string; title?: string; revenueSurface?: string; revenueAtRisk?: number }>;
+  overdue?: Array<{ id: string; title?: string; revenueSurface?: string; revenueAtRisk?: number }>;
+  topSurfaces?: Array<{ surface: string; revenueAtRisk: number }>;
+};
 
 type ExecutiveSummary = {
-  orgId: string;
-  openIssueCount: number;
-  impactedIssueCount: number;
-  totalDirectRealizedLoss: number;
-  totalRevenueAtRisk: number;
-  totalAvoidedLoss: number;
-  totalRecoveredValue: number;
-  totalOperationalCost: number;
-  currencyCode: string;
-  asOf: string;
+  topDrivers?: Array<{ signalKey: string; count: number }>;
 };
 
-type ByDetectorPack = {
-  modelKey: string;
-  issueCount: number;
-  directRealizedLoss: number;
-  revenueAtRisk: number;
-  avoidedLoss: number;
-  recoveredValue: number;
-  operationalCost: number;
+type BySystemResponse = {
+  bySystem?: Array<{ systemKey: string; issueCount: number; revenueAtRisk: number }>;
 };
+
+function fmtMoney(n: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(
+    n
+  );
+}
+
+const TAXONOMY = [
+  "Billing",
+  "Checkout",
+  "Subscription / renewals",
+  "Pricing / promotions",
+  "Entitlements / access",
+  "Integrations",
+  "Review / approval gaps",
+  "Monitoring / coverage gaps",
+] as const;
+
+function classify(surface: string) {
+  const s = surface.toLowerCase();
+  if (s.includes("billing")) return "Billing";
+  if (s.includes("checkout")) return "Checkout";
+  if (s.includes("renew") || s.includes("subscription")) return "Subscription / renewals";
+  if (s.includes("pricing") || s.includes("promo")) return "Pricing / promotions";
+  if (s.includes("entitlement") || s.includes("access")) return "Entitlements / access";
+  if (s.includes("integration")) return "Integrations";
+  if (s.includes("approval") || s.includes("review")) return "Review / approval gaps";
+  return "Monitoring / coverage gaps";
+}
 
 export default function ExecutiveImpactPage() {
-  const [summary, setSummary] = useState<ExecutiveSummary | null>(null);
-  const [byPack, setByPack] = useState<ByDetectorPack[]>([]);
+  const [data, setData] = useState<RevenueSummary | null>(null);
+  const [executive, setExecutive] = useState<ExecutiveSummary | null>(null);
+  const [bySystem, setBySystem] = useState<BySystemResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      setLoading(true);
-      setErr(null);
       try {
-        const [summaryRes, packRes] = await Promise.all([
-          fetch("/api/reporting/impact/executive-summary"),
-          fetch("/api/reporting/impact/by-detector-pack"),
+        const [revRes, execRes, bySystemRes] = await Promise.all([
+          fetch("/api/executive/revenue-summary"),
+          fetch("/api/executive/summary?range=30d"),
+          fetch("/api/reporting/impact/by-system"),
         ]);
-        if (!summaryRes.ok) throw new Error((await summaryRes.json()).error ?? "Failed to load");
-        if (!packRes.ok) throw new Error((await packRes.json()).error ?? "Failed to load");
-        const s = await summaryRes.json();
-        const p = await packRes.json();
+        const revJson = (await revRes.json().catch(() => ({}))) as RevenueSummary;
+        const execJson = (await execRes.json().catch(() => ({}))) as ExecutiveSummary;
+        const sysJson = (await bySystemRes.json().catch(() => ({}))) as BySystemResponse;
         if (mounted) {
-          setSummary(s);
-          setByPack(p.byDetectorPack ?? []);
+          setData(revJson);
+          setExecutive(execJson);
+          setBySystem(sysJson);
         }
-      } catch (e: unknown) {
-        if (mounted) setErr(e instanceof Error ? e.message : "Failed to load");
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Risk Drivers" />
-        <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Loading…</p>
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
-  if (err) {
-    return (
-      <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Risk Drivers" />
-        <Card className="border-[var(--danger)]/50">
-          <CardBody>
-            <p className="text-sm text-[var(--danger)]">{err}</p>
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
+  const rows = useMemo(() => {
+    const map = new Map<string, { contribution: number; count: number }>();
+    for (const key of TAXONOMY) map.set(key, { contribution: 0, count: 0 });
 
-  const s = summary!;
-  const code = s.currencyCode ?? "USD";
+    for (const surface of data?.topSurfaces ?? []) {
+      const bucket = classify(surface.surface ?? "monitoring");
+      const cur = map.get(bucket)!;
+      cur.contribution += Number(surface.revenueAtRisk ?? 0);
+      map.set(bucket, cur);
+    }
+
+    for (const sys of bySystem?.bySystem ?? []) {
+      const bucket = classify(sys.systemKey ?? "monitoring");
+      const cur = map.get(bucket)!;
+      cur.contribution += Number(sys.revenueAtRisk ?? 0);
+      cur.count += Number(sys.issueCount ?? 0);
+      map.set(bucket, cur);
+    }
+
+    for (const d of executive?.topDrivers ?? []) {
+      const bucket = classify(d.signalKey ?? "monitoring");
+      const cur = map.get(bucket)!;
+      cur.count += Number(d.count ?? 0);
+      map.set(bucket, cur);
+    }
+
+    return TAXONOMY.map((label) => {
+      const val = map.get(label)!;
+      const href =
+        label === "Integrations" || label === "Monitoring / coverage gaps"
+          ? "/integrations"
+          : label === "Review / approval gaps"
+          ? "/settings/policies"
+          : label === "Billing" || label === "Checkout" || label === "Pricing / promotions"
+          ? "/changes?view=all&impact=high"
+          : "/issues?severity=high";
+      return { label, contribution: val.contribution, count: val.count, href };
+    })
+      .filter((r) => r.count > 0 || r.contribution > 0)
+      .sort((a, b) => b.contribution - a.contribution);
+  }, [data, executive, bySystem]);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Insights", href: "/insights" },
-          { label: "Risk Drivers" },
-        ]}
-        title="Risk Drivers"
-        description="Business impact, top contributors, and where risk is concentrated."
-        right={
-          <div className="flex gap-3">
-            <Link href="/issues" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              Issues →
-            </Link>
-            <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              Insights
-            </Link>
-          </div>
-        }
+    <Stack gap={6}>
+      <PageHeaderV2
+        breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "Risk Drivers" }]}
+        title="Top risk drivers"
+        description="See what is causing exposure, which drivers are worsening, and where to act now."
+        helper="Driver categories are normalized so leaders can compare trends consistently over time."
+        helpTrigger={<PageHelpDrawer page="risk_drivers" />}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Direct realized loss</p>
-            <p className="mt-2 text-2xl font-bold text-[var(--danger)]">{fmtMoney(s.totalDirectRealizedLoss, code)}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Already incurred</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Revenue at risk</p>
-            <p className="mt-2 text-2xl font-bold text-[var(--text)]">{fmtMoney(s.totalRevenueAtRisk, code)}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">If unresolved</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Avoided loss</p>
-            <p className="mt-2 text-2xl font-bold text-[var(--success)]">{fmtMoney(s.totalAvoidedLoss, code)}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Through intervention</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Recovered value</p>
-            <p className="mt-2 text-2xl font-bold text-[var(--success)]">{fmtMoney(s.totalRecoveredValue, code)}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Post remediation</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Operational cost</p>
-            <p className="mt-2 text-2xl font-bold text-[var(--text)]">{fmtMoney(s.totalOperationalCost, code)}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Labor / process burden</p>
-          </CardBody>
-        </Card>
-      </div>
+      {loading ? (
+        <Card><CardBody><p className="text-sm text-[var(--text-muted)]">Loading risk drivers...</p></CardBody></Card>
+      ) : rows.length === 0 ? (
+        <EmptyState
+          variant="still_building"
+          title="Exposure data is still building"
+          body="As Solvren monitors more systems and changes, risk driver breakdown becomes more accurate."
+        />
+      ) : (
+        <>
+          <Grid cols={3} gap={4}>
+            <Card><CardBody><p className="text-xs text-[var(--text-muted)] inline-flex items-center gap-1">Driver categories <MetricHelpTooltip metricKey="detection_coverage" page="risk_drivers" section="summary" /></p><p className="text-2xl font-semibold">{rows.length}</p></CardBody></Card>
+            <Card><CardBody><p className="text-xs text-[var(--text-muted)]">Most concentrated driver</p><p className="text-2xl font-semibold">{rows[0]?.label ?? "—"}</p></CardBody></Card>
+            <Card><CardBody><p className="text-xs text-[var(--text-muted)]">Driver-linked work items</p><p className="text-2xl font-semibold">{rows.reduce((a, b) => a + b.count, 0)}</p></CardBody></Card>
+          </Grid>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Open issues</p>
-            <p className="mt-2 text-2xl font-bold text-[var(--text)]">{s.openIssueCount}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">With impact assessed: {s.impactedIssueCount}</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">As of</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--text)]">
-              {new Date(s.asOf).toLocaleString()}
-            </p>
-          </CardBody>
-        </Card>
-      </div>
+          <Card>
+            <CardBody>
+              <SectionHeader title="Driver breakdown" helper="Click any driver to jump directly to the operational surface where action happens." />
+              <div className="mt-3 space-y-2">
+                {rows.map((r) => (
+                  <Link key={r.label} href={r.href} className="block rounded-md border p-3 hover:bg-[var(--table-row-hover)]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">{r.label}</p>
+                        <p className="text-xs text-[var(--text-muted)]">{r.count} linked items</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">{fmtMoney(r.contribution)}</p>
+                        <p className="text-xs text-[var(--text-muted)]">{r.count >= 3 ? "trend up" : "stable"}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
 
+        </>
+      )}
       <Card>
-        <CardHeader>
-          <CardTitle>By detector pack / model</CardTitle>
-        </CardHeader>
-        <CardBody className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Model</TableHead>
-                <TableHead>Issues</TableHead>
-                <TableHead>Direct loss</TableHead>
-                <TableHead>Revenue at risk</TableHead>
-                <TableHead>Avoided</TableHead>
-                <TableHead>Recovered</TableHead>
-                <TableHead>Op cost</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {byPack.map((row) => (
-                <TableRow key={row.modelKey}>
-                  <TableCell className="font-mono text-sm">{row.modelKey}</TableCell>
-                  <TableCell>{row.issueCount}</TableCell>
-                  <TableCell>{fmtMoney(row.directRealizedLoss, code)}</TableCell>
-                  <TableCell>{fmtMoney(row.revenueAtRisk, code)}</TableCell>
-                  <TableCell>{fmtMoney(row.avoidedLoss, code)}</TableCell>
-                  <TableCell>{fmtMoney(row.recoveredValue, code)}</TableCell>
-                  <TableCell>{fmtMoney(row.operationalCost, code)}</TableCell>
-                </TableRow>
-              ))}
-              {byPack.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-[var(--text-muted)]">
-                    No impact data yet. Create issues from detector findings to see impact by model.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <CardBody>
+          <SectionHeader title="Direct action routes" helper="Go from driver to execution without extra insights hops." />
+          <div className="mt-2 flex flex-wrap gap-3 text-sm">
+            <Link href="/issues?severity=high" className="font-semibold text-[var(--primary)] hover:underline">Open high-severity issues</Link>
+            <Link href="/changes?view=all&impact=high" className="font-semibold text-[var(--primary)] hover:underline">Open high-impact changes</Link>
+            <Link href="/integrations" className="font-semibold text-[var(--primary)] hover:underline">Improve integration coverage</Link>
+            <Link href="/settings/policies" className="font-semibold text-[var(--primary)] hover:underline">Improve approval coverage</Link>
+          </div>
         </CardBody>
       </Card>
-    </div>
+    </Stack>
   );
 }

@@ -1,12 +1,33 @@
 "use client";
 
-import { Button, Input, PageHeader, Card, CardBody } from "@/ui";
-
-import { useEffect, useMemo, useState } from "react";
+import {
+  Button,
+  Card,
+  CardBody,
+  EmptyState,
+  Input,
+  PageHeaderV2,
+  SectionHeader,
+  StatusBadge,
+  TableShell,
+} from "@/ui";
+import { trackAppEvent } from "@/lib/appAnalytics";
+import { HELP_COPY } from "@/config/helpCopy";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import {
+  EmptyStateHelp,
+  MetricHelpTooltip,
+  PageHelpDrawer,
+  SectionHelp,
+  StatusHelpTooltip,
+  WhatHappensNextCallout,
+  WhySurfacedText,
+} from "@/components/help";
 
-type View = "my" | "in_review" | "blocked" | "overdue" | "delivery";
+type CanonicalView = "all" | "needs-review" | "needs-details" | "overdue" | "delivery-health";
+type View = CanonicalView | "my" | "in_review" | "blocked" | "delivery" | "needs-my-review";
 
 type Props = {
   view: View;
@@ -19,19 +40,13 @@ type Row = {
   title: string | null;
   status: string | null;
   domain: string | null;
+  createdBy: string | null;
   submittedAt: string | null;
   dueAt: string | null;
   slaStatus: string | null;
   riskBucket: string | null;
   riskScore: number | null;
   learnedRiskFlag: boolean;
-  topLearnedSignals: Array<{
-    signalKey: string;
-    incidentRate: number;
-    totalChanges: number;
-    deltaVsBaseline: number;
-    contribution: number;
-  }>;
   incidentCount: number;
   myPendingApprovalId: string | null;
   pendingApprovalsCount: number;
@@ -56,46 +71,82 @@ type SavedView = {
   id: string;
   name: string;
   query: {
-    view?: View;
+    view?: string;
     learnedRisk?: boolean | number | string;
     hasIncidents?: boolean | number | string;
   };
   is_default: boolean;
 };
 
-function fmtPct(n: number) {
-  return `${Math.round(n * 100)}%`;
-}
+type BulkAction = "NUDGE_APPROVERS" | "RETRY_FAILED" | "MARK_DELIVERED";
 
-function fmtDate(s: string | null) {
-  if (!s) return "—";
-  return new Date(s).toLocaleString();
-}
+const SEGMENTS: Array<{ key: CanonicalView; label: string }> = [
+  { key: "all", label: "All changes" },
+  { key: "needs-review", label: "Needs my review" },
+  { key: "needs-details", label: "Needs details" },
+  { key: "overdue", label: "Overdue" },
+  { key: "delivery-health", label: "Delivery health" },
+];
 
-function learningStatus(eligibleSignals: number) {
-  if (eligibleSignals <= 0) return "Early";
-  if (eligibleSignals < 10) return "Active";
-  return "Mature";
-}
-
-function uniq<T>(arr: T[]) {
-  return Array.from(new Set(arr));
-}
-
-/** Gap 2: Business language only — no "queue" or internal terms */
-const VIEW_LABELS: Record<View, string> = {
-  my: "My approvals",
-  in_review: "Needs review",
-  blocked: "Awaiting evidence",
-  overdue: "Overdue",
-  delivery: "Delivery status",
+const LEGACY_VIEW_NAME_MAP: Record<string, string> = {
+  "My approvals": "Needs my review",
+  "Awaiting evidence": "Needs details",
+  "Delivery status": "Delivery health",
 };
 
-export default function ReviewsTable({
-  view,
-  learnedRiskFilter,
-  hasIncidentsFilter,
-}: Props) {
+function fmtDate(value: string | null) {
+  if (!value) return "No due date";
+  return new Date(value).toLocaleDateString();
+}
+
+function withQuery(pathname: string, current: { toString(): string }, patch: Record<string, string | null>) {
+  const next = new URLSearchParams(current.toString());
+  for (const [key, value] of Object.entries(patch)) {
+    if (value == null || value === "") next.delete(key);
+    else next.set(key, value);
+  }
+  const query = next.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
+
+function getOwnerLabel(row: Row, currentUserId: string | null) {
+  if (!row.createdBy) return "Unassigned";
+  if (currentUserId && row.createdBy === currentUserId) return "You";
+  return "Creator";
+}
+
+function isHighImpact(row: Row) {
+  const bucket = (row.riskBucket ?? "").toUpperCase();
+  return bucket === "HIGH" || bucket === "CRITICAL";
+}
+
+function needsDetails(row: Row) {
+  return (
+    row.missingEvidenceKinds.length > 0 ||
+    (row.status ?? "") === "DRAFT" ||
+    ((row.status ?? "") === "IN_REVIEW" && row.pendingApprovalsCount === 0)
+  );
+}
+
+function getNextStep(row: Row) {
+  if (row.myPendingApprovalId) return "Review approvals";
+  if (needsDetails(row)) return "Add supporting details";
+  if (row.failedDeliveriesCount > 0) return "Retry notifications";
+  if (row.incidentCount > 0) return "View linked issue";
+  if (row.pendingApprovalsCount > 0) return "Wait for approver";
+  return row.status === "APPROVED" ? "No action needed" : "Monitoring";
+}
+
+function getStatusLabel(row: Row) {
+  if (row.myPendingApprovalId) return "Needs your review";
+  if (needsDetails(row)) return "Needs details";
+  if (row.failedDeliveriesCount > 0) return "Delivery failed";
+  if (row.pendingDeliveriesCount > 0) return "Delivery pending";
+  if (row.isOverdue || row.isEscalated) return "Overdue";
+  return "In progress";
+}
+
+export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilter }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [rows, setRows] = useState<Row[]>([]);
@@ -106,724 +157,606 @@ export default function ReviewsTable({
     overdue: 0,
     delivery: 0,
   });
-  const [baseline, setBaseline] = useState<number>(0);
-  const [minSamples, setMinSamples] = useState<number>(20);
-  const [eligibleSignals, setEligibleSignals] = useState<number>(0);
-  const [lastComputedAt, setLastComputedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
-  const [savingView, setSavingView] = useState(false);
+  const [activeRowId, setActiveRowId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState(searchParams.get("q") ?? "");
+  const [domainFilter, setDomainFilter] = useState(searchParams.get("domain") ?? "");
+  const [impactFilter, setImpactFilter] = useState(searchParams.get("impact") ?? "");
+  const [ownerFilter, setOwnerFilter] = useState(searchParams.get("owner") ?? "");
 
-  function toggleSelected(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function clearSelected() {
-    setSelected(new Set());
-  }
+  const resolvedView: CanonicalView =
+    view === "my" || view === "needs-my-review"
+      ? "needs-review"
+      : view === "in_review"
+      ? "all"
+      : view === "blocked"
+      ? "needs-details"
+      : view === "delivery"
+      ? "delivery-health"
+      : view;
 
   const query = useMemo(() => {
     const sp = new URLSearchParams();
-    sp.set("view", view);
+    sp.set("view", resolvedView);
     if (learnedRiskFilter) sp.set("learnedRisk", "1");
     if (hasIncidentsFilter) sp.set("hasIncidents", "1");
     return `?${sp.toString()}`;
-  }, [view, learnedRiskFilter, hasIncidentsFilter]);
+  }, [resolvedView, learnedRiskFilter, hasIncidentsFilter]);
 
-  async function load() {
-    setLoading(true);
-    setErr(null);
-    try {
-      const res = await fetch(`/api/reviews/list${query}`);
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to load reviews");
-
-      setRows(json.rows || []);
-      setCounts(json.counts || { my: 0, in_review: 0, blocked: 0, overdue: 0, delivery: 0 });
-      setBaseline(Number(json.baseline ?? 0));
-      setMinSamples(Number(json.minSamples ?? 20));
-      setEligibleSignals(Number(json.eligibleSignals ?? 0));
-      setLastComputedAt(json.lastComputedAt ?? null);
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Unknown error");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setErr(null);
+      try {
+        const [reviewsRes, userRes] = await Promise.all([
+          fetch(`/api/reviews/list${query}`),
+          fetch("/api/auth/me"),
+        ]);
+        const reviewsJson = await reviewsRes.json();
+        if (!reviewsRes.ok) throw new Error(reviewsJson?.error || "Failed to load changes");
+        const userJson = await userRes.json().catch(() => ({}));
+        setRows(reviewsJson.rows ?? []);
+        setCounts(reviewsJson.counts ?? { my: 0, in_review: 0, blocked: 0, overdue: 0, delivery: 0 });
+        setCurrentUserId(userJson?.user?.id ?? null);
+        trackAppEvent("changes_page_view", {
+          view: resolvedView,
+          row_count: reviewsJson.rows?.length ?? 0,
+        });
+      } catch (error) {
+        setErr(error instanceof Error ? error.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
+    void load();
+  }, [query, resolvedView]);
 
   useEffect(() => {
-    load();
+    setSelected(new Set());
+    setActiveRowId(null);
   }, [query]);
 
   useEffect(() => {
-    clearSelected();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
-
-  async function loadSavedViews() {
-    try {
-      const res = await fetch("/api/views/list");
-      const json = await res.json().catch(() => ({}));
-      if (res.ok) setSavedViews(json.views ?? []);
-    } catch {}
-  }
-
-  useEffect(() => {
-    loadSavedViews();
+    async function loadSavedViews() {
+      try {
+        const res = await fetch("/api/views/list");
+        const json = await res.json().catch(() => ({}));
+        if (res.ok) setSavedViews(json.views ?? []);
+      } catch {}
+    }
+    void loadSavedViews();
   }, []);
 
-  function applySavedQuery(q: SavedView["query"]) {
-    const next = new URLSearchParams(searchParams.toString());
-    next.delete("learnedRisk");
-    next.delete("hasIncidents");
-    if (q?.view) next.set("view", String(q.view));
-    if (q?.learnedRisk) next.set("learnedRisk", "1");
-    if (q?.hasIncidents) next.set("hasIncidents", "1");
-    const s = next.toString();
-    window.location.href = s ? `${pathname}?${s}` : pathname;
-  }
+  const filteredRows = useMemo(() => {
+    return rows.filter((row) => {
+      if (searchText) {
+        const q = searchText.toLowerCase();
+        const matches =
+          (row.title ?? "").toLowerCase().includes(q) ||
+          row.changeId.toLowerCase().includes(q) ||
+          (row.domain ?? "").toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+      if (domainFilter && (row.domain ?? "").toLowerCase() !== domainFilter.toLowerCase()) return false;
+      if (impactFilter === "high" && !isHighImpact(row)) return false;
+      if (ownerFilter === "me" && getOwnerLabel(row, currentUserId) !== "You") return false;
+      if (ownerFilter === "unassigned" && getOwnerLabel(row, currentUserId) !== "Unassigned") return false;
+      if (resolvedView === "needs-details" && !needsDetails(row)) return false;
+      if (resolvedView === "delivery-health" && row.failedDeliveriesCount + row.pendingDeliveriesCount === 0) return false;
+      return true;
+    });
+  }, [rows, searchText, domainFilter, impactFilter, ownerFilter, currentUserId, resolvedView]);
 
-  useEffect(() => {
-    if (!savedViews.length) return;
-    const hasAnyParams = searchParams.toString().length > 0;
-    if (hasAnyParams) return;
-    const def = savedViews.find((v) => v.is_default);
-    if (!def) return;
-    applySavedQuery(def.query);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedViews]);
+  const selectedRows = useMemo(() => filteredRows.filter((row) => selected.has(row.changeId)), [filteredRows, selected]);
+  const activeRow = useMemo(
+    () => filteredRows.find((row) => row.changeId === activeRowId) ?? null,
+    [filteredRows, activeRowId]
+  );
+  const selectedFailedOutboxIds = useMemo(
+    () => selectedRows.flatMap((row) => row.failedOutboxIds ?? []),
+    [selectedRows]
+  );
+  const selectedMarkableOutboxIds = useMemo(
+    () => selectedRows.flatMap((row) => [...(row.failedOutboxIds ?? []), ...(row.pendingOutboxIds ?? [])]),
+    [selectedRows]
+  );
 
-  async function saveCurrentView() {
-    const name = window.prompt("Saved view name?");
-    if (!name) return;
-    setSavingView(true);
+  const recommended = useMemo(() => {
+    return [...filteredRows]
+      .sort((a, b) => {
+        const aWeight =
+          (a.myPendingApprovalId ? 100 : 0) +
+          (needsDetails(a) ? 80 : 0) +
+          (a.failedDeliveriesCount > 0 ? 60 : 0) +
+          (isHighImpact(a) ? 50 : 0) +
+          (a.isOverdue ? 40 : 0);
+        const bWeight =
+          (b.myPendingApprovalId ? 100 : 0) +
+          (needsDetails(b) ? 80 : 0) +
+          (b.failedDeliveriesCount > 0 ? 60 : 0) +
+          (isHighImpact(b) ? 50 : 0) +
+          (b.isOverdue ? 40 : 0);
+        return bWeight - aWeight;
+      })
+      .slice(0, 3);
+  }, [filteredRows]);
+
+  const cardCounts = useMemo(() => {
+    const needsReview = filteredRows.filter((row) => Boolean(row.myPendingApprovalId)).length;
+    const needsDetail = filteredRows.filter((row) => needsDetails(row)).length;
+    const overdue = filteredRows.filter((row) => row.isOverdue || row.isEscalated).length;
+    const highImpact = filteredRows.filter((row) => isHighImpact(row)).length;
+    const linkedIssues = filteredRows.filter((row) => row.incidentCount > 0).length;
+    return { needsReview, needsDetail, overdue, highImpact, linkedIssues };
+  }, [filteredRows]);
+
+  async function runBulkAction(action: BulkAction) {
     try {
-      const payload = {
-        name,
-        query: {
-          view,
-          learnedRisk: learnedRiskFilter ? 1 : 0,
-          hasIncidents: hasIncidentsFilter ? 1 : 0,
-        },
-      };
-      const res = await fetch("/api/views/save", {
+      const payload: Record<string, unknown> = { action, changeIds: selectedRows.map((row) => row.changeId) };
+      if (action === "RETRY_FAILED") payload.outboxIds = selectedFailedOutboxIds;
+      if (action === "MARK_DELIVERED") payload.outboxIds = selectedMarkableOutboxIds;
+      const res = await fetch("/api/reviews/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error ?? "Save failed");
-      await loadSavedViews();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Save failed");
-    } finally {
-      setSavingView(false);
+      if (!res.ok) throw new Error(json?.error ?? "Bulk action failed");
+      trackAppEvent("changes_bulk_action_used", {
+        action,
+        selected_count: selectedRows.length,
+        view: resolvedView,
+      });
+      window.location.href = withQuery(pathname, searchParams, {});
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Bulk action failed");
     }
   }
 
-  const selectedRows = useMemo(() => {
-    const s = selected;
-    if (!s.size) return [];
-    return rows.filter((r) => s.has(r.changeId));
-  }, [rows, selected]);
-
-  const selectedFailedOutboxIds = useMemo(() => {
-    if (view !== "delivery") return [];
-    const ids: string[] = [];
-    for (const r of selectedRows) {
-      for (const id of r.failedOutboxIds ?? []) ids.push(id);
-    }
-    return uniq(ids);
-  }, [view, selectedRows]);
-
-  const selectedMarkableOutboxIds = useMemo(() => {
-    if (view !== "delivery") return [];
-    const ids: string[] = [];
-    for (const r of selectedRows) {
-      for (const id of r.failedOutboxIds ?? []) ids.push(id);
-      for (const id of r.pendingOutboxIds ?? []) ids.push(id);
-    }
-    return uniq(ids);
-  }, [view, selectedRows]);
-
-  async function bulkNudge() {
-    const ids = Array.from(selected);
-    if (!ids.length) return;
-    const resp = await fetch("/api/reviews/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "NUDGE_APPROVERS", changeIds: ids }),
+  function exportSelected() {
+    const lines = [
+      "change_id,title,status,next_step,owner,due_at",
+      ...selectedRows.map((row) =>
+        [
+          row.changeId,
+          (row.title ?? "").replaceAll(",", " "),
+          getStatusLabel(row),
+          getNextStep(row),
+          getOwnerLabel(row, currentUserId),
+          row.dueAt ?? "",
+        ].join(",")
+      ),
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "changes-export.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    trackAppEvent("changes_bulk_action_used", {
+      action: "EXPORT_SELECTED",
+      selected_count: selectedRows.length,
+      view: resolvedView,
     });
-    const json = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      setErr(json?.error ?? "Bulk action failed");
-      return;
-    }
-    clearSelected();
-    load();
   }
 
-  async function bulkRetryFailed() {
-    if (view !== "delivery") return;
-    if (!selectedFailedOutboxIds.length) return;
-    const resp = await fetch("/api/reviews/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "RETRY_FAILED",
-        outboxIds: selectedFailedOutboxIds,
-        changeIds: Array.from(selected),
-      }),
-    });
-    const json = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      setErr(json?.error ?? "Bulk retry failed");
-      return;
-    }
-    clearSelected();
-    load();
-  }
-
-  async function bulkMarkDelivered() {
-    if (view !== "delivery") return;
-    if (!selectedMarkableOutboxIds.length) return;
-    const resp = await fetch("/api/reviews/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "MARK_DELIVERED",
-        outboxIds: selectedMarkableOutboxIds,
-        changeIds: Array.from(selected),
-      }),
-    });
-    const json = await resp.json().catch(() => ({}));
-    if (!resp.ok) {
-      setErr(json?.error ?? "Bulk mark delivered failed");
-      return;
-    }
-    clearSelected();
-    load();
-  }
-
-  async function nudgeOne(changeId: string) {
-    setErr(null);
-    const resp = await fetch("/api/reviews/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "NUDGE_APPROVERS",
-        changeIds: [changeId],
-      }),
-    });
-    const json = await resp.json().catch(() => ({}));
-    if (!resp.ok) setErr(json?.error ?? "Nudge failed");
-    else load();
-  }
-
-  async function retryFailedOne(outboxIds: string[], changeId: string) {
-    if (!outboxIds.length) return;
-    setErr(null);
-    const resp = await fetch("/api/reviews/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "RETRY_FAILED",
-        outboxIds,
-        changeIds: [changeId],
-      }),
-    });
-    const json = await resp.json().catch(() => ({}));
-    if (!resp.ok) setErr(json?.error ?? "Retry failed");
-    else load();
-  }
-
-  const setViewLink = useMemo(
-    () => (v: View) => {
-      const next = new URLSearchParams(searchParams.toString());
-      next.set("view", v);
-      return `${pathname}?${next.toString()}`;
-    },
-    [pathname, searchParams]
-  );
-
-  const toggleParam = useMemo(
-    () => (key: string, active: boolean) => {
-      const next = new URLSearchParams(searchParams.toString());
-      if (active) next.delete(key);
-      else next.set(key, "1");
-      const q = next.toString();
-      return q ? `${pathname}?${q}` : pathname;
-    },
-    [pathname, searchParams]
-  );
+  const segmentCountMap: Record<CanonicalView, number> = {
+    all: counts.in_review,
+    "needs-review": counts.my,
+    "needs-details": counts.blocked,
+    overdue: counts.overdue,
+    "delivery-health": counts.delivery,
+  };
 
   return (
-    <div data-testid={`reviews-table-${view}`} className="space-y-4">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Home", href: "/home" },
-          { label: "Changes" },
-        ]}
+    <div className="space-y-4" data-testid={`changes-workspace-${resolvedView}`}>
+      <PageHeaderV2
+        breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes" }]}
         title="Changes"
-        description="Revenue-impacting changes in flight. Track review status, missing details, deadlines, and what needs action next."
-        right={
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Link
-              href="/changes/new"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-[var(--primary)] px-4 text-sm font-semibold text-[var(--primary-contrast)] shadow-sm transition-colors hover:opacity-90"
+        description="Track revenue-impacting changes, identify blockers quickly, and take the next best action."
+        actions={
+          <Link
+            href="/changes/new"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-[var(--primary)] px-4 text-sm font-semibold text-[var(--primary-contrast)] shadow-sm transition-colors hover:opacity-90"
+          >
+            Declare Revenue Change
+          </Link>
+        }
+        helpTrigger={<PageHelpDrawer page="changes" />}
+      />
+
+      <Card className="shadow-sm">
+        <CardBody className="space-y-3">
+          <SectionHelp text={HELP_COPY.sections.changes_filters} />
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              placeholder="Search title, ID, domain"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              className="w-full max-w-sm"
+            />
+            <select
+              value={domainFilter}
+              onChange={(event) => {
+                setDomainFilter(event.target.value);
+                trackAppEvent("changes_filter_apply", { filter: "domain", value: event.target.value });
+              }}
+              className="h-9 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 text-sm"
             >
-              Declare Revenue Change
-            </Link>
-            {(Object.keys(VIEW_LABELS) as View[]).map((v) => (
+              <option value="">All domains</option>
+              <option value="revenue">Revenue</option>
+              <option value="pricing">Pricing</option>
+              <option value="contracts">Contracts</option>
+            </select>
+            <select
+              value={impactFilter}
+              onChange={(event) => {
+                setImpactFilter(event.target.value);
+                trackAppEvent("changes_filter_apply", { filter: "impact", value: event.target.value });
+              }}
+              className="h-9 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 text-sm"
+            >
+              <option value="">All impact</option>
+              <option value="high">High impact</option>
+            </select>
+            <span className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)]">
+              High impact logic
+              <MetricHelpTooltip metricKey="high_impact" page="changes" section="filters" />
+            </span>
+            <select
+              value={ownerFilter}
+              onChange={(event) => {
+                setOwnerFilter(event.target.value);
+                trackAppEvent("changes_filter_apply", { filter: "owner", value: event.target.value });
+              }}
+              className="h-9 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 text-sm"
+            >
+              <option value="">All owners</option>
+              <option value="me">Assigned to me</option>
+              <option value="unassigned">Unassigned</option>
+            </select>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-5">
+            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "needs_review" })}>
+              <p className="text-xs text-[var(--text-muted)]">Needs review</p>
+              <p className="text-xl font-semibold">{cardCounts.needsReview}</p>
+            </button>
+            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "needs_details" })}>
+              <p className="text-xs text-[var(--text-muted)]">Needs details</p>
+              <p className="text-xl font-semibold">{cardCounts.needsDetail}</p>
+            </button>
+            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "overdue" })}>
+              <p className="text-xs text-[var(--text-muted)]">Overdue</p>
+              <p className="text-xl font-semibold">{cardCounts.overdue}</p>
+            </button>
+            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "high_impact" })}>
+              <p className="text-xs text-[var(--text-muted)]">High impact</p>
+              <p className="text-xl font-semibold">{cardCounts.highImpact}</p>
+            </button>
+            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "linked_issues" })}>
+              <p className="text-xs text-[var(--text-muted)]">Linked to issues</p>
+              <p className="text-xl font-semibold">{cardCounts.linkedIssues}</p>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {SEGMENTS.map((segment) => (
               <Link
-                key={v}
-                href={setViewLink(v)}
-                className={`text-sm px-2 py-1 rounded border ${
-                  view === v ? "bg-black/10 font-medium" : ""
-                }`}
+                key={segment.key}
+                href={withQuery(pathname, searchParams, { view: segment.key })}
+                className={`rounded-full border px-3 py-1 text-sm ${resolvedView === segment.key ? "bg-black text-white" : ""}`}
+                onClick={() =>
+                  trackAppEvent("changes_segment_change", { from: resolvedView, to: segment.key })
+                }
               >
-                {VIEW_LABELS[v]}
-                {counts[v] != null && counts[v] > 0 && (
-                  <span className="ml-1 opacity-70">({counts[v]})</span>
-                )}
+                {segment.label} {segmentCountMap[segment.key] > 0 ? `(${segmentCountMap[segment.key]})` : ""}
               </Link>
             ))}
-            <FilterLink
-              label="Learned risk"
-              active={learnedRiskFilter}
-              href={toggleParam("learnedRisk", learnedRiskFilter)}
-            />
-            <FilterLink
-              label="Has incidents"
-              active={hasIncidentsFilter}
-              href={toggleParam("hasIncidents", hasIncidentsFilter)}
-            />
-            <Button
-              type="button"
-              className="text-sm underline opacity-70"
-              onClick={load}
-            >
-              Refresh
-            </Button>
-            <div className="relative">
-              <details className="inline-block">
-                <summary className="text-sm px-2 py-1 rounded border cursor-pointer select-none">
-                  Saved views
-                </summary>
-                <div className="absolute right-0 z-10 mt-2 w-64 rounded-[var(--radius-sb)] border border-[var(--border)] bg-[var(--bg-surface)] p-2 shadow-lg">
-                  <div className="text-xs font-semibold opacity-70 mb-2">
-                    Apply
-                  </div>
-                  {savedViews.length === 0 ? (
-                    <div className="text-sm opacity-70 p-2">
-                      No saved views yet.
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      {savedViews.map((sv) => (
-                        <div
-                          key={sv.id}
-                          className="flex items-center justify-between gap-2"
-                        >
-                          <Button
-                            type="button"
-                            className="text-sm underline text-left flex-1"
-                            onClick={() => applySavedQuery(sv.query)}
-                          >
-                            {sv.name}
-                            {sv.is_default ? " ★" : ""}
-                          </Button>
-                          <Button
-                            type="button"
-                            className="text-xs underline opacity-70"
-                            onClick={async () => {
-                              await fetch("/api/views/set-default", {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({ id: sv.id }),
-                              });
-                              await loadSavedViews();
-                            }}
-                          >
-                            Default
-                          </Button>
-                          <Button
-                            type="button"
-                            className="text-xs underline opacity-70"
-                            onClick={async () => {
-                              await fetch("/api/views/delete", {
-                                method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({ id: sv.id }),
-                              });
-                              await loadSavedViews();
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="border-t my-2" />
-                  <Button
-                    type="button"
-                    className="text-sm underline"
-                    onClick={saveCurrentView}
-                    disabled={savingView}
-                  >
-                    {savingView ? "Saving…" : "Save current view…"}
-                  </Button>
+            <div className="ml-auto flex items-center gap-2">
+              <details>
+                <summary className="cursor-pointer rounded-md border px-3 py-1 text-sm">Views</summary>
+                <div className="absolute mt-2 w-64 rounded-md border bg-white p-2 shadow-md">
+                  {savedViews.map((saved) => {
+                    const mappedName = LEGACY_VIEW_NAME_MAP[saved.name] ?? saved.name;
+                    return (
+                      <button
+                        key={saved.id}
+                        onClick={() => {
+                          const v = String(saved.query?.view ?? "all");
+                          const mapped =
+                            v === "my"
+                              ? "needs-review"
+                              : v === "in_review"
+                              ? "all"
+                              : v === "blocked"
+                              ? "needs-details"
+                              : v === "delivery" || v === "delivery_status"
+                              ? "delivery-health"
+                              : v;
+                          trackAppEvent("changes_saved_view_used", { saved_view_id: saved.id, view: mapped });
+                          window.location.href = withQuery(pathname, searchParams, { view: mapped });
+                        }}
+                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-black/5"
+                      >
+                        {mappedName}
+                      </button>
+                    );
+                  })}
                 </div>
               </details>
             </div>
           </div>
-        }
-      />
+        </CardBody>
+      </Card>
 
-      {loading && <p className="text-sm text-[var(--text-muted)]">Loading…</p>}
-      {err && <p className="text-sm text-[var(--danger)]">{err}</p>}
-
-      {!loading && !err && selected.size > 0 && (
-        <Card>
-          <CardBody className="flex flex-row flex-wrap items-center justify-between gap-2 py-3">
-            <div className="text-sm">
-              <span className="font-medium">{selected.size}</span> selected
-              <Button
-                type="button"
-                className="ml-3 text-xs underline opacity-70"
-                onClick={clearSelected}
-              >
-                Clear
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
-                onClick={bulkNudge}
-              >
-                Nudge approvers
-              </Button>
-              {view === "delivery" && (
-                <>
-                  <Button
-                    type="button"
-                    className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
-                    onClick={bulkRetryFailed}
-                    disabled={selectedFailedOutboxIds.length === 0}
-                    title={
-                      selectedFailedOutboxIds.length === 0
-                        ? "No failed deliveries in selection"
-                        : "Retry failed deliveries"
+      {recommended.length > 0 && (
+        <Card className="shadow-sm">
+          <CardBody>
+            <SectionHeader title="Recommended next" />
+            <div className="grid gap-2 md:grid-cols-3">
+              {recommended.map((row) => (
+                <button
+                  key={row.changeId}
+                  className="rounded-md border p-3 text-left hover:bg-black/5"
+                  onClick={() => {
+                    setActiveRowId(row.changeId);
+                    trackAppEvent("changes_recommended_open", { change_id: row.changeId, next_step: getNextStep(row) });
+                  }}
+                >
+                  <p className="text-sm font-semibold">{row.title ?? "Untitled change"}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{getNextStep(row)}</p>
+                  <WhySurfacedText
+                    text={
+                      row.myPendingApprovalId
+                        ? HELP_COPY.whySurfaced.awaiting_review
+                        : needsDetails(row)
+                        ? HELP_COPY.whySurfaced.missing_details
+                        : row.failedDeliveriesCount > 0
+                        ? HELP_COPY.whySurfaced.delivery_problem
+                        : row.incidentCount > 0
+                        ? HELP_COPY.whySurfaced.linked_issue
+                        : HELP_COPY.whySurfaced.overdue_assigned
                     }
-                  >
-                    Retry failed
-                  </Button>
-                  <Button
-                    type="button"
-                    className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
-                    onClick={bulkMarkDelivered}
-                    disabled={selectedMarkableOutboxIds.length === 0}
-                    title={
-                      selectedMarkableOutboxIds.length === 0
-                        ? "No pending/failed deliveries in selection"
-                        : "Mark pending/failed deliveries as SENT"
-                    }
-                  >
-                    Mark delivered
-                  </Button>
-                </>
-              )}
+                  />
+                </button>
+              ))}
             </div>
           </CardBody>
         </Card>
       )}
 
-      {!loading && !err && rows.length > 0 &&
-          (() => {
-            const overdueCount = rows.filter((r) => r.isOverdue).length;
-            const escalatedCount = rows.filter((r) => r.isEscalated).length;
-            if (overdueCount === 0 && escalatedCount === 0) return null;
-            return (
-                <div
-                className={`rounded-[var(--radius-sb)] border px-3 py-2 text-sm flex flex-wrap items-center justify-between gap-2 ${
-                  escalatedCount > 0
-                    ? "border-[var(--danger)]/50 bg-[color-mix(in_oklab,var(--danger)_12%,var(--bg-surface))]"
-                    : "border-[var(--warning)]/50 bg-[color-mix(in_oklab,var(--warning)_12%,var(--bg-surface))]"
-                }`}
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  {escalatedCount > 0 && (
-                    <span className="font-medium">{escalatedCount} escalated</span>
-                  )}
-                  {overdueCount > 0 && (
-                    <span
-                      className={
-                        escalatedCount > 0 ? "opacity-80" : "font-medium"
-                      }
-                    >
-                      {overdueCount} overdue
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs opacity-70">
-                  Escalated and overdue items should be handled first.
-                </div>
-              </div>
-            );
-          })()}
+      {err && <p className="text-sm text-red-600">{err}</p>}
 
-      {!loading && !err && (
-        <Card className="overflow-hidden">
-          <div className="grid grid-cols-12 gap-2 border-b border-[var(--border)] p-[var(--card-spacer-x)] text-xs font-semibold">
-              <div className="col-span-1">
-                <Input
-                  type="checkbox"
-                  checked={rows.length > 0 && selected.size === rows.length}
-                  onChange={(e) => {
-                    if (e.target.checked)
-                      setSelected(new Set(rows.map((r) => r.changeId)));
-                    else clearSelected();
-                  }}
-                  aria-label="Select all"
-                />
-              </div>
-              <div className="col-span-4">Change</div>
-              <div className="col-span-2">Risk</div>
-              <div className="col-span-3">Learning</div>
-              <div className="col-span-2">Incidents</div>
-            </div>
-
-            {rows.map((r) => (
-              <Link
-                key={r.changeId}
-                href={`/changes/${r.changeId}`}
-                className="grid grid-cols-12 gap-2 border-b border-[var(--border)] p-[var(--card-spacer-x)] text-sm last:border-b-0 hover:bg-[color-mix(in_oklab,var(--bg-surface)_92%,var(--primary)_8%)]"
-              >
-                <div
-                  className="col-span-1"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <Input
-                    type="checkbox"
-                    checked={selected.has(r.changeId)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onChange={() => toggleSelected(r.changeId)}
-                    aria-label={`Select ${r.title || r.changeId}`}
-                  />
-                </div>
-                <div className="col-span-4">
-                  <div className="font-medium">{r.title || "(untitled change)"}</div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs">
-                    <Link
-                      href={`/changes/${r.changeId}#checklist`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="underline opacity-70"
-                    >
-                      Open checklist
-                    </Link>
-                    <Link
-                      href={`/changes/${r.changeId}#evidence-panel`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="underline opacity-70"
-                    >
-                      Add evidence
-                    </Link>
-                    {(view === "my" ||
-                      view === "in_review" ||
-                      view === "overdue") && (
-                      <Button
-                        type="button"
-                        className="underline opacity-70"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          nudgeOne(r.changeId);
-                        }}
-                        title="Send a nudge to approvers"
-                      >
-                        Nudge
-                      </Button>
-                    )}
-                    {view === "delivery" &&
-                      (r.failedOutboxIds?.length ?? 0) > 0 && (
-                        <Button
-                          type="button"
-                          className="underline opacity-70"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            retryFailedOne(
-                              r.failedOutboxIds ?? [],
-                              r.changeId
-                            );
-                          }}
-                          title="Retry failed deliveries for this change"
-                        >
-                          Retry failed
-                        </Button>
-                      )}
-                  </div>
-                  <div className="text-xs opacity-70 flex flex-wrap items-center gap-x-2 gap-y-1">
-                    {r.submittedAt ? fmtDate(r.submittedAt) : "—"} • {r.status || "—"}
-                    {r.domain && (
-                      <>
-                        {" • "}
-                        <Badge tone="neutral">{r.domain}</Badge>
-                      </>
-                    )}
-                    {r.dueAt && (
-                      <>
-                        {" • "}
-                        Due {fmtDate(r.dueAt)}
-                      </>
-                    )}
-                    {r.slaStatus && (
-                      <>
-                        {" • "}
-                        <Badge tone="danger">{r.slaStatus}</Badge>
-                      </>
-                    )}
-                    {r.isEscalated && <Badge tone="danger">Escalated</Badge>}
-                    {r.isOverdue && <Badge tone="danger">Overdue</Badge>}
-                    {r.missingEvidenceKinds?.length > 0 && (
-                      <Badge tone="warn">Blocked</Badge>
-                    )}
-                    {r.myPendingApprovalId && (
-                      <Badge tone="info">Needs you</Badge>
-                    )}
-                    {view === "delivery" ? (
-                      <>
-                        {r.failedDeliveriesCount > 0 && (
-                          <Badge tone="danger">{r.failedDeliveriesCount} failed</Badge>
-                        )}
-                        {r.pendingDeliveriesCount > 0 && (
-                          <Badge tone="neutral">{r.pendingDeliveriesCount} pending</Badge>
-                        )}
-                      </>
-                    ) : (
-                      r.failedDeliveriesCount > 0 && (
-                        <Badge tone="danger">Delivery</Badge>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                <div className="col-span-2">
-                  <div className="inline-flex items-center gap-2">
-                    <Badge tone="neutral">{r.riskBucket || "—"}</Badge>
-                    {r.riskScore != null && (
-                      <span className="text-xs opacity-70">{Math.round(r.riskScore)}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="col-span-3">
-                  {r.learnedRiskFlag ? (
-                    <div className="space-y-1">
-                      <Badge tone="warn">Learned risk</Badge>
-                      {r.topLearnedSignals.slice(0, 2).map((s) => (
-                        <div key={s.signalKey} className="text-xs opacity-80 font-mono">
-                          {s.signalKey} • {fmtPct(s.incidentRate)} (n={s.totalChanges}) • Δ{" "}
-                          {s.deltaVsBaseline >= 0 ? "+" : ""}
-                          {fmtPct(s.deltaVsBaseline)}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-xs opacity-60">No strong learned signals</div>
-                  )}
-                </div>
-
-                <div className="col-span-2">
-                  {r.incidentCount > 0 ? (
-                    <Badge tone="danger">{r.incidentCount} linked</Badge>
-                  ) : (
-                    <span className="text-xs opacity-60">0</span>
-                  )}
-                </div>
-              </Link>
-            ))}
-
-            {rows.length === 0 && (
-              <div className="p-[var(--card-spacer-x)] text-center">
-                <p className="text-sm text-[var(--text-muted)]">
-                  No changes yet.
-                </p>
-                <p className="mt-1 text-sm text-[var(--text)]">
-                  Start by connecting Jira or creating your first revenue change.
-                </p>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                  <Link
-                    href="/changes/new"
-                    className="inline-flex h-10 items-center justify-center rounded-md bg-[var(--primary)] px-4 text-sm font-semibold text-[var(--primary-contrast)] hover:opacity-90"
-                  >
-                    Create revenue change
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--border)] px-4 text-sm font-medium text-[var(--text)] hover:bg-[var(--bg-surface-2)]"
-                  >
-                    Go to overview
-                  </Link>
-                </div>
-              </div>
+      <TableShell
+        toolbar={
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={() => void runBulkAction("NUDGE_APPROVERS")} disabled={!selectedRows.length}>
+              Nudge approvers
+            </Button>
+            <Button
+              onClick={() => void runBulkAction("RETRY_FAILED")}
+              disabled={!selectedRows.length || selectedFailedOutboxIds.length === 0}
+              variant="secondary"
+            >
+              Retry failed notifications
+            </Button>
+            <Button onClick={exportSelected} disabled={!selectedRows.length} variant="secondary">
+              Export selected
+            </Button>
+            {selectedMarkableOutboxIds.length > 0 && resolvedView === "delivery-health" && (
+              <Button onClick={() => void runBulkAction("MARK_DELIVERED")} variant="secondary">
+                Mark delivered
+              </Button>
             )}
-        </Card>
+          </div>
+        }
+        loading={loading}
+        empty={
+          filteredRows.length === 0 ? (
+            <EmptyState
+              variant={searchText || domainFilter || impactFilter || ownerFilter ? "filtered_empty" : "good_empty"}
+              title={
+                resolvedView === "needs-review"
+                  ? "No approvals are waiting on you."
+                  : resolvedView === "needs-details"
+                  ? "No changes are blocked by missing details."
+                  : resolvedView === "delivery-health"
+                  ? "No delivery problems need attention."
+                  : "No changes match this view."
+              }
+              body={
+                searchText || domainFilter || impactFilter || ownerFilter
+                  ? "Try clearing filters or broadening your search."
+                  : "No immediate follow-up is needed in this view right now."
+              }
+              action={
+                <Link href="/changes/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                  Declare a new revenue change
+                </Link>
+              }
+            />
+          ) : null
+        }
+      >
+        {filteredRows.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs uppercase text-[var(--text-muted)]">
+                    <th className="px-2 py-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.length > 0 && selectedRows.length === filteredRows.length}
+                        onChange={(event) => {
+                          if (event.target.checked) setSelected(new Set(filteredRows.map((row) => row.changeId)));
+                          else setSelected(new Set());
+                        }}
+                      />
+                    </th>
+                    <th className="px-2 py-2">Change</th>
+                    <th className="px-2 py-2">Owner</th>
+                    <th className="px-2 py-2">Reviewers</th>
+                    <th className="px-2 py-2">Due</th>
+                    <th className="px-2 py-2">
+                      <span className="inline-flex items-center gap-1">
+                        Status
+                        <StatusHelpTooltip
+                          statusKey="needs_details"
+                          page="changes"
+                          section="table-status"
+                        />
+                      </span>
+                    </th>
+                    <th className="px-2 py-2">Next step</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRows.map((row) => (
+                    <tr key={row.changeId} className="border-b">
+                      <td className="px-2 py-2 align-top">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(row.changeId)}
+                          onChange={() => {
+                            const next = new Set(selected);
+                            if (next.has(row.changeId)) next.delete(row.changeId);
+                            else next.add(row.changeId);
+                            setSelected(next);
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2 align-top">
+                        <button
+                          className="text-left"
+                          onClick={() => {
+                            setActiveRowId(row.changeId);
+                            trackAppEvent("changes_row_open_detail", {
+                              change_id: row.changeId,
+                              view: resolvedView,
+                            });
+                          }}
+                        >
+                          <p className="font-medium">{row.title ?? "Untitled change"}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{row.changeId.slice(0, 8)} · {row.domain ?? "Revenue"}</p>
+                        </button>
+                      </td>
+                      <td className="px-2 py-2 align-top">{getOwnerLabel(row, currentUserId)}</td>
+                      <td className="px-2 py-2 align-top">{row.pendingApprovalsCount > 0 ? `${row.pendingApprovalsCount} pending` : "None pending"}</td>
+                      <td className="px-2 py-2 align-top">{fmtDate(row.dueAt)}</td>
+                      <td className="px-2 py-2 align-top">
+                        <span className="inline-flex items-center gap-1">
+                          {getStatusLabel(row) === "Needs details" ? (
+                            <StatusBadge status="needs_details" />
+                          ) : getStatusLabel(row) === "Overdue" ? (
+                            <StatusBadge status="overdue" />
+                          ) : getStatusLabel(row) === "Delivery failed" ? (
+                            <StatusBadge status="delivery_issue" />
+                          ) : getStatusLabel(row) === "Needs your review" ? (
+                            <StatusBadge status="needs_review" />
+                          ) : (
+                            <StatusBadge status="monitoring" />
+                          )}
+                          {(getStatusLabel(row) === "Needs details" ||
+                            getStatusLabel(row) === "Overdue" ||
+                            getStatusLabel(row) === "Delivery failed") && (
+                            <MetricHelpTooltip
+                              metricKey={
+                                getStatusLabel(row) === "Needs details"
+                                  ? "needs_details"
+                                  : getStatusLabel(row) === "Overdue"
+                                  ? "overdue"
+                                  : "delivery_issue"
+                              }
+                              page="changes"
+                              section="row-status"
+                            />
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 align-top">{getNextStep(row)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+      </TableShell>
+
+      {activeRow && (
+        <>
+          <Card className="lg:hidden">
+            <CardBody className="space-y-2">
+              <p className="text-xs uppercase text-[var(--text-muted)]">Details</p>
+              <p className="font-semibold">{activeRow.title ?? "Untitled change"}</p>
+              <p className="text-sm">Status: {getStatusLabel(activeRow)}</p>
+              <p className="text-sm">Next step: {getNextStep(activeRow)}</p>
+              {(needsDetails(activeRow) || activeRow.failedDeliveriesCount > 0) && (
+                <WhatHappensNextCallout
+                  text={
+                    needsDetails(activeRow)
+                      ? HELP_COPY.workflowNext.needs_details
+                      : HELP_COPY.workflowNext.delivery_issue
+                  }
+                />
+              )}
+              {needsDetails(activeRow) && (
+                <p className="text-sm">
+                  Missing details:{" "}
+                  {activeRow.missingEvidenceKinds.length > 0
+                    ? activeRow.missingEvidenceKinds.join(", ")
+                    : "Required intake or assignment details"}
+                </p>
+              )}
+              <Link href={`/changes/${activeRow.changeId}`} className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                Open full change details
+              </Link>
+            </CardBody>
+          </Card>
+
+          <aside className="fixed inset-y-0 right-0 z-30 hidden w-[420px] border-l bg-white p-4 shadow-xl lg:block">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase text-[var(--text-muted)]">Change details</p>
+              <button onClick={() => setActiveRowId(null)} className="text-sm text-[var(--text-muted)]">
+                Close
+              </button>
+            </div>
+            <div className="mt-3 space-y-3">
+              <p className="text-lg font-semibold">{activeRow.title ?? "Untitled change"}</p>
+              <p className="text-sm">Status: {getStatusLabel(activeRow)}</p>
+              <p className="text-sm">Next step: {getNextStep(activeRow)}</p>
+              {(needsDetails(activeRow) || activeRow.failedDeliveriesCount > 0) && (
+                <WhatHappensNextCallout
+                  text={
+                    needsDetails(activeRow)
+                      ? HELP_COPY.workflowNext.needs_details
+                      : HELP_COPY.workflowNext.delivery_issue
+                  }
+                />
+              )}
+              <p className="text-sm">Owner: {getOwnerLabel(activeRow, currentUserId)}</p>
+              <p className="text-sm">Reviewers pending: {activeRow.pendingApprovalsCount}</p>
+              <p className="text-sm">Delivery health: failed {activeRow.failedDeliveriesCount}, pending {activeRow.pendingDeliveriesCount}</p>
+              {needsDetails(activeRow) && (
+                <p className="text-sm">
+                  Missing details:{" "}
+                  {activeRow.missingEvidenceKinds.length > 0
+                    ? activeRow.missingEvidenceKinds.join(", ")
+                    : "Required intake or assignment details"}
+                </p>
+              )}
+              <Link href={`/changes/${activeRow.changeId}`} className="inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
+                Open full change page
+              </Link>
+            </div>
+          </aside>
+        </>
       )}
     </div>
-  );
-}
-
-function Badge({
-  children,
-  tone,
-}: {
-  children: React.ReactNode;
-  tone: "neutral" | "warn" | "danger" | "info";
-}) {
-  const cls =
-    tone === "neutral"
-      ? "bg-black/5"
-      : tone === "warn"
-        ? "bg-yellow-200/60"
-        : tone === "danger"
-          ? "bg-red-200/60"
-          : "bg-blue-200/60";
-  return <span className={`px-2 py-1 rounded text-xs ${cls}`}>{children}</span>;
-}
-
-function FilterLink({
-  label,
-  active,
-  href,
-}: {
-  label: string;
-  active: boolean;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`text-sm px-2 py-1 rounded border ${active ? "bg-black/5" : ""}`}
-    >
-      {label}
-    </Link>
   );
 }

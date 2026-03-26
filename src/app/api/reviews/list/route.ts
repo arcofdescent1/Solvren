@@ -4,7 +4,14 @@ import { getRequiredEvidenceAndApprovalAreas } from "@/services/domains/approval
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 
-type View = "my" | "in_review" | "blocked" | "overdue" | "delivery";
+type LegacyView = "my" | "in_review" | "blocked" | "overdue" | "delivery";
+type CanonicalView =
+  | "all"
+  | "needs-review"
+  | "needs-details"
+  | "overdue"
+  | "delivery-health";
+type View = LegacyView | CanonicalView;
 
 function uniq<T>(arr: T[]) {
   return Array.from(new Set(arr));
@@ -18,6 +25,7 @@ export type ReviewRow = {
   title: string | null;
   status: string | null;
   domain: string | null;
+  createdBy: string | null;
   submittedAt: string | null;
   dueAt: string | null;
   slaStatus: string | null;
@@ -54,9 +62,29 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const learnedRiskFilter = url.searchParams.get("learnedRisk") === "1";
   const hasIncidentsFilter = url.searchParams.get("hasIncidents") === "1";
-  const view = (url.searchParams.get("view") ?? "in_review") as View;
-  const validViews: View[] = ["my", "in_review", "blocked", "overdue", "delivery"];
-  const viewParam = validViews.includes(view) ? view : "in_review";
+  const view = (url.searchParams.get("view") ?? "all") as View;
+  const validViews: View[] = [
+    "my",
+    "in_review",
+    "blocked",
+    "overdue",
+    "delivery",
+    "all",
+    "needs-review",
+    "needs-details",
+    "delivery-health",
+  ];
+  const rawView = validViews.includes(view) ? view : "all";
+  const viewParam: CanonicalView =
+    rawView === "my"
+      ? "needs-review"
+      : rawView === "in_review"
+      ? "all"
+      : rawView === "blocked"
+      ? "needs-details"
+      : rawView === "delivery"
+      ? "delivery-health"
+      : (rawView as CanonicalView);
 
   const { data: memberships, error: memErr } = await supabase
     .from("organization_members")
@@ -139,7 +167,7 @@ export async function GET(req: Request) {
     sla_status: string | null;
   }> = [];
 
-  if (viewParam === "my") {
+  if (viewParam === "needs-review") {
     const { data: appr, error } = await supabase
       .from("approvals")
       .select("id, change_event_id, decision, org_id")
@@ -186,7 +214,7 @@ export async function GET(req: Request) {
       [...(overdueDue ?? []), ...(overdueEsc ?? [])].map((c) => [c.id, c])
     );
     changeRows = Array.from(overdueById.values());
-  } else if (viewParam === "delivery") {
+  } else if (viewParam === "delivery-health") {
     const { data: outbox, error: obErr } = await supabase
       .from("notification_outbox")
       .select("id, change_event_id, status, created_at")
@@ -223,11 +251,11 @@ export async function GET(req: Request) {
         .from("change_events")
         .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
         .in("org_id", orgIds)
-        .eq("status", "IN_REVIEW")
+        .in("status", ["DRAFT", "READY", "IN_REVIEW", "SUBMITTED"])
     );
     const { data: changes, error: ceErr } = await q
       .order("due_at", { ascending: true })
-      .limit(viewParam === "blocked" ? 500 : 100);
+      .limit(viewParam === "needs-details" ? 500 : 200);
     if (ceErr)
       return NextResponse.json({ error: ceErr.message }, { status: 500 });
     changeRows = changes ?? [];
@@ -324,7 +352,7 @@ export async function GET(req: Request) {
 
   // Only fetch outbox rows we need: FAILED/PENDING for badge; add PROCESSING in delivery view for diagnostics
   const outboxStatuses =
-    viewParam === "delivery"
+    viewParam === "delivery-health"
       ? ["FAILED", "PENDING", "PROCESSING"]
       : ["FAILED", "PENDING"];
   const { data: outboxRows } = await supabase
@@ -448,6 +476,7 @@ export async function GET(req: Request) {
       title: c.title ?? null,
       status: c.status ?? null,
       domain: c.domain ?? null,
+      createdBy: c.created_by ?? null,
       submittedAt: c.submitted_at ?? null,
       dueAt: c.due_at ?? null,
       slaStatus: c.sla_status ?? null,
@@ -464,11 +493,11 @@ export async function GET(req: Request) {
       isOverdue,
       isEscalated,
       failedOutboxIds:
-        viewParam === "delivery"
+        viewParam === "delivery-health"
           ? (failedOutboxIdsMap.get(c.id) ?? [])
           : undefined,
       pendingOutboxIds:
-        viewParam === "delivery"
+        viewParam === "delivery-health"
           ? (pendingOutboxIdsMap.get(c.id) ?? [])
           : undefined,
     };
@@ -478,8 +507,13 @@ export async function GET(req: Request) {
   rows = rows.filter((r) =>
     learnedRiskFilter ? r.learnedRiskFlag === true : true
   );
-  if (viewParam === "blocked")
-    rows = rows.filter((r) => r.missingEvidenceKinds.length > 0);
+  if (viewParam === "needs-details")
+    rows = rows.filter(
+      (r) =>
+        r.missingEvidenceKinds.length > 0 ||
+        (r.status ?? "") === "DRAFT" ||
+        ((r.status ?? "") === "IN_REVIEW" && r.pendingApprovalsCount === 0)
+    );
 
   // Counts for tabs (my = distinct changes with my PENDING approval)
   const [
@@ -506,7 +540,7 @@ export async function GET(req: Request) {
         .from("notification_outbox")
         .select("change_event_id")
         .in("org_id", orgIds)
-        .in("status", ["FAILED", "PENDING"]),
+      .in("status", ["FAILED", "PENDING", "PROCESSING"]),
     ]);
 
   const inReviewIds = ((inReviewData ?? []) as { id: string }[]).map((c) => c.id);

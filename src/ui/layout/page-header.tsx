@@ -2,7 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 
-/** SB Admin Pro-style page header with optional breadcrumbs, tabs, and action area. */
+/** @deprecated Use PageHeaderV2 from "@/ui" for new/updated pages. */
 export function PageHeader({
   title,
   description,

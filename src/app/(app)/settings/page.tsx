@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { PageHeader, Card, CardBody, Grid, Stack } from "@/ui";
+import { Card, CardBody, Grid, PageHeaderV2, SectionHeader, Stack } from "@/ui";
 import { PAGE_COPY } from "@/config/pageCopy";
+import { PageHelpDrawer } from "@/components/help";
 
 const SETTINGS_LINKS = [
   {
@@ -33,11 +34,14 @@ const SETTINGS_LINKS = [
 export default function SettingsLandingPage() {
   return (
     <Stack gap={6}>
-      <PageHeader
+      <PageHeaderV2
         breadcrumbs={[{ label: "Settings" }]}
         title={PAGE_COPY.settings.title}
         description={PAGE_COPY.settings.description}
+        helper={PAGE_COPY.settings.helper}
+        helpTrigger={<PageHelpDrawer page="settings" />}
       />
+      <SectionHeader title="Settings categories" helper="Use these areas to manage access, governance policy, notifications, and diagnostics." />
 
       <Card>
         <CardBody>

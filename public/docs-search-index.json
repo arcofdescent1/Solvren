@@ -35,6 +35,83 @@
     "content": "Overview Write back sends changes from Solvren to external systems (billing, CRM, etc.). Reliability measures ensure actions complete or fail safely. Execution Flow 1. Playbook triggers for an issue 2. Policy checks (approvals, confidence) 3. Action executes against external API 4. Result logged; verification runs if applicable Failure Handling Retries — Transient failures may be retried Rollback — Where supported, failed actions can be reverted Audit — All attempts are logged for troubleshooting Related"
   },
   {
+    "title": "AI Risk Engine",
+    "description": "How Solvren analyzes potential financial risk before a change is deployed.",
+    "section": "Architecture",
+    "href": "/docs/architecture/ai-risk-engine",
+    "content": "Overview The AI Risk Engine analyzes operational changes to identify potential financial risk before deployment. By evaluating structured intake data and historical patterns, the system generates a Revenue Impact Report that helps reviewers understand the potential consequences of a change. This analysis allows organizations to proactively identify failure modes before they occur. Inputs The AI Risk Engine analyzes several categories of information. Change Metadata Information provided during intake: • change type • domain • systems involved • rollout method • customer impact • backfill requirements These signals provide context about how the change will affect revenue operations. Organizational Governance Rules Risk analysis considers the organization's configured policies, including: • required approvals • evidence requirements • domain specific safeguards These rules influence the final readiness evaluation. Operational Signals The system evaluates operational signals such as: • deployment scope • integration dependencies • data migration activity • financial system exposure Changes that modify billing or pricing systems typically receive higher risk scores. Risk Outputs The AI Risk Engine produces structured outputs including: Risk Score A numerical representation of potential risk. Higher scores indicate greater potential financial exposure. Failure Mode Analysis Identifies ways a change could cause unintended outcomes. Examples: • pricing misconfiguration • billing duplication • invoice generation failure • reporting discrepancies Recommended Safeguards The engine may recommend safeguards such as: • additional approvals • expanded monitoring • validation checks • rollback verification Purpose The AI Risk Engine helps organizations answer a critical question: \"What could go wrong if we deploy this change?\" By identifying risk early, teams can address issues before they impact revenue."
+  },
+  {
+    "title": "Architecture Overview",
+    "description": "High-level architecture of Solvren.",
+    "section": "Architecture",
+    "href": "/docs/architecture/architecture-overview",
+    "content": "Overview Solvren coordinates governance workflows across revenue systems. The platform connects change management workflows with risk analysis and operational safeguards. Core Architecture Solvren consists of several major components. Components Change Intake Collects structured metadata about operational changes. Coordination Engine Generates governance workflows including approvals and evidence requirements. Risk Analysis Engine Analyzes potential financial risk associated with a change. Approval Workflows Coordinate cross team review and decision making. Audit System Records historical decisions and governance activity."
+  },
+  {
+    "title": "Coordination Autopilot",
+    "description": "How Solvren automatically recommends coordination tasks and approvals.",
+    "section": "Architecture",
+    "href": "/docs/architecture/coordination-autopilot",
+    "content": "Overview Operational changes often require coordination across multiple teams. Coordination Autopilot analyzes change metadata and automatically recommends the governance steps required to safely implement a change. These recommendations ensure the right stakeholders are involved. What Coordination Autopilot Generates The system produces three types of recommendations. Required Approvals Based on change metadata, the system determines which roles should review the change. Example: | Domain | Suggested Approvers | | | | | Pricing | Finance + Product | | Billing | Engineering + Finance | | CRM | RevOps | These recommendations are derived from the organization's configured approval mappings. Evidence Requirements The system may recommend operational safeguards such as: • rollback procedures • monitoring plans • testing documentation • revenue validation checks These safeguards reduce the likelihood and impact of operational failures. Coordination Tasks Some changes require coordination across multiple teams. Examples: • notify finance of pricing updates • validate CRM field mappings • confirm billing rule compatibility Coordination Autopilot highlights these dependencies. Applying Recommendations Users can apply recommended governance steps with a single action. This dramatically reduces the time required to prepare a change for review. Why Coordination Matters Revenue systems are complex and interconnected. Changes to one system can affect multiple others. Coordination Autopilot helps teams ensure that: • stakeholders are aware of changes • dependencies are validated • safeguards are implemented"
+  },
+  {
+    "title": "Data Flow",
+    "description": "How data moves through the platform.",
+    "section": "Architecture",
+    "href": "/docs/architecture/data-flow",
+    "content": "Overview Data flows from external systems through integrations into signals, then through detectors to issues, and finally through actions to verification and ROI. Flow Summary 1. Ingestion — Integrations pull or receive data → signals 2. Detection — Detectors analyze signals → issues 3. Prioritization — Impact engine scores issues 4. Action — Playbooks execute (recommend, simulate, or write back) 5. Verification — Outcomes checked → value attributed 6. Reporting — ROI dashboard and metrics updated Related"
+  },
+  {
+    "title": "Architecture",
+    "description": "System layers, data flow, and security.",
+    "section": "Architecture",
+    "href": "/docs/architecture",
+    "content": "Overview Solvren's architecture reflects the full revenue protection loop: integrations, signals, detectors, impact, execution, verification, and safe automation. What You'll Find Here | Page | Description | | | | | | High level platform architecture | | | Platform layers and components | | | How data moves through the system | | | Security, auth, and audit | Platform Layers Integrations — Connect to revenue systems Identity graph — Entity resolution across systems Signals — Ingested data streams Detectors — Issue detection logic Impact engine — Revenue at risk quantification Execution / write back — Action execution Verification / ROI — Value attribution Safe automation — Policies and approvals Onboarding / performance — Getting to value and playbook metrics Related"
+  },
+  {
+    "title": "Notifications and Jobs",
+    "description": "Understand how background jobs, notifications, and operational processing support the Solvren workflow.",
+    "section": "Architecture",
+    "href": "/docs/architecture/notifications-and-jobs",
+    "content": "Overview Solvren relies on background processing to keep operational workflows timely and visible. This typically includes notification dispatch, SLA evaluation, inbox generation, and digest generation. Why jobs matter Without reliable background processing, users may not receive approvals, reminders, or queue updates at the right time. Notification model Notifications may be delivered through in app surfaces, email, and Slack. Operational requirements Background jobs should be idempotent, observable, and retryable where appropriate. Why this matters to admins Admins and owners should understand that the user experience depends not only on visible UI flows, but also on healthy background job execution."
+  },
+  {
+    "title": "Architecture Overview",
+    "description": "System layers, data flow, execution guarantees, and tech stack.",
+    "section": "Architecture",
+    "href": "/docs/architecture/overview",
+    "content": "System Layers Solvren is composed of the following layers: 1. Integrations — Connect billing, CRM, pricing, and other revenue systems 2. Identity Graph — Entity resolution across systems for correlated signals and issues 3. Signals — Ingested, normalized data streams 4. Detectors — Logic that creates issues from signals (detector packs) 5. Issues — Detected revenue impacting problems 6. Impact Engine — Quantifies revenue at risk and feeds prioritization 7. Playbooks — Defined workflows and actions for resolution 8. Execution Engine — Orchestrates actions, write back, retries, and state 9. Verification — Confirms outcomes against external systems 10. ROI Tracking — Recovered revenue, avoided loss, dashboards 11. Safe Automation — Policies, approvals, safe mode, confidence thresholds Data Flow Signals → Detectors → Issues → Impact → Actions → Verification → ROI Key Principles Explainability Every issue is traceable to signals and evidence. Reliability All actions are idempotent and retry safe. Observability All operations are logged and auditable. Safety Policies control execution and automation. Execution Guarantees No duplicate actions (idempotent design) Safe retries Full audit trail External state verification Outcome A deterministic, explainable, and reliable system for revenue protection. Tech stack Frontend : Next.js 16, React 19 Backend : Next.js API routes, Supabase Auth : Supabase Auth Database : Supabase (PostgreSQL) Related"
+  },
+  {
+    "title": "Revenue Impact Report",
+    "description": "Understand how Revenue Impact Reports combine deterministic signals and structured analysis.",
+    "section": "Architecture",
+    "href": "/docs/architecture/revenue-impact-report",
+    "content": "Purpose The Revenue Impact Report helps teams understand the financial and operational risk of a change before it ships. What it includes Typical report outputs include risk level, failure modes, impact areas, safeguards, and executive summary. Design model The report combines deterministic baseline signals, structured report generation, persisted report versions, and stale detection after material edits. Why versioning matters A report should reflect the current change state. If material fields change, the report may become stale and should be regenerated."
+  },
+  {
+    "title": "Security and Trust",
+    "description": "Security, authentication, and audit.",
+    "section": "Architecture",
+    "href": "/docs/architecture/security-and-trust",
+    "content": "Overview Solvren uses Supabase Auth, role based access control, and audit logging to ensure security and trust. Security Layers Authentication — Supabase Auth (email, SSO) Authorization — RBAC by role (owner, admin, submitter, reviewer, viewer, executive) Audit — Actions logged for compliance and troubleshooting Trust Edit links point to real repo paths No placeholder URLs in customer facing docs Integration credentials secured per best practices Related"
+  },
+  {
+    "title": "System Layers",
+    "description": "Platform layers and components.",
+    "section": "Architecture",
+    "href": "/docs/architecture/system-layers",
+    "content": "Overview Solvren's system is organized into layers that map to the product flow. Layer Diagram 1. Integrations — External system connectors 2. Identity graph — Entity resolution 3. Signals — Data ingestion and storage 4. Detectors — Issue detection 5. Impact engine — Revenue quantification 6. Execution — Playbook and action execution 7. Verification — Value attribution 8. Safe automation — Policy and approval layer 9. Onboarding / performance — Metrics and guidance Component Interaction Signals flow from integrations through the pipeline. Detectors consume signals and produce issues. The impact engine scores issues. Playbooks execute actions when policies allow. Verification closes the loop and attributes value. Related"
+  },
+  {
+    "title": "System Overview",
+    "description": "High-level architecture of Solvren.",
+    "section": "Architecture",
+    "href": "/docs/architecture/system-overview",
+    "content": "Overview Solvren is a governance platform designed to manage operational changes that impact revenue systems. The platform coordinates change workflows across multiple systems and teams. Core Components The system consists of several major components. Change Management Engine Tracks the lifecycle of operational changes. Handles: • intake workflows • lifecycle state transitions • coordination tracking Coordination Autopilot Analyzes change metadata and recommends: • required approvers • evidence requirements • operational safeguards Risk Analysis Engine Evaluates the potential financial impact of a change. Generates: • risk scores • failure mode analysis • mitigation recommendations Audit and Compliance Layer Tracks system actions and governance decisions. Provides a complete historical record of operational changes."
+  },
+  {
     "title": "Approval Mappings",
     "description": "Define how systems, domains, and change types map to the right reviewers automatically.",
     "section": "Admin",
@@ -119,111 +196,6 @@
     "content": "Org roles Solvren uses organization level roles to define what users can do. | Role | Responsibilities | | | | | Owner | Full configuration and governance control | | Admin | Manage users, settings, and governance setup | | Submitter | Create and submit changes | | Reviewer | Review and approve changes | | Viewer | Read only access where allowed | Assigning roles well Owner: executive sponsor. Admin: RevOps lead. Submitter: operators, engineers. Reviewer: finance, security stakeholders. Viewer: leadership, observers. Keep the number of owners small. Use Admin for operational configuration. Related concepts Org roles are different from approval roles, domain permissions, and explicit restricted access grants."
   },
   {
-    "title": "Demo Orgs and Safe Environments",
-    "description": "Safe environments for demos and testing.",
-    "section": "Admin & Governance",
-    "href": "/docs/admin-governance/demo-orgs-and-safe-environments",
-    "content": "Overview Demo orgs and safe environments let you test Solvren without affecting production data. Use them for demos, UAT, and training. Best Practices Use read only or sandbox integrations where possible Enable simulation mode for playbooks in demo Isolate demo data from production Related — Test data and scripts"
-  },
-  {
-    "title": "Admin & Governance",
-    "description": "Policy Center, integration health, and demo environments.",
-    "section": "Admin & Governance",
-    "href": "/docs/admin-governance",
-    "content": "Overview Admins configure policies, monitor integration health, and manage demo or safe environments. What You'll Find Here | Page | Description | | | | | | Configure approval and automation policies | | | Monitor signal pipelines and connections | | | Safe environments for demos and testing | Related — Policy concepts — Signal health — Full org setup"
-  },
-  {
-    "title": "Integration Health",
-    "description": "Monitor signal pipelines and connections.",
-    "section": "Admin & Governance",
-    "href": "/docs/admin-governance/integration-health",
-    "content": "Overview Integration health dashboards show connection status, signal flow, and any issues with your connected systems. What to Monitor Connection status — Green/red per integration Last sync — When data was last received Error rate — Failed syncs or auth issues Signal volume — Expected vs actual Troubleshooting When health is degraded: Check authentication and tokens Verify API quotas and rate limits Review Related"
-  },
-  {
-    "title": "Policy Center",
-    "description": "Configure approval and automation policies.",
-    "section": "Admin & Governance",
-    "href": "/docs/admin-governance/policy-center",
-    "content": "Overview The Policy Center is where admins configure approval gates, automation rules, and safe mode settings. What You Configure Approval requirements — Who must approve what Confidence thresholds — When to auto execute vs require approval Impact thresholds — Require approval above certain impact levels Role mappings — Map approvers to playbooks or issue types Related — Legacy approval docs"
-  },
-  {
-    "title": "AI Risk Engine",
-    "description": "How Solvren analyzes potential financial risk before a change is deployed.",
-    "section": "Architecture",
-    "href": "/docs/architecture/ai-risk-engine",
-    "content": "Overview The AI Risk Engine analyzes operational changes to identify potential financial risk before deployment. By evaluating structured intake data and historical patterns, the system generates a Revenue Impact Report that helps reviewers understand the potential consequences of a change. This analysis allows organizations to proactively identify failure modes before they occur. Inputs The AI Risk Engine analyzes several categories of information. Change Metadata Information provided during intake: • change type • domain • systems involved • rollout method • customer impact • backfill requirements These signals provide context about how the change will affect revenue operations. Organizational Governance Rules Risk analysis considers the organization's configured policies, including: • required approvals • evidence requirements • domain specific safeguards These rules influence the final readiness evaluation. Operational Signals The system evaluates operational signals such as: • deployment scope • integration dependencies • data migration activity • financial system exposure Changes that modify billing or pricing systems typically receive higher risk scores. Risk Outputs The AI Risk Engine produces structured outputs including: Risk Score A numerical representation of potential risk. Higher scores indicate greater potential financial exposure. Failure Mode Analysis Identifies ways a change could cause unintended outcomes. Examples: • pricing misconfiguration • billing duplication • invoice generation failure • reporting discrepancies Recommended Safeguards The engine may recommend safeguards such as: • additional approvals • expanded monitoring • validation checks • rollback verification Purpose The AI Risk Engine helps organizations answer a critical question: \"What could go wrong if we deploy this change?\" By identifying risk early, teams can address issues before they impact revenue."
-  },
-  {
-    "title": "Architecture Overview",
-    "description": "High-level architecture of Solvren.",
-    "section": "Architecture",
-    "href": "/docs/architecture/architecture-overview",
-    "content": "Overview Solvren coordinates governance workflows across revenue systems. The platform connects change management workflows with risk analysis and operational safeguards. Core Architecture Solvren consists of several major components. Components Change Intake Collects structured metadata about operational changes. Coordination Engine Generates governance workflows including approvals and evidence requirements. Risk Analysis Engine Analyzes potential financial risk associated with a change. Approval Workflows Coordinate cross team review and decision making. Audit System Records historical decisions and governance activity."
-  },
-  {
-    "title": "Coordination Autopilot",
-    "description": "How Solvren automatically recommends coordination tasks and approvals.",
-    "section": "Architecture",
-    "href": "/docs/architecture/coordination-autopilot",
-    "content": "Overview Operational changes often require coordination across multiple teams. Coordination Autopilot analyzes change metadata and automatically recommends the governance steps required to safely implement a change. These recommendations ensure the right stakeholders are involved. What Coordination Autopilot Generates The system produces three types of recommendations. Required Approvals Based on change metadata, the system determines which roles should review the change. Example: | Domain | Suggested Approvers | | | | | Pricing | Finance + Product | | Billing | Engineering + Finance | | CRM | RevOps | These recommendations are derived from the organization's configured approval mappings. Evidence Requirements The system may recommend operational safeguards such as: • rollback procedures • monitoring plans • testing documentation • revenue validation checks These safeguards reduce the likelihood and impact of operational failures. Coordination Tasks Some changes require coordination across multiple teams. Examples: • notify finance of pricing updates • validate CRM field mappings • confirm billing rule compatibility Coordination Autopilot highlights these dependencies. Applying Recommendations Users can apply recommended governance steps with a single action. This dramatically reduces the time required to prepare a change for review. Why Coordination Matters Revenue systems are complex and interconnected. Changes to one system can affect multiple others. Coordination Autopilot helps teams ensure that: • stakeholders are aware of changes • dependencies are validated • safeguards are implemented"
-  },
-  {
-    "title": "Data Flow",
-    "description": "How data moves through the platform.",
-    "section": "Architecture",
-    "href": "/docs/architecture/data-flow",
-    "content": "Overview Data flows from external systems through integrations into signals, then through detectors to issues, and finally through actions to verification and ROI. Flow Summary 1. Ingestion — Integrations pull or receive data → signals 2. Detection — Detectors analyze signals → issues 3. Prioritization — Impact engine scores issues 4. Action — Playbooks execute (recommend, simulate, or write back) 5. Verification — Outcomes checked → value attributed 6. Reporting — ROI dashboard and metrics updated Related"
-  },
-  {
-    "title": "Architecture",
-    "description": "System layers, data flow, and security.",
-    "section": "Architecture",
-    "href": "/docs/architecture",
-    "content": "Overview Solvren's architecture reflects the full revenue protection loop: integrations, signals, detectors, impact, execution, verification, and safe automation. What You'll Find Here | Page | Description | | | | | | High level platform architecture | | | Platform layers and components | | | How data moves through the system | | | Security, auth, and audit | Platform Layers Integrations — Connect to revenue systems Identity graph — Entity resolution across systems Signals — Ingested data streams Detectors — Issue detection logic Impact engine — Revenue at risk quantification Execution / write back — Action execution Verification / ROI — Value attribution Safe automation — Policies and approvals Onboarding / performance — Getting to value and playbook metrics Related"
-  },
-  {
-    "title": "Notifications and Jobs",
-    "description": "Understand how background jobs, notifications, and operational processing support the Solvren workflow.",
-    "section": "Architecture",
-    "href": "/docs/architecture/notifications-and-jobs",
-    "content": "Overview Solvren relies on background processing to keep operational workflows timely and visible. This typically includes notification dispatch, SLA evaluation, inbox generation, and digest generation. Why jobs matter Without reliable background processing, users may not receive approvals, reminders, or queue updates at the right time. Notification model Notifications may be delivered through in app surfaces, email, and Slack. Operational requirements Background jobs should be idempotent, observable, and retryable where appropriate. Why this matters to admins Admins and owners should understand that the user experience depends not only on visible UI flows, but also on healthy background job execution."
-  },
-  {
-    "title": "Architecture Overview",
-    "description": "System layers, data flow, execution guarantees, and tech stack.",
-    "section": "Architecture",
-    "href": "/docs/architecture/overview",
-    "content": "System Layers Solvren is composed of the following layers: 1. Integrations — Connect billing, CRM, pricing, and other revenue systems 2. Identity Graph — Entity resolution across systems for correlated signals and issues 3. Signals — Ingested, normalized data streams 4. Detectors — Logic that creates issues from signals (detector packs) 5. Issues — Detected revenue impacting problems 6. Impact Engine — Quantifies revenue at risk and feeds prioritization 7. Playbooks — Defined workflows and actions for resolution 8. Execution Engine — Orchestrates actions, write back, retries, and state 9. Verification — Confirms outcomes against external systems 10. ROI Tracking — Recovered revenue, avoided loss, dashboards 11. Safe Automation — Policies, approvals, safe mode, confidence thresholds Data Flow Signals → Detectors → Issues → Impact → Actions → Verification → ROI Key Principles Explainability Every issue is traceable to signals and evidence. Reliability All actions are idempotent and retry safe. Observability All operations are logged and auditable. Safety Policies control execution and automation. Execution Guarantees No duplicate actions (idempotent design) Safe retries Full audit trail External state verification Outcome A deterministic, explainable, and reliable system for revenue protection. Tech stack Frontend : Next.js 16, React 19 Backend : Next.js API routes, Supabase Auth : Supabase Auth Database : Supabase (PostgreSQL) Related"
-  },
-  {
-    "title": "Revenue Impact Report",
-    "description": "Understand how Revenue Impact Reports combine deterministic signals and structured analysis.",
-    "section": "Architecture",
-    "href": "/docs/architecture/revenue-impact-report",
-    "content": "Purpose The Revenue Impact Report helps teams understand the financial and operational risk of a change before it ships. What it includes Typical report outputs include risk level, failure modes, impact areas, safeguards, and executive summary. Design model The report combines deterministic baseline signals, structured report generation, persisted report versions, and stale detection after material edits. Why versioning matters A report should reflect the current change state. If material fields change, the report may become stale and should be regenerated."
-  },
-  {
-    "title": "Security and Trust",
-    "description": "Security, authentication, and audit.",
-    "section": "Architecture",
-    "href": "/docs/architecture/security-and-trust",
-    "content": "Overview Solvren uses Supabase Auth, role based access control, and audit logging to ensure security and trust. Security Layers Authentication — Supabase Auth (email, SSO) Authorization — RBAC by role (owner, admin, submitter, reviewer, viewer, executive) Audit — Actions logged for compliance and troubleshooting Trust Edit links point to real repo paths No placeholder URLs in customer facing docs Integration credentials secured per best practices Related"
-  },
-  {
-    "title": "System Layers",
-    "description": "Platform layers and components.",
-    "section": "Architecture",
-    "href": "/docs/architecture/system-layers",
-    "content": "Overview Solvren's system is organized into layers that map to the product flow. Layer Diagram 1. Integrations — External system connectors 2. Identity graph — Entity resolution 3. Signals — Data ingestion and storage 4. Detectors — Issue detection 5. Impact engine — Revenue quantification 6. Execution — Playbook and action execution 7. Verification — Value attribution 8. Safe automation — Policy and approval layer 9. Onboarding / performance — Metrics and guidance Component Interaction Signals flow from integrations through the pipeline. Detectors consume signals and produce issues. The impact engine scores issues. Playbooks execute actions when policies allow. Verification closes the loop and attributes value. Related"
-  },
-  {
-    "title": "System Overview",
-    "description": "High-level architecture of Solvren.",
-    "section": "Architecture",
-    "href": "/docs/architecture/system-overview",
-    "content": "Overview Solvren is a governance platform designed to manage operational changes that impact revenue systems. The platform coordinates change workflows across multiple systems and teams. Core Components The system consists of several major components. Change Management Engine Tracks the lifecycle of operational changes. Handles: • intake workflows • lifecycle state transitions • coordination tracking Coordination Autopilot Analyzes change metadata and recommends: • required approvers • evidence requirements • operational safeguards Risk Analysis Engine Evaluates the potential financial impact of a change. Generates: • risk scores • failure mode analysis • mitigation recommendations Audit and Compliance Layer Tracks system actions and governance decisions. Provides a complete historical record of operational changes."
-  },
-  {
     "title": "What is a Change?",
     "description": "The core unit of governance in Solvren.",
     "section": "Concepts",
@@ -266,11 +238,53 @@
     "content": "Overview Solvren tracks which systems are affected by a change. These systems represent the platforms where operational logic is implemented. Understanding system dependencies helps reviewers evaluate risk. Examples of Systems Organizations commonly integrate with multiple revenue systems. Examples include: Billing Platforms Systems responsible for customer billing. Examples: • Stripe • Chargebee • Recurly Changes to billing platforms can affect invoices, payments, and subscriptions. CRM Platforms Customer relationship management systems. Examples: • Salesforce • HubSpot CRM changes may affect lead routing, account ownership, or opportunity tracking. Financial Systems Systems responsible for accounting and revenue reporting. Examples: • NetSuite • QuickBooks • custom financial reporting pipelines Changes affecting financial systems may require finance approval. Marketing Platforms Marketing automation systems responsible for customer communication. Examples: • marketing automation tools • campaign platforms • email engagement systems Changes may affect lead capture or promotional campaigns. Internal Systems Many organizations operate internal services that support their revenue operations. Examples: • pricing microservices • internal billing APIs • custom reporting pipelines Changes to these systems may introduce hidden dependencies. Why Systems Matter Identifying systems involved in a change helps the platform: • recommend appropriate approvers • identify operational dependencies • estimate risk exposure For example, a change affecting both Stripe and Salesforce may require coordination between finance and revenue operations teams."
   },
   {
+    "title": "Demo Orgs and Safe Environments",
+    "description": "Safe environments for demos and testing.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/demo-orgs-and-safe-environments",
+    "content": "Overview Demo orgs and safe environments let you test Solvren without affecting production data. Use them for demos, UAT, and training. Best Practices Use read only or sandbox integrations where possible Enable simulation mode for playbooks in demo Isolate demo data from production Related — Test data and scripts"
+  },
+  {
+    "title": "Admin & Governance",
+    "description": "Policy Center, integration health, and demo environments.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance",
+    "content": "Overview Admins configure policies, monitor integration health, and manage demo or safe environments. What You'll Find Here | Page | Description | | | | | | Configure approval and automation policies | | | Monitor signal pipelines and connections | | | Safe environments for demos and testing | Related — Policy concepts — Signal health — Full org setup"
+  },
+  {
+    "title": "Integration Health",
+    "description": "Monitor signal pipelines and connections.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/integration-health",
+    "content": "Overview Integration health dashboards show connection status, signal flow, and any issues with your connected systems. What to Monitor Connection status — Green/red per integration Last sync — When data was last received Error rate — Failed syncs or auth issues Signal volume — Expected vs actual Troubleshooting When health is degraded: Check authentication and tokens Verify API quotas and rate limits Review Related"
+  },
+  {
+    "title": "Policy Center",
+    "description": "Configure approval and automation policies.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/policy-center",
+    "content": "Overview The Policy Center is where admins configure approval gates, automation rules, and safe mode settings. What You Configure Approval requirements — Who must approve what Confidence thresholds — When to auto execute vs require approval Impact thresholds — Require approval above certain impact levels Role mappings — Map approvers to playbooks or issue types Related — Legacy approval docs"
+  },
+  {
     "title": "Screenshot Guidelines",
     "description": "Consistent screenshot patterns for Solvren documentation.",
     "section": "Contributing",
     "href": "/docs/contributing/screenshot-guidelines",
     "content": "Overview Elite documentation uses consistent screenshot patterns. Follow these guidelines to maintain visual consistency across Solvren docs. Pattern 1 — Interface Overview Use for introducing a screen or feature. Structure: 1. Step explanation 2. Full UI screenshot 3. Caption explaining the interface Example MDX: Pattern 2 — Annotated UI Use when highlighting specific elements. Structure: 1. Numbered list describing each element 2. Annotated screenshot with callouts Example MDX: Pattern 3 — Workflow Screens Use for multi step flows. Structure: One screenshot per step Clear step headers Example MDX: Folder Structure Store screenshots in: Style Guidelines | Rule | Recommendation | | | | | Resolution | 1440px wide | | Format | PNG | | Theme | Use light mode | | Callouts | Simple numbered circles | | Cropping | Remove browser UI | Reference These patterns follow conventions used by Stripe, Vercel, and Supabase documentation."
+  },
+  {
+    "title": "Example: Billing Logic Change",
+    "description": "Governance workflow for billing system updates.",
+    "section": "Examples",
+    "href": "/docs/examples/billing-change",
+    "content": "Scenario An organization needs to modify subscription billing rules. Systems involved: • billing platform • CRM system • financial reporting pipeline Governance Steps Approvals required: • Engineering • Finance Evidence required: • billing simulations • rollback procedure • monitoring plan Risks Identified Potential risks: • duplicate billing • invoice generation failures • revenue reporting discrepancies"
+  },
+  {
+    "title": "Example: Pricing Configuration Change",
+    "description": "Walkthrough of a real pricing change governed through Solvren.",
+    "section": "Examples",
+    "href": "/docs/examples/pricing-change",
+    "content": "Overview This example demonstrates how a pricing configuration change is managed through Solvren. Pricing changes are high impact because they directly affect customer billing and revenue generation. Scenario An organization wants to introduce a new pricing tier for a product. The change involves: • updating pricing logic in the billing platform • updating pricing documentation • verifying invoice generation Step 1 — Create the Change Example change configuration: | Field | Value | | | | | Title | Add new Pro pricing tier | | Domain | Pricing | | Systems | Stripe | | Change Type | Pricing configuration | Step 2 — Coordination Autopilot The system generates recommended governance steps. Suggested approvals: • Finance • Product Suggested evidence: • pricing rule validation tests • invoice simulation • rollback procedure Step 3 — Revenue Impact Report The system identifies potential risks: Failure modes: • incorrect pricing applied to existing customers • invoice calculation errors Risk score: Medium Recommended safeguards: • test invoice generation • verify billing tier mapping Step 4 — Submit for Review Approvers review: • change description • risk report • evidence checklist Finance verifies pricing logic before approval. Outcome After approvals are complete, the change is approved and recorded in the audit history. This example demonstrates how governance workflows reduce pricing configuration risk."
   },
   {
     "title": "Detector Packs",
@@ -299,20 +313,6 @@
     "section": "Detectors & Issues",
     "href": "/docs/detectors-issues/issue-explainer",
     "content": "Overview An issue is a detected problem that may impact revenue. It is the core unit of work in the value loop. Issue Anatomy | Field | Description | | | | | Source | Detector and signal that produced the issue | | Impact | Estimated revenue at risk | | Confidence | How confident the system is in the finding | | Status | Open, in progress, resolved, etc. | | Verification | Whether the fix was verified and value attributed | | Recommended playbooks | Actions that can address the issue | Lifecycle Issues move through states: created → triaged → action taken → verified. Verification attributes recovered revenue or avoided loss. Related"
-  },
-  {
-    "title": "Example: Billing Logic Change",
-    "description": "Governance workflow for billing system updates.",
-    "section": "Examples",
-    "href": "/docs/examples/billing-change",
-    "content": "Scenario An organization needs to modify subscription billing rules. Systems involved: • billing platform • CRM system • financial reporting pipeline Governance Steps Approvals required: • Engineering • Finance Evidence required: • billing simulations • rollback procedure • monitoring plan Risks Identified Potential risks: • duplicate billing • invoice generation failures • revenue reporting discrepancies"
-  },
-  {
-    "title": "Example: Pricing Configuration Change",
-    "description": "Walkthrough of a real pricing change governed through Solvren.",
-    "section": "Examples",
-    "href": "/docs/examples/pricing-change",
-    "content": "Overview This example demonstrates how a pricing configuration change is managed through Solvren. Pricing changes are high impact because they directly affect customer billing and revenue generation. Scenario An organization wants to introduce a new pricing tier for a product. The change involves: • updating pricing logic in the billing platform • updating pricing documentation • verifying invoice generation Step 1 — Create the Change Example change configuration: | Field | Value | | | | | Title | Add new Pro pricing tier | | Domain | Pricing | | Systems | Stripe | | Change Type | Pricing configuration | Step 2 — Coordination Autopilot The system generates recommended governance steps. Suggested approvals: • Finance • Product Suggested evidence: • pricing rule validation tests • invoice simulation • rollback procedure Step 3 — Revenue Impact Report The system identifies potential risks: Failure modes: • incorrect pricing applied to existing customers • invoice calculation errors Risk score: Medium Recommended safeguards: • test invoice generation • verify billing tier mapping Step 4 — Submit for Review Approvers review: • change description • risk report • evidence checklist Finance verifies pricing logic before approval. Outcome After approvals are complete, the change is approved and recorded in the audit history. This example demonstrates how governance workflows reduce pricing configuration risk."
   },
   {
     "title": "Frequently Asked Questions",
@@ -483,6 +483,13 @@
     "content": "Overview Issues are prioritized so high impact, high confidence items surface first. The logic combines impact, confidence, age, and policy rules. Factors | Factor | Effect | | | | | Impact | Higher impact = higher priority | | Confidence | Higher confidence = higher priority | | Age | Older issues may be elevated | | Policy | Custom rules can override default ordering | Ops Inbox The ops inbox displays issues in priority order. Operators can filter and sort as needed. Related"
   },
   {
+    "title": "5-Minute Jira Setup",
+    "description": "Connect Jira to Solvren in about 5 minutes.",
+    "section": "Guides",
+    "href": "/docs/integrations/jira",
+    "content": "Overview This guide walks you through connecting Jira Cloud to Solvren in about 5 minutes. No developer help required—admins can complete setup from org settings. Step 1 — Connect Jira 1. Go to Org settings → Integrations → Jira → Setup 2. Click Connect Jira 3. Solvren will request permission to: Read Jira issues and projects Sync governance status Manage webhooks for real time updates 4. Authorize the app in Atlassian 5. You'll return to Solvren with Jira connected Step 2 — Select Projects Choose the Jira projects you want Solvren to monitor. Typical projects: Platform Engineering Revenue Systems Internal Tools Billing or Payments Select only projects where changes might affect revenue, billing, or financial systems. You can add more later. Step 3 — Map Statuses Map Jira statuses to Solvren governance states so status changes sync correctly. Example mapping: | Jira Status | Solvren State | | | | | Open | Draft | | In Progress | Ready | | Ready for Review | Ready | | In Review | In Review | | Blocked | Blocked | | Done | Approved | | Rejected | Rejected | Customize mappings to match your workflow. Solvren uses these to keep governance status in sync when Jira issues change. Step 4 — Enable Features Recommended feature toggles: Webhook Sync — Real time status updates when Jira issues change (recommended) Issue Property Sync — Show governance status in Jira (status, risk score, approval progress) Comment Sync — Post governance events as Jira comments Enable all three for the best experience. Webhook Sync requires webhook registration; Solvren handles this automatically. Step 5 — Validate Click Test Connection . Solvren checks: Jira authentication API access Project permissions Webhook registration (if enabled) If any check fails, follow the on screen guidance. Common issues: Webhook not registered — Ensure the Jira admin has approved webhooks Project access — Verify your Jira user has access to selected projects Step 6 — Done After validation passes, Solvren will: Detect Jira status changes Sync governance data with linked issues Mirror approval decisions in Jira Display governance status in Jira (when Issue Property Sync is enabled) You can return to Jira integration settings anytime to add projects, adjust status mappings, or change feature toggles. Screenshots The setup wizard includes: 1. OAuth screen — Atlassian authorization 2. Project selector — Choose projects to monitor 3. Status mapping table — Map Jira → Solvren statuses 4. Feature toggle panel — Webhook, property, and comment sync 5. Validation results — Connection health checks 6. Success confirmation — Setup complete Related — Full integration reference, webhook setup, API details — How changes flow through Solvren — Initial org configuration"
+  },
+  {
     "title": "Getting to First Value",
     "description": "Path from setup to verified value.",
     "section": "Onboarding & Playbook Performance",
@@ -560,13 +567,6 @@
     "content": "Signal A raw event from an integrated system. Detector Logic that identifies patterns or anomalies. Issue A detected problem impacting revenue. Impact Estimated financial effect of an issue. Playbook A defined set of actions to resolve an issue. Execution The process of applying a playbook. Verification Confirmation that an issue has been resolved. Value Measured outcome, including recovered revenue or avoided loss. Safe Automation Controlled execution using policies and approvals. Related"
   },
   {
-    "title": "5-Minute Jira Setup",
-    "description": "Connect Jira to Solvren in about 5 minutes.",
-    "section": "Guides",
-    "href": "/docs/integrations/jira",
-    "content": "Overview This guide walks you through connecting Jira Cloud to Solvren in about 5 minutes. No developer help required—admins can complete setup from org settings. Step 1 — Connect Jira 1. Go to Org settings → Integrations → Jira → Setup 2. Click Connect Jira 3. Solvren will request permission to: Read Jira issues and projects Sync governance status Manage webhooks for real time updates 4. Authorize the app in Atlassian 5. You'll return to Solvren with Jira connected Step 2 — Select Projects Choose the Jira projects you want Solvren to monitor. Typical projects: Platform Engineering Revenue Systems Internal Tools Billing or Payments Select only projects where changes might affect revenue, billing, or financial systems. You can add more later. Step 3 — Map Statuses Map Jira statuses to Solvren governance states so status changes sync correctly. Example mapping: | Jira Status | Solvren State | | | | | Open | Draft | | In Progress | Ready | | Ready for Review | Ready | | In Review | In Review | | Blocked | Blocked | | Done | Approved | | Rejected | Rejected | Customize mappings to match your workflow. Solvren uses these to keep governance status in sync when Jira issues change. Step 4 — Enable Features Recommended feature toggles: Webhook Sync — Real time status updates when Jira issues change (recommended) Issue Property Sync — Show governance status in Jira (status, risk score, approval progress) Comment Sync — Post governance events as Jira comments Enable all three for the best experience. Webhook Sync requires webhook registration; Solvren handles this automatically. Step 5 — Validate Click Test Connection . Solvren checks: Jira authentication API access Project permissions Webhook registration (if enabled) If any check fails, follow the on screen guidance. Common issues: Webhook not registered — Ensure the Jira admin has approved webhooks Project access — Verify your Jira user has access to selected projects Step 6 — Done After validation passes, Solvren will: Detect Jira status changes Sync governance data with linked issues Mirror approval decisions in Jira Display governance status in Jira (when Issue Property Sync is enabled) You can return to Jira integration settings anytime to add projects, adjust status mappings, or change feature toggles. Screenshots The setup wizard includes: 1. OAuth screen — Atlassian authorization 2. Project selector — Choose projects to monitor 3. Status mapping table — Map Jira → Solvren statuses 4. Feature toggle panel — Webhook, property, and comment sync 5. Validation results — Connection health checks 6. Success confirmation — Setup complete Related — Full integration reference, webhook setup, API details — How changes flow through Solvren — Initial org configuration"
-  },
-  {
     "title": "Governance Playbook",
     "description": "Recommended governance structure for revenue operations.",
     "section": "Playbooks",
@@ -609,34 +609,6 @@
     "content": "Change Stuck in Review Possible causes: • missing approvals • incomplete evidence • reviewer unavailable Resolution steps: 1. Check approval status 2. Verify evidence checklist 3. notify pending reviewers Missing Evidence If evidence requirements are not satisfied: 1. review required evidence types 2. upload missing documentation 3. update change submission Incorrect Approval Routing If incorrect reviewers appear: 1. verify approval role mappings 2. check domain configuration 3. update governance policies"
   },
   {
-    "title": "Safe Automation",
-    "description": "Policies, approvals, safe mode, and simulations.",
-    "section": "Safe Automation",
-    "href": "/docs/safe-automation",
-    "content": "Overview Safe automation ensures humans stay in control. Policies, approvals, safe mode, and confidence thresholds govern when and how automated actions run. What You'll Find Here | Page | Description | | | | | | Approval gates and policy configuration | | | Confidence thresholds and safe mode | | | Dry run and simulation modes | Related — Policy Center"
-  },
-  {
-    "title": "Policies and Approvals",
-    "description": "Approval gates and policy configuration.",
-    "section": "Safe Automation",
-    "href": "/docs/safe-automation/policies-and-approvals",
-    "content": "Overview Policies define who must approve actions and under what conditions. Approval gates ensure high risk or low confidence actions get human review. Policy Types | Type | Purpose | | | | | Approval required | Action needs explicit approval before execution | | Confidence threshold | Auto approve above a confidence level | | Impact threshold | Require approval above an impact amount | | Role based | Certain roles must approve | Policy Center The Policy Center (Admin & Governance) is where admins configure policies. See . Related"
-  },
-  {
-    "title": "Safe Mode and Confidence",
-    "description": "Confidence thresholds and safe mode behavior.",
-    "section": "Safe Automation",
-    "href": "/docs/safe-automation/safe-mode-and-confidence",
-    "content": "Overview Safe mode restricts automation based on confidence. Low confidence issues may only get recommendations; high confidence issues may be auto resolved when policies allow. Confidence Thresholds Admins set thresholds (e.g., 80% confidence for auto execute). Below the threshold, actions may be: Recommendation only Require approval Simulation only Safe Mode Levels | Level | Behavior | | | | | Recommend only | No execution; humans act | | Simulate | Dry run; no write back | | Approve then execute | Human approval required | | Auto execute | Execute when confidence and policy allow | Related"
-  },
-  {
-    "title": "Simulations",
-    "description": "Dry-run and simulation modes.",
-    "section": "Safe Automation",
-    "href": "/docs/safe-automation/simulations",
-    "content": "Overview Simulations let you test playbooks without executing write back. Actions run in dry run mode and report what would happen. Use Cases Validate playbook logic before enabling Train operators on expected behavior Debug detector to action flow How It Works When simulation is enabled, actions: Evaluate inputs and produce a \"would do\" report Do not call external APIs for write back Log results for review Related"
-  },
-  {
     "title": "Auditability",
     "description": "See how Solvren preserves a clear historical record of change activity, approvals, evidence, and coordination.",
     "section": "Security",
@@ -670,6 +642,34 @@
     "section": "Security",
     "href": "/docs/security/restricted-visibility",
     "content": "What restricted visibility means Some changes are too sensitive for broad org visibility. Examples include security sensitive billing changes and confidential legal changes. For these cases, Solvren supports restricted visibility. Who can typically access restricted changes Depending on policy, access may be limited to owners, admins, the change creator, assigned reviewers, and explicitly granted users. Why this matters Restricted visibility prevents sensitive work from leaking through queues, search, timeline activity, result counts, and notifications. Best practice Use restricted visibility intentionally for high sensitivity workflows, but do not overuse it for normal operational changes."
+  },
+  {
+    "title": "Safe Automation",
+    "description": "Policies, approvals, safe mode, and simulations.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation",
+    "content": "Overview Safe automation ensures humans stay in control. Policies, approvals, safe mode, and confidence thresholds govern when and how automated actions run. What You'll Find Here | Page | Description | | | | | | Approval gates and policy configuration | | | Confidence thresholds and safe mode | | | Dry run and simulation modes | Related — Policy Center"
+  },
+  {
+    "title": "Policies and Approvals",
+    "description": "Approval gates and policy configuration.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation/policies-and-approvals",
+    "content": "Overview Policies define who must approve actions and under what conditions. Approval gates ensure high risk or low confidence actions get human review. Policy Types | Type | Purpose | | | | | Approval required | Action needs explicit approval before execution | | Confidence threshold | Auto approve above a confidence level | | Impact threshold | Require approval above an impact amount | | Role based | Certain roles must approve | Policy Center The Policy Center (Admin & Governance) is where admins configure policies. See . Related"
+  },
+  {
+    "title": "Safe Mode and Confidence",
+    "description": "Confidence thresholds and safe mode behavior.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation/safe-mode-and-confidence",
+    "content": "Overview Safe mode restricts automation based on confidence. Low confidence issues may only get recommendations; high confidence issues may be auto resolved when policies allow. Confidence Thresholds Admins set thresholds (e.g., 80% confidence for auto execute). Below the threshold, actions may be: Recommendation only Require approval Simulation only Safe Mode Levels | Level | Behavior | | | | | Recommend only | No execution; humans act | | Simulate | Dry run; no write back | | Approve then execute | Human approval required | | Auto execute | Execute when confidence and policy allow | Related"
+  },
+  {
+    "title": "Simulations",
+    "description": "Dry-run and simulation modes.",
+    "section": "Safe Automation",
+    "href": "/docs/safe-automation/simulations",
+    "content": "Overview Simulations let you test playbooks without executing write back. Actions run in dry run mode and report what would happen. Use Cases Validate playbook logic before enabling Train operators on expected behavior Debug detector to action flow How It Works When simulation is enabled, actions: Evaluate inputs and produce a \"would do\" report Do not call external APIs for write back Log results for review Related"
   },
   {
     "title": "Seeded Personas and Data",

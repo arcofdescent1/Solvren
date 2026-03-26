@@ -1,6 +1,8 @@
 /* AppShell is server-only. Import from @/ui/layout/app-shell in layout. */
 export * from "./layout/container";
 export * from "./layout/page-header";
+export * from "./layout/page-header-v2";
+export * from "./layout/section-header";
 export * from "./layout/section";
 export * from "./layout/stack";
 export * from "./layout/grid";
@@ -13,10 +15,13 @@ export * from "./navigation/nav-item";
 export * from "./primitives/button";
 export * from "./primitives/card";
 export * from "./primitives/badge";
+export * from "./primitives/status-badge";
 export * from "./primitives/input";
 export * from "./primitives/textarea";
 export { NativeSelect, Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem } from "./primitives/select";
 export * from "./primitives/table";
+export * from "./primitives/table-shell";
+export * from "./primitives/empty-state";
 export * from "./primitives/segmented-tabs";
 export * from "./primitives/dropdown-menu";
 export * from "./primitives/dialog";

@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Bell, HelpCircle, Menu } from "lucide-react";
 import { Button } from "@/ui/primitives/button";
+import { Badge } from "@/ui/primitives/badge";
 import { ThemeToggle } from "@/ui/theme/ThemeToggle";
 import OrgSwitcher from "@/components/OrgSwitcher";
 import { SignOutButton } from "@/ui/navigation/SignOutButton";
@@ -87,7 +88,7 @@ export function Topbar({
               aria-label={`My Work. ${myWorkCount} items need your attention.`}
             >
               <span>My Work</span>
-              <span className="rounded-full bg-[var(--bg-surface-2)] px-1.5 py-0.5 text-[10px]">{myWorkCount}</span>
+              <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{myWorkCount}</Badge>
             </Link>
             <Link
               href="/changes?view=needs-my-review"
@@ -100,7 +101,7 @@ export function Topbar({
               aria-label={`Needs Review. ${needsReviewCount} approvals are pending your review.`}
             >
               <span>Needs Review</span>
-              <span className="rounded-full bg-[var(--bg-surface-2)] px-1.5 py-0.5 text-[10px]">{needsReviewCount}</span>
+              <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{needsReviewCount}</Badge>
             </Link>
             <Tooltip>
               <TooltipTrigger asChild>

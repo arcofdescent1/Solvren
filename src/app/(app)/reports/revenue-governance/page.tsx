@@ -9,6 +9,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import {
   PageHeader,
+  PageHeaderV2,
   Card,
   CardBody,
   Table,
@@ -38,12 +39,13 @@ export default async function RevenueGovernanceReportPage() {
   if (!activeOrgId || !memberships.find((m) => m.orgId === activeOrgId)) {
     return (
       <div className="space-y-4">
-        <PageHeader
+        <PageHeaderV2
           breadcrumbs={[
             { label: "Insights", href: "/insights" },
             { label: "Governance Reports" },
           ]}
           title="Governance Reports"
+          helper="Governance metrics complement Insights exposure and driver views with policy and control evidence."
         />
         <Card>
           <CardBody>
@@ -158,14 +160,15 @@ export default async function RevenueGovernanceReportPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <PageHeaderV2
         breadcrumbs={[
           { label: "Insights", href: "/insights" },
           { label: "Governance Reports" },
         ]}
         title="Governance Reports"
         description="SOX-style revenue governance proof in one click"
-        right={
+        helper="Use this report to understand control coverage and compliance posture in the broader Insights narrative."
+        actions={
           <div className="flex flex-wrap gap-3">
             <a
               href={`${exportBase}&format=json`}

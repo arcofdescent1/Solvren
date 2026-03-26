@@ -1,10 +1,12 @@
 "use client";
 
-import { Button, Card, CardBody, Input, NativeSelect, PageHeader } from "@/ui";
+import { Button, Card, CardBody, Input, NativeSelect, PageHeaderV2, SectionHeader, StatusBadge } from "@/ui";
 import { Checkbox } from "@/ui/primitives/checkbox";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ShieldCheck, Plus, Trash2, Sparkles } from "lucide-react";
+import { DOCS_LINKS } from "@/config/helpCopy";
+import { InfoTooltip, LearnMoreLink, PageHelpDrawer, SectionHelp } from "@/components/help";
 
 type Policy = {
   id: string;
@@ -31,14 +33,6 @@ const ENFORCEMENT_MODES = [
   { value: "REQUIRE_APPROVAL", label: "Require Approval" },
   { value: "BLOCK", label: "Block" },
 ];
-
-function enforcementBadge(mode: string) {
-  const c =
-    mode === "BLOCK" ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200" :
-    mode === "REQUIRE_APPROVAL" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200" :
-    "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200";
-  return <span className={`rounded px-2 py-0.5 text-xs font-medium ${c}`}>{mode.replace("_", " ")}</span>;
-}
 
 export default function PoliciesClient() {
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -131,19 +125,24 @@ export default function PoliciesClient() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <PageHeaderV2
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Settings", href: "/org/settings" },
+          { label: "Home", href: "/home" },
+          { label: "Settings", href: "/settings" },
           { label: "Revenue Policies" },
         ]}
         title="Revenue Policies"
         description="Enforce revenue control across systems. Monitor, require approval, or block changes before they are applied."
-        right={
+        actions={
           <Link href="/org/settings" className="text-sm font-semibold text-[var(--primary)] hover:underline">
             ← Settings
           </Link>
         }
+        helpTrigger={<PageHelpDrawer page="settings_policies" docsHref={DOCS_LINKS.approval_policies} />}
+      />
+      <SectionHeader
+        title="Policy configuration"
+        helper="Define policy guardrails so Solvren can route, monitor, and enforce risky changes with consistent governance behavior."
       />
 
       <Card className="border-[var(--border)] bg-[var(--bg-muted)]/40">
@@ -157,6 +156,16 @@ export default function PoliciesClient() {
             </Link>
             ; those API routes block weakening non-relaxable platform rules.
           </p>
+          {DOCS_LINKS.approval_policies ? (
+            <div className="mt-2">
+              <LearnMoreLink
+                href={DOCS_LINKS.approval_policies}
+                page="settings_policies"
+                section="legacy-authoring-note"
+                helpKey="approval_policies"
+              />
+            </div>
+          ) : null}
         </CardBody>
       </Card>
 
@@ -225,7 +234,15 @@ export default function PoliciesClient() {
               </NativeSelect>
             </div>
             <div>
-              <label className="text-xs font-medium text-[var(--text-muted)]">Enforcement</label>
+              <label className="text-xs font-medium text-[var(--text-muted)] inline-flex items-center gap-1">
+                Enforcement
+                <InfoTooltip
+                  content="Choose monitor for visibility, require approval to enforce governance gates, or block when policy conditions must prevent progression."
+                  eventName="tooltip_open"
+                  payload={{ page: "settings_policies", section: "add-policy-form", help_key: "enforcement_mode" }}
+                  label="Help: enforcement mode"
+                />
+              </label>
               <NativeSelect value={enforcementMode} onChange={(e) => setEnforcementMode(e.target.value as Policy["enforcement_mode"])} className="mt-1">
                 {ENFORCEMENT_MODES.map((m) => (
                   <option key={m.value} value={m.value}>{m.label}</option>
@@ -282,7 +299,15 @@ export default function PoliciesClient() {
                 <CardBody>
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-[var(--text)]">{p.name}</h3>
-                    {enforcementBadge(p.enforcement_mode)}
+                    <StatusBadge
+                      status={
+                        p.enforcement_mode === "BLOCK"
+                          ? "delivery_issue"
+                          : p.enforcement_mode === "REQUIRE_APPROVAL"
+                          ? "needs_review"
+                          : "monitoring"
+                      }
+                    />
                   </div>
                   <p className="mt-1 text-xs text-[var(--text-muted)]">{p.rule_type.replace(/_/g, " ")}</p>
                   {p.description && <p className="mt-1 text-sm text-[var(--text-muted)]">{p.description}</p>}

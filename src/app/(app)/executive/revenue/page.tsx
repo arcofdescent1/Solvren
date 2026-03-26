@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader, PageHeaderV2, Card, CardBody } from "@/ui";
 
 function fmtMoney(n: number) {
   try {
@@ -96,7 +96,7 @@ export default function ExecutiveRevenuePage() {
   if (loading)
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Revenue Exposure" />
+        <PageHeaderV2 breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Revenue Exposure" helper="This page aligns with the Insights narrative and may show estimated values." />
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">Loading…</p>
@@ -107,7 +107,7 @@ export default function ExecutiveRevenuePage() {
   if (err)
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Revenue Exposure" />
+        <PageHeaderV2 breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Revenue Exposure" helper="This page aligns with the Insights narrative and may show estimated values." />
         <Card className="border-[var(--danger)]/50">
           <CardBody>
             <p className="text-sm text-[var(--danger)]">{err}</p>
@@ -118,14 +118,15 @@ export default function ExecutiveRevenuePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <PageHeaderV2
         breadcrumbs={[
           { label: "Insights", href: "/insights" },
           { label: "Revenue Exposure" },
         ]}
         title="Revenue Exposure"
         description="Business impact, revenue exposure, and trend lines across recent change activity."
-        right={
+        helper="Use this view to understand concentration and trajectory of exposure with explicit time-window framing."
+        actions={
           <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
             ← Insights
           </Link>

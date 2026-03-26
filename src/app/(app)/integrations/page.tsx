@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { PageHeader, Card, CardBody, Grid, Stack } from "@/ui";
+import { Card, CardBody, Grid, PageHeaderV2, SectionHeader, Stack } from "@/ui";
 import { PAGE_COPY } from "@/config/pageCopy";
+import { PageHelpDrawer } from "@/components/help";
 
 const INTEGRATION_LINKS = [
   { title: "Connected systems", href: "/org/settings/integrations", description: "Manage connected systems and status." },
@@ -11,11 +12,14 @@ const INTEGRATION_LINKS = [
 export default function IntegrationsPage() {
   return (
     <Stack gap={6}>
-      <PageHeader
+      <PageHeaderV2
         breadcrumbs={[{ label: "Integrations" }]}
         title={PAGE_COPY.integrations.title}
         description={PAGE_COPY.integrations.description}
+        helper={PAGE_COPY.integrations.helper}
+        helpTrigger={<PageHelpDrawer page="integrations" />}
       />
+      <SectionHeader title="Integration surfaces" helper="Manage connections, mapping quality, and expansion paths for monitoring coverage." />
       <Card>
         <CardBody>
           <p className="text-sm text-[var(--text-muted)]">{PAGE_COPY.integrations.helper}</p>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import {
   PageHeader,
+  PageHeaderV2,
   Card,
   CardBody,
   CardHeader,
@@ -46,12 +47,13 @@ export default async function ExecutivePage() {
   if (!data?.ok) {
     return (
       <div className="space-y-4">
-        <PageHeader
+        <PageHeaderV2
           breadcrumbs={[
             { label: "Insights", href: "/insights" },
             { label: "Executive summary" },
           ]}
           title="Executive Summary"
+          helper="Use this view for a concise narrative of exposure, risk concentration, and executive follow-up priorities."
         />
         <Card>
           <CardBody>
@@ -71,14 +73,15 @@ export default async function ExecutivePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <PageHeaderV2
         breadcrumbs={[
           { label: "Insights", href: "/insights" },
           { label: "Executive summary" },
         ]}
         title="Executive Summary"
         description={`Last ${data.rangeDays} days`}
-        right={
+        helper="This view aligns to the Insights narrative: current exposure, drivers, trends, and what is being done."
+        actions={
           <div className="flex flex-wrap gap-3">
             <Link href="/insights/roi" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               ROI →

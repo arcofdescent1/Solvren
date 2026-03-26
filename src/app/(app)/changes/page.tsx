@@ -5,7 +5,18 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import ReviewsTable from "@/components/reviews/ReviewsTable";
 
-const VALID_VIEWS = ["my", "in_review", "blocked", "overdue", "delivery", "needs-my-review"] as const;
+const VALID_VIEWS = [
+  "all",
+  "needs-review",
+  "needs-details",
+  "overdue",
+  "delivery-health",
+  "my",
+  "in_review",
+  "blocked",
+  "delivery",
+  "needs-my-review",
+] as const;
 type View = (typeof VALID_VIEWS)[number];
 
 export default async function ChangesPage({
@@ -24,17 +35,28 @@ export default async function ChangesPage({
   if (!memberships?.length) redirect("/onboarding");
 
   const params = await searchParams;
-  const viewParam = params.view ?? "in_review";
+  const viewParam = params.view ?? "all";
   const rawView: View = VALID_VIEWS.includes(viewParam as View)
     ? (viewParam as View)
-    : "in_review";
-  const view: Exclude<View, "needs-my-review"> = rawView === "needs-my-review" ? "my" : rawView;
+    : "all";
+  const view =
+    rawView === "needs-my-review"
+      ? "needs-review"
+      : rawView === "my"
+      ? "needs-review"
+      : rawView === "in_review"
+      ? "all"
+      : rawView === "blocked"
+      ? "needs-details"
+      : rawView === "delivery"
+      ? "delivery-health"
+      : rawView;
   const learnedRiskFilter = params.learnedRisk === "1";
   const hasIncidentsFilter = params.hasIncidents === "1";
 
   return (
     <ReviewsTable
-      view={view}
+      view={view as "all" | "needs-review" | "needs-details" | "overdue" | "delivery-health"}
       learnedRiskFilter={learnedRiskFilter}
       hasIncidentsFilter={hasIncidentsFilter}
     />

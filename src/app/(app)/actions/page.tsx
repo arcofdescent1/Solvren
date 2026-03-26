@@ -5,8 +5,24 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listPendingTasksForOrg } from "@/modules/execution/persistence/execution-tasks.repository";
-import { PageHeader, Card, CardBody, Grid, Stack, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/ui";
+import {
+  Card,
+  CardBody,
+  EmptyState,
+  Grid,
+  PageHeaderV2,
+  SectionHeader,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableShell,
+} from "@/ui";
 import { PAGE_COPY } from "@/config/pageCopy";
+import { PageHelpDrawer } from "@/components/help";
 
 export default async function ActionCenterPage() {
   const supabase = await createServerSupabaseClient();
@@ -48,16 +64,17 @@ export default async function ActionCenterPage() {
 
   return (
     <Stack gap={6} className="flex flex-col">
-      <PageHeader
+      <PageHeaderV2
         title={PAGE_COPY.actions.title}
         description={PAGE_COPY.actions.description}
-        right={
+        actions={
           <Link href="/executive/roi" className="text-sm font-medium text-[var(--primary)] hover:underline">
             ROI Dashboard →
           </Link>
         }
+        helpTrigger={<PageHelpDrawer page="actions" />}
       />
-      <p className="text-sm text-[var(--text-muted)]">{PAGE_COPY.actions.helper}</p>
+      <SectionHeader title="Action Center" helper={PAGE_COPY.actions.helper} />
       {actionStats.total > 0 && (
         <Grid cols={4} gap={3}>
           <Card>
@@ -104,17 +121,22 @@ export default async function ActionCenterPage() {
         <Card>
           <CardBody>
             <Stack gap={2}>
-              <p className="text-sm text-[var(--text-muted)]">No pending tasks. Execute actions from issue detail pages.</p>
-              <Link href="/issues" className="text-sm text-[var(--primary)] hover:underline inline-block">
-                View issues →
-              </Link>
+              <EmptyState
+                variant="good_empty"
+                title="No pending tasks right now"
+                body="No assigned or recommended action currently needs execution."
+                action={
+                  <Link href="/issues" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                    View issues
+                  </Link>
+                }
+              />
             </Stack>
           </CardBody>
         </Card>
       ) : (
-        <Card>
-          <CardBody>
-            <Stack gap={4}>
+        <TableShell>
+          <Stack gap={4}>
             <Table className="w-full text-sm">
               <TableHeader>
                 <TableRow className="border-b border-[var(--border)] text-left">
@@ -150,9 +172,8 @@ export default async function ActionCenterPage() {
               <Link href="/issues" className="text-sm text-[var(--primary)] hover:underline inline-block">
                 Browse issues →
               </Link>
-            </Stack>
-          </CardBody>
-        </Card>
+          </Stack>
+        </TableShell>
       )}
     </Stack>
   );

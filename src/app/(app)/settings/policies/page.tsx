@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import PoliciesClient from "./PoliciesClient";
+import { PageHelpDrawer, SectionHelp } from "@/components/help";
 
 export default async function PoliciesPage() {
   const supabase = await createServerSupabaseClient();
@@ -17,6 +18,10 @@ export default async function PoliciesPage() {
     return (
       <div className="space-y-4">
         <h1 className="font-semibold text-lg">Revenue Policies</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SectionHelp text="Policies control governance behavior and review expectations for revenue-impacting changes." />
+          <PageHelpDrawer page="settings_policies" />
+        </div>
         <p className="text-sm text-[var(--text-muted)]">Only org owners/admins can manage revenue policies.</p>
         <Link href="/dashboard" className="text-sm font-semibold text-[var(--primary)] hover:underline">Back to dashboard</Link>
       </div>

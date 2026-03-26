@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listIssues } from "@/modules/issues";
 import type { IssueSourceType } from "@/modules/issues";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { Card, CardBody, PageHeaderV2, SectionHeader } from "@/ui";
 import {
   IssuesFilters,
   IssuesSavedViews,
@@ -15,6 +15,7 @@ import {
   getStatusesForTab,
 } from "@/components/issues";
 import { PAGE_COPY } from "@/config/pageCopy";
+import { PageHelpDrawer } from "@/components/help";
 
 export default async function IssuesPage({
   searchParams,
@@ -70,11 +71,13 @@ export default async function IssuesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeaderV2
         title={PAGE_COPY.issues.title}
         description={PAGE_COPY.issues.description}
+        helper={PAGE_COPY.issues.helper}
+        helpTrigger={<PageHelpDrawer page="issues" />}
       />
-      <p className="text-sm text-[var(--text-muted)]">{PAGE_COPY.issues.helper}</p>
+      <SectionHeader title="Issue queue" helper="Filter and triage detected problems by status, ownership, and severity." />
       <Card>
         <CardBody className="flex flex-col gap-4">
           <IssuesSavedViews />

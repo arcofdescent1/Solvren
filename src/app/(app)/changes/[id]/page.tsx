@@ -53,14 +53,14 @@ export default async function ChangeDetailPage({
     return (
       <div className="space-y-4">
         <PageHeader
-          breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]}
+          breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes", href: "/changes" }]}
           title="Change not found"
         />
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">The requested change could not be found.</p>
-            <Link href="/dashboard" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Back to dashboard
+            <Link href="/changes" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
+              ← Back to changes
             </Link>
           </CardBody>
         </Card>
@@ -72,14 +72,14 @@ export default async function ChangeDetailPage({
     return (
       <div className="space-y-4">
         <PageHeader
-          breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]}
+          breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes", href: "/changes" }]}
           title="Access denied"
         />
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">You do not have permission to view this change.</p>
-            <Link href="/dashboard" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Back to dashboard
+            <Link href="/changes" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
+              ← Back to changes
             </Link>
           </CardBody>
         </Card>
@@ -214,7 +214,7 @@ export default async function ChangeDetailPage({
     <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
+          { label: "Home", href: "/home" },
           { label: "Changes", href: "/changes" },
           { label: change.title ?? "Change", href: `/changes/${id}` },
         ]}
