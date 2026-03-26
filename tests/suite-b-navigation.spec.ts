@@ -9,7 +9,7 @@ test.describe("Suite B — Navigation and Shell Stability", () => {
   test("TC-NAV-001: Authenticated root redirect", async ({ page }) => {
     await loginAs(page, "submitter");
     await page.goto("/");
-    await expect(page).toHaveURL(/\/(dashboard|onboarding)/);
+    await expect(page).toHaveURL(/\/(home|onboarding)/);
     await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
   });
 
@@ -21,11 +21,21 @@ test.describe("Suite B — Navigation and Shell Stability", () => {
 
   test("TC-NAV-003: App shell consistency across routes", async ({ page }) => {
     await loginAs(page, "owner");
-    const routes = ["/dashboard", "/changes", "/queue/my-approvals", "/org/settings/integrations"];
+    const routes = ["/home", "/changes", "/actions", "/insights", "/integrations", "/settings"];
     for (const route of routes) {
       await page.goto(route);
       await expect(page).toHaveURL(new RegExp(route.replace(/\//g, "\\/") + "($|\\?)"), { timeout: 20_000 });
       await expect(page.getByRole("banner").getByRole("link", { name: /sign in/i })).not.toBeVisible();
     }
+  });
+
+  test("TC-NAV-004: Legacy roots redirect to new IA", async ({ page }) => {
+    await loginAs(page, "owner");
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/home(\?|$)/);
+    await page.goto("/executive");
+    await expect(page).toHaveURL(/\/insights(\?|$)/);
+    await page.goto("/org/settings");
+    await expect(page).toHaveURL(/\/settings(\?|$)/);
   });
 });

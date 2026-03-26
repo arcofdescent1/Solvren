@@ -11,13 +11,13 @@ export async function loginAs(page: Page, persona: PersonaKey) {
   await page.getByPlaceholder("Password").fill(UAT_PASSWORD);
   await page.getByRole("button", { name: /^Login$/ }).click();
   try {
-    await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 45_000 });
+    await page.waitForURL(/\/(home|dashboard|onboarding)/, { timeout: 45_000 });
   } catch {
     if (page.url().includes("/auth/verify-pending")) {
       throw new Error(
         "Login redirected to verify-pending. Ensure UAT users have email confirmed (seed runs updateUserById with email_confirm: true)."
       );
     }
-    throw new Error(`Login did not reach dashboard/onboarding. Current URL: ${page.url()}`);
+    throw new Error(`Login did not reach home/dashboard/onboarding. Current URL: ${page.url()}`);
   }
 }

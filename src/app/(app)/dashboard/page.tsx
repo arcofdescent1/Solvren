@@ -21,6 +21,7 @@ import { GrowthPromptsBar } from "@/components/growth/GrowthPromptsBar";
 import { parseOrgRole } from "@/lib/rbac/roles";
 import { canRole } from "@/lib/rbac/permissions";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
+import { PAGE_COPY } from "@/config/pageCopy";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -223,9 +224,9 @@ export default async function DashboardPage() {
         <GrowthPromptsBar />
         <OnboardingChecklist />
         <PageHeader
-          breadcrumbs={[{ label: "Overview" }]}
-          title="Revenue Overview"
-          description="What revenue is exposed, what matters most, and what to do next."
+          breadcrumbs={[{ label: "Home" }]}
+          title={PAGE_COPY.home.title}
+          description={PAGE_COPY.home.description}
           right={
             <div className="flex flex-wrap gap-3">
               {hasOrg ? (
@@ -257,16 +258,16 @@ export default async function DashboardPage() {
                     Changes
                   </Link>
                   <Link
-                    href="/risk/audit"
+                    href="/insights/risk-drivers"
                     className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
                   >
-                    Revenue Risks
+                    Risk Drivers
                   </Link>
                   <Link
-                    href="/reports/revenue-governance"
+                    href="/insights/governance-reports"
                     className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
                   >
-                    Compliance Report
+                    Governance Reports
                   </Link>
                   <a
                     href="/api/metrics/executive/export?format=csv"
@@ -287,6 +288,7 @@ export default async function DashboardPage() {
             </div>
           }
         />
+        <p className="text-sm text-[var(--text-muted)]">{PAGE_COPY.home.helper}</p>
 
         {/* Gap 7 — Revenue Risk Briefing (top of dashboard) */}
         {hasOrg && activeOrgId && (

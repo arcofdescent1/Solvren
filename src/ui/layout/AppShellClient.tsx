@@ -13,6 +13,8 @@ export type AppShellClientProps = {
   memberships?: OrgMembership[];
   activeOrgId?: string | null;
   unreadCount?: number;
+  myWorkCount?: number;
+  needsReviewCount?: number;
   children: React.ReactNode;
 };
 
@@ -21,6 +23,8 @@ function AppShellInner({
   memberships,
   activeOrgId,
   unreadCount,
+  myWorkCount,
+  needsReviewCount,
   children,
 }: AppShellClientProps) {
   const { sidebarOpen, setSidebarOpen } = useLayout();
@@ -36,13 +40,13 @@ function AppShellInner({
         memberships={memberships}
         activeOrgId={activeOrgId}
         unreadCount={unreadCount}
+        myWorkCount={myWorkCount}
+        needsReviewCount={needsReviewCount}
         sidebarOpen={sidebarOpen}
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
       />
       <Sidebar
         user={user}
-        memberships={memberships}
-        activeOrgId={activeOrgId}
         open={sidebarOpen}
       />
       {/* Overlay when sidebar open on mobile */}

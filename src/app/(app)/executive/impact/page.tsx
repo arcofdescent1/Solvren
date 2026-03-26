@@ -83,7 +83,7 @@ export default function ExecutiveImpactPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]} title="Impact Dashboard" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Risk Drivers" />
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">Loading…</p>
@@ -95,7 +95,7 @@ export default function ExecutiveImpactPage() {
   if (err) {
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]} title="Impact Dashboard" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Risk Drivers" />
         <Card className="border-[var(--danger)]/50">
           <CardBody>
             <p className="text-sm text-[var(--danger)]">{err}</p>
@@ -112,19 +112,18 @@ export default function ExecutiveImpactPage() {
     <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Executive", href: "/executive" },
-          { label: "Impact" },
+          { label: "Insights", href: "/insights" },
+          { label: "Risk Drivers" },
         ]}
-        title="Impact Quantification"
-        description="Open risk, realized loss, and operational cost from detected issues."
+        title="Risk Drivers"
+        description="Business impact, top contributors, and where risk is concentrated."
         right={
           <div className="flex gap-3">
             <Link href="/issues" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               Issues →
             </Link>
-            <Link href="/dashboard" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              Dashboard
+            <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Insights
             </Link>
           </div>
         }

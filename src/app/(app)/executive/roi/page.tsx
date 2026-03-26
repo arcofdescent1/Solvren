@@ -60,7 +60,7 @@ export default function ExecutiveROIPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Executive", href: "/executive" }, { label: "ROI" }]} title="ROI Dashboard" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "ROI" }]} title="ROI" />
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">Loading…</p>
@@ -73,7 +73,7 @@ export default function ExecutiveROIPage() {
   if (err) {
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Executive", href: "/executive" }, { label: "ROI" }]} title="ROI Dashboard" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "ROI" }]} title="ROI" />
         <Card className="border-[var(--danger)]/50">
           <CardBody>
             <p className="text-sm text-[var(--danger)]">{err}</p>
@@ -87,15 +87,14 @@ export default function ExecutiveROIPage() {
     <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Executive", href: "/executive" },
+          { label: "Insights", href: "/insights" },
           { label: "ROI" },
         ]}
-        title="ROI Dashboard"
-        description="Verified outcomes and proven impact. Did we actually make or save money?"
+        title="ROI"
+        description="Verified outcomes and measurable value from resolved issues and governed changes."
         right={
-          <Link href="/executive" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-            ← Executive Summary
+          <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+            ← Insights
           </Link>
         }
       />

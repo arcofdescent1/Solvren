@@ -16,12 +16,16 @@ import {
 } from "@/ui/primitives/dropdown-menu";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import type { OrgMembership } from "@/lib/org/activeOrg";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/primitives/tooltip";
+import { trackAppEvent } from "@/lib/appAnalytics";
 
 export type TopbarProps = {
   user?: { id: string; email?: string } | null;
   memberships?: OrgMembership[];
   activeOrgId?: string | null;
   unreadCount?: number;
+  myWorkCount?: number;
+  needsReviewCount?: number;
   sidebarOpen: boolean;
   onSidebarToggle: () => void;
 };
@@ -31,6 +35,8 @@ export function Topbar({
   memberships = [],
   activeOrgId,
   unreadCount = 0,
+  myWorkCount = 0,
+  needsReviewCount = 0,
   sidebarOpen,
   onSidebarToggle,
 }: TopbarProps) {
@@ -48,7 +54,7 @@ export function Topbar({
 
       {/* Brand - hidden on mobile, shown on sm+ */}
       <Link
-        href={user ? "/dashboard" : "/"}
+        href={user ? "/home" : "/"}
         className="hidden shrink-0 font-bold tracking-tight text-[var(--text)] sm:block"
       >
         Solvren
@@ -57,7 +63,7 @@ export function Topbar({
       {/* Search - centered on desktop, hidden on mobile */}
       {user ? (
         <div className="hidden flex-1 max-w-xl lg:block">
-          <GlobalSearchBar placeholder="Search changes, risks, issues…" />
+          <GlobalSearchBar placeholder="Search issues, changes, actions, and reports…" />
         </div>
       ) : null}
 
@@ -71,14 +77,51 @@ export function Topbar({
         {user ? (
           <>
             <Link
-              href="/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sb)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
-              aria-label="Help (opens in new tab)"
+              href="/actions?view=assigned-to-me"
+              onClick={() =>
+                trackAppEvent("topbar_my_work_click", {
+                  destination: "/actions?view=assigned-to-me",
+                })
+              }
+              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-sb)] border border-[var(--border)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
+              aria-label={`My Work. ${myWorkCount} items need your attention.`}
             >
-              <HelpCircle className="h-4 w-4" />
+              <span>My Work</span>
+              <span className="rounded-full bg-[var(--bg-surface-2)] px-1.5 py-0.5 text-[10px]">{myWorkCount}</span>
             </Link>
+            <Link
+              href="/changes?view=needs-my-review"
+              onClick={() =>
+                trackAppEvent("topbar_needs_review_click", {
+                  destination: "/changes?view=needs-my-review",
+                })
+              }
+              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-sb)] border border-[var(--border)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
+              aria-label={`Needs Review. ${needsReviewCount} approvals are pending your review.`}
+            >
+              <span>Needs Review</span>
+              <span className="rounded-full bg-[var(--bg-surface-2)] px-1.5 py-0.5 text-[10px]">{needsReviewCount}</span>
+            </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() =>
+                    trackAppEvent("help_docs_click", {
+                      source: "topbar",
+                      destination: "/docs",
+                    })
+                  }
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sb)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
+                  aria-label="Help and Docs (opens in new tab)"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Docs, page help, and setup guidance</TooltipContent>
+            </Tooltip>
             <Link
               href="/notifications"
               className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sb)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
@@ -120,7 +163,7 @@ export function Topbar({
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/org/settings" className="flex items-center gap-2 cursor-pointer">
+                  <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
                     <span className="flex h-4 w-4 items-center justify-center">⚙</span>
                     Account
                   </Link>

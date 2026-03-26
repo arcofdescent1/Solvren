@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import ReviewsTable from "@/components/reviews/ReviewsTable";
 
-const VALID_VIEWS = ["my", "in_review", "blocked", "overdue", "delivery"] as const;
+const VALID_VIEWS = ["my", "in_review", "blocked", "overdue", "delivery", "needs-my-review"] as const;
 type View = (typeof VALID_VIEWS)[number];
 
 export default async function ChangesPage({
@@ -25,9 +25,10 @@ export default async function ChangesPage({
 
   const params = await searchParams;
   const viewParam = params.view ?? "in_review";
-  const view: View = VALID_VIEWS.includes(viewParam as View)
+  const rawView: View = VALID_VIEWS.includes(viewParam as View)
     ? (viewParam as View)
     : "in_review";
+  const view: Exclude<View, "needs-my-review"> = rawView === "needs-my-review" ? "my" : rawView;
   const learnedRiskFilter = params.learnedRisk === "1";
   const hasIncidentsFilter = params.hasIncidents === "1";
 

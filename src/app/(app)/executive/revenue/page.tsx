@@ -96,7 +96,7 @@ export default function ExecutiveRevenuePage() {
   if (loading)
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]} title="Revenue Risk Dashboard" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Revenue Exposure" />
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">Loading…</p>
@@ -107,7 +107,7 @@ export default function ExecutiveRevenuePage() {
   if (err)
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]} title="Revenue Risk Dashboard" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }]} title="Revenue Exposure" />
         <Card className="border-[var(--danger)]/50">
           <CardBody>
             <p className="text-sm text-[var(--danger)]">{err}</p>
@@ -120,15 +120,14 @@ export default function ExecutiveRevenuePage() {
     <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Executive", href: "/executive" },
-          { label: "Revenue" },
+          { label: "Insights", href: "/insights" },
+          { label: "Revenue Exposure" },
         ]}
-        title="Revenue Risk Dashboard"
-        description="Financial framing for executive decisions."
+        title="Revenue Exposure"
+        description="Business impact, revenue exposure, and trend lines across recent change activity."
         right={
-          <Link href="/dashboard" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-            ← Dashboard
+          <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+            ← Insights
           </Link>
         }
       />

@@ -13,27 +13,33 @@ test.describe("Shell ownership", () => {
     await expect(page).toHaveURL("/");
     await expect(page.getByRole("banner").getByRole("link", { name: /sign in/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /request beta access/i }).first()).toBeVisible();
-    // App shell nav links to /dashboard; public page has no direct dashboard link
-    await expect(page.locator('a[href="/dashboard"]')).not.toBeVisible();
+    // App shell nav links to /home; public page has no direct app-shell nav link
+    await expect(page.locator('a[href="/home"]')).not.toBeVisible();
   });
 
-  test("authenticated visit to / redirects to /dashboard", async ({
+  test("authenticated visit to / redirects into app shell", async ({
     page,
   }) => {
     await loginAs(page, "submitter");
     await page.goto("/");
-    await expect(page).toHaveURL(/\/(dashboard|onboarding)/);
+    await expect(page).toHaveURL(/\/(home|onboarding)/);
   });
 
-  test("authenticated visit to /dashboard sees app shell, no public header", async ({
+  test("authenticated visit to /dashboard redirects to /home and sees app shell", async ({
     page,
   }) => {
     await loginAs(page, "submitter");
     await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/(dashboard|onboarding)/);
-    await expect(page.getByRole("heading", { name: /revenue overview/i })).toBeVisible({
+    await expect(page).toHaveURL(/\/(home|onboarding)/);
+    await expect(page.getByRole("heading", { name: /home/i })).toBeVisible({
       timeout: 10_000,
     });
+    await expect(page.getByRole("link", { name: "Home" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Action Center" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Insights" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Help & Docs" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /my work/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /needs review/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
   });
 
@@ -49,7 +55,12 @@ test.describe("Shell ownership", () => {
     await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
   });
 
-  test("dashboard requires auth", async ({ page }) => {
+  test("home requires auth", async ({ page }) => {
+    await page.goto("/home");
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("dashboard alias requires auth", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/);
   });
@@ -60,7 +71,7 @@ test.describe("Shell ownership", () => {
     await page.goto("/");
     await expect(page.getByRole("banner").getByRole("link", { name: /sign in/i })).toBeVisible();
     await loginAs(page, "submitter");
-    await expect(page.getByRole("heading", { name: /revenue overview/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("heading", { name: /home/i })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
   });
 });

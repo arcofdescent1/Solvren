@@ -3,16 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  FileCheck,
-  Shield,
-  BarChart3,
-  Building2,
-  AlertCircle,
-  Zap,
-} from "lucide-react";
 import { cn } from "@/lib/cn";
+import { HELP_DOCS_NAV_ITEM, PRIMARY_APP_NAV } from "@/config/appNavigation";
+import { trackAppEvent } from "@/lib/appAnalytics";
 
 export type SidebarSection = {
   heading: string;
@@ -26,8 +19,6 @@ export type SidebarSection = {
 
 export type SidebarProps = {
   user?: { id: string; email?: string } | null;
-  memberships?: Array<{ orgId: string; orgName: string | null; role: string | null }>;
-  activeOrgId?: string | null;
   open?: boolean;
 };
 
@@ -36,15 +27,18 @@ function SidebarNavLink({
   label,
   icon,
   active,
+  onClick,
 }: {
   href: string;
   label: string;
   icon?: React.ReactNode;
   active: boolean;
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={cn(
         "flex items-center gap-2 rounded-[var(--radius-sb)] px-3 py-2 text-sm font-medium transition-colors",
         active
@@ -58,18 +52,7 @@ function SidebarNavLink({
   );
 }
 
-/** Phase 0: Issues-first nav — Issues, Overview, Changes, Risks, Reports, Settings. */
-const PRIMARY_NAV_ITEMS = [
-  { href: "/issues", label: "Issues", icon: <AlertCircle /> },
-  { href: "/actions", label: "Actions", icon: <Zap /> },
-  { href: "/dashboard", label: "Overview", icon: <LayoutDashboard /> },
-  { href: "/changes", label: "Changes", icon: <FileCheck /> },
-  { href: "/risk/audit", label: "Risks", icon: <Shield /> },
-  { href: "/reports/revenue-governance", label: "Reports", icon: <BarChart3 /> },
-  { href: "/org/settings", label: "Settings", icon: <Building2 /> },
-];
-
-export function Sidebar({ user, memberships = [], activeOrgId, open = true }: SidebarProps) {
+export function Sidebar({ user, open = true }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -83,26 +66,45 @@ export function Sidebar({ user, memberships = [], activeOrgId, open = true }: Si
     >
       <nav className="flex flex-1 flex-col overflow-y-auto p-3">
         <div className="flex flex-col gap-0.5">
-          {PRIMARY_NAV_ITEMS.map((item) => {
-            const isSettings = item.href === "/org/settings";
-            const isRisks = item.href === "/risk/audit";
-            const active =
-              pathname === item.href ||
-              pathname.startsWith(item.href + "/") ||
-              (isSettings && (pathname.startsWith("/settings") || pathname.startsWith("/integrations") || pathname.startsWith("/admin"))) ||
-              (isRisks && pathname.startsWith("/risk"));
+          {PRIMARY_APP_NAV.map((item) => {
+            const active = item.activeMatch.some(
+              (prefix) => pathname === prefix || pathname.startsWith(prefix + "/")
+            );
+            const Icon = item.icon;
             return (
               <SidebarNavLink
-                key={item.href}
+                key={item.key}
                 href={item.href}
                 label={item.label}
-                icon={item.icon}
+                icon={<Icon />}
                 active={active}
+                onClick={() =>
+                  trackAppEvent("primary_nav_click", {
+                    nav_key: item.key,
+                    source_page: pathname,
+                    destination: item.href,
+                  })
+                }
               />
             );
           })}
         </div>
       </nav>
+
+      <div className="border-t border-[var(--border)] p-3">
+        <SidebarNavLink
+          href={HELP_DOCS_NAV_ITEM.href}
+          label={HELP_DOCS_NAV_ITEM.label}
+          icon={<HELP_DOCS_NAV_ITEM.icon />}
+          active={pathname === HELP_DOCS_NAV_ITEM.href || pathname.startsWith(`${HELP_DOCS_NAV_ITEM.href}/`)}
+          onClick={() =>
+            trackAppEvent("help_docs_click", {
+              source_page: pathname,
+              destination: HELP_DOCS_NAV_ITEM.href,
+            })
+          }
+        />
+      </div>
 
       {/* Footer */}
       {user?.email && (

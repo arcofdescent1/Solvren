@@ -59,11 +59,13 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/settings", destination: "/org/settings", permanent: true },
+      { source: "/dashboard", destination: "/home", permanent: false },
+      { source: "/executive", destination: "/insights", permanent: false },
+      { source: "/org/settings", destination: "/settings", permanent: false },
       { source: "/admin", destination: "/admin/jobs", permanent: true },
       // Gap 1: demote Reviews, Signals from primary nav
       { source: "/reviews", destination: "/changes?view=in_review", permanent: false },
-      { source: "/signals", destination: "/risk/audit", permanent: false },
+      { source: "/signals", destination: "/insights/risk-drivers", permanent: false },
       // Gap 2: Ops moved to Settings → System diagnostics
       { source: "/ops", destination: "/settings/system/diagnostics", permanent: false },
       // Gap 3: integration marketplace at /settings/integrations

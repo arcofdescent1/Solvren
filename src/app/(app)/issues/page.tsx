@@ -14,6 +14,7 @@ import {
   getStatusTabFromParam,
   getStatusesForTab,
 } from "@/components/issues";
+import { PAGE_COPY } from "@/config/pageCopy";
 
 export default async function IssuesPage({
   searchParams,
@@ -70,9 +71,10 @@ export default async function IssuesPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Issues"
-        description="All detected and active problems across systems. Triage, assign, resolve, and verify."
+        title={PAGE_COPY.issues.title}
+        description={PAGE_COPY.issues.description}
       />
+      <p className="text-sm text-[var(--text-muted)]">{PAGE_COPY.issues.helper}</p>
       <Card>
         <CardBody className="flex flex-col gap-4">
           <IssuesSavedViews />

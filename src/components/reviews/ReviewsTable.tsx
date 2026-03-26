@@ -368,11 +368,11 @@ export default function ReviewsTable({
     <div data-testid={`reviews-table-${view}`} className="space-y-4">
       <PageHeader
         breadcrumbs={[
-          { label: "Overview", href: "/dashboard" },
+          { label: "Home", href: "/home" },
           { label: "Changes" },
         ]}
-        title="Revenue Changes"
-        description="View and manage revenue changes by status"
+        title="Changes"
+        description="Revenue-impacting changes in flight. Track review status, missing details, deadlines, and what needs action next."
         right={
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Link

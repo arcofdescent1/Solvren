@@ -48,8 +48,8 @@ export default async function ExecutivePage() {
       <div className="space-y-4">
         <PageHeader
           breadcrumbs={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Executive" },
+            { label: "Insights", href: "/insights" },
+            { label: "Executive summary" },
           ]}
           title="Executive Summary"
         />
@@ -73,18 +73,18 @@ export default async function ExecutivePage() {
     <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Executive" },
+          { label: "Insights", href: "/insights" },
+          { label: "Executive summary" },
         ]}
-        title="Solvren — Executive Summary"
+        title="Executive Summary"
         description={`Last ${data.rangeDays} days`}
         right={
           <div className="flex flex-wrap gap-3">
-            <Link href="/executive/roi" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              ROI Dashboard →
+            <Link href="/insights/roi" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              ROI →
             </Link>
-            <Link href="/executive/impact" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              Impact Dashboard →
+            <Link href="/insights/risk-drivers" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Risk Drivers →
             </Link>
             <Link href="/changes" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               Revenue Changes →

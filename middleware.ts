@@ -6,8 +6,9 @@ import type { NextRequest } from "next/server";
  * No Supabase; auth is enforced in (app) layout and API routes.
  */
 export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  requestHeaders.set("x-pathname", pathname);
   return NextResponse.next({
     request: { headers: requestHeaders },
   });

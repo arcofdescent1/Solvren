@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listPendingTasksForOrg } from "@/modules/execution/persistence/execution-tasks.repository";
 import { PageHeader, Card, CardBody, Grid, Stack, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/ui";
+import { PAGE_COPY } from "@/config/pageCopy";
 
 export default async function ActionCenterPage() {
   const supabase = await createServerSupabaseClient();
@@ -48,14 +49,15 @@ export default async function ActionCenterPage() {
   return (
     <Stack gap={6} className="flex flex-col">
       <PageHeader
-        title="Action Center"
-        description="DETECT → QUANTIFY → ROUTE → EXECUTE → VERIFY. Pending write-back tasks and execution metrics."
+        title={PAGE_COPY.actions.title}
+        description={PAGE_COPY.actions.description}
         right={
           <Link href="/executive/roi" className="text-sm font-medium text-[var(--primary)] hover:underline">
             ROI Dashboard →
           </Link>
         }
       />
+      <p className="text-sm text-[var(--text-muted)]">{PAGE_COPY.actions.helper}</p>
       {actionStats.total > 0 && (
         <Grid cols={4} gap={3}>
           <Card>

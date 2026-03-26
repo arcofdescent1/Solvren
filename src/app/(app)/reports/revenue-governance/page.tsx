@@ -40,11 +40,10 @@ export default async function RevenueGovernanceReportPage() {
       <div className="space-y-4">
         <PageHeader
           breadcrumbs={[
-            { label: "Overview", href: "/dashboard" },
-            { label: "Reports" },
-            { label: "Revenue Governance" },
+            { label: "Insights", href: "/insights" },
+            { label: "Governance Reports" },
           ]}
-          title="Revenue Governance Report"
+          title="Governance Reports"
         />
         <Card>
           <CardBody>
@@ -161,11 +160,10 @@ export default async function RevenueGovernanceReportPage() {
     <div className="space-y-6">
       <PageHeader
         breadcrumbs={[
-          { label: "Overview", href: "/dashboard" },
-          { label: "Reports", href: "/reports/revenue-governance" },
-          { label: "Revenue Governance" },
+          { label: "Insights", href: "/insights" },
+          { label: "Governance Reports" },
         ]}
-        title="Revenue Governance Report"
+        title="Governance Reports"
         description="SOX-style revenue governance proof in one click"
         right={
           <div className="flex flex-wrap gap-3">
@@ -187,8 +185,8 @@ export default async function RevenueGovernanceReportPage() {
             >
               Download PDF
             </a>
-            <Link href="/dashboard" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Overview
+            <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              ← Insights
             </Link>
           </div>
         }

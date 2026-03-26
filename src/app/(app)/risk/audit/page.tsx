@@ -33,7 +33,7 @@ export default async function RiskAuditPage() {
   if (!activeOrgId || !memberships.find((m) => m.orgId === activeOrgId)) {
     return (
       <div className="space-y-4">
-        <PageHeader breadcrumbs={[{ label: "Overview", href: "/dashboard" }, { label: "Risks" }]} title="Revenue Risks" />
+        <PageHeader breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "Risk Drivers" }]} title="Risk Drivers" />
         <Card><CardBody><p className="text-sm text-[var(--text-muted)]">No organization selected.</p></CardBody></Card>
       </div>
     );
@@ -48,9 +48,9 @@ export default async function RiskAuditPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        breadcrumbs={[{ label: "Overview", href: "/dashboard" }, { label: "Risks" }]}
-        title="Revenue Risks"
-        description="Risk events, investigation details, and linked changes"
+        breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "Risk Drivers" }]}
+        title="Risk Drivers"
+        description="Detected risk events, investigation details, and linked changes."
       />
 
       <Card>
