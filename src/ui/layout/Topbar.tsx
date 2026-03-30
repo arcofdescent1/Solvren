@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Bell, HelpCircle, Menu } from "lucide-react";
 import { Button } from "@/ui/primitives/button";
@@ -56,9 +57,20 @@ export function Topbar({
       {/* Brand - hidden on mobile, shown on sm+ */}
       <Link
         href={user ? "/home" : "/"}
-        className="hidden shrink-0 font-bold tracking-tight text-[var(--text)] sm:block"
+        className="hidden shrink-0 items-center gap-2 font-bold tracking-tight text-[var(--text)] sm:inline-flex"
       >
-        Solvren
+        {user ? (
+          <Image
+            src="/images/Solvren.svg"
+            alt=""
+            width={20}
+            height={20}
+            className="h-[1.5em] w-auto shrink-0"
+            unoptimized
+            aria-hidden
+          />
+        ) : null}
+        <span>Solvren</span>
       </Link>
 
       {/* Search - centered on desktop, hidden on mobile */}

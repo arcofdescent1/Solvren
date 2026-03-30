@@ -6,14 +6,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listIssues } from "@/modules/issues";
 import type { IssueSourceType } from "@/modules/issues";
 import { Card, CardBody, PageHeaderV2, SectionHeader } from "@/ui";
-import {
-  IssuesFilters,
-  IssuesSavedViews,
-  IssueStatusTabs,
-  IssuesTable,
-  getStatusTabFromParam,
-  getStatusesForTab,
-} from "@/components/issues";
+import { IssuesFilters, IssuesSavedViews, IssueStatusTabs, IssuesTable } from "@/components/issues";
+import { getStatusTabFromParam, getStatusesForTab } from "@/components/issues/issueStatusTabs.model";
 import { PAGE_COPY } from "@/config/pageCopy";
 import { PageHelpDrawer } from "@/components/help";
 

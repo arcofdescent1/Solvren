@@ -353,10 +353,34 @@ export default function InsightsLandingPage() {
             }
           />
           <Grid cols={4} gap={3}>
-            <Card><CardBody><p className="text-xs text-[var(--text-muted)]">Potential issues prevented</p><p className="text-xl font-semibold">{roi?.metrics.prevented.displayValue ?? "0"}</p><p className="text-xs text-[var(--text-muted)]">{roi?.metrics.prevented.confidence.replaceAll("_", " ") ?? "estimated"}</p></CardBody></Card>
-            <Card><CardBody><p className="text-xs text-[var(--text-muted)]">Issues resolved</p><p className="text-xl font-semibold">{roi?.metrics.resolved.displayValue ?? "0"}</p><p className="text-xs text-[var(--text-muted)]">{roi?.metrics.resolved.confidence.replaceAll("_", " ") ?? "observed"}</p></CardBody></Card>
-            <Card><CardBody><p className="text-xs text-[var(--text-muted)]">High-risk changes reviewed</p><p className="text-xl font-semibold">{roi?.metrics.governed.displayValue ?? "0 (0%)"}</p><p className="text-xs text-[var(--text-muted)]">{roi?.metrics.governed.confidence.replaceAll("_", " ") ?? "observed"}</p></CardBody></Card>
-            <Card><CardBody><p className="text-xs text-[var(--text-muted)]">Risk trend improvement</p><p className="text-xl font-semibold capitalize">{roi?.impactSummary.trend.replaceAll("_", " ") ?? "stable"}</p><p className="text-xs text-[var(--text-muted)]">{roi?.metrics.trend.displayValue ?? "0%"} estimated</p></CardBody></Card>
+            <Card>
+              <CardBody>
+                <p className="text-xs text-[var(--text-muted)]">Potential issues prevented</p>
+                <p className="text-xl font-semibold">{roi?.metrics?.prevented?.displayValue ?? "0"}</p>
+                <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.prevented?.confidence ?? "estimated").replaceAll("_", " ")}</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <p className="text-xs text-[var(--text-muted)]">Issues resolved</p>
+                <p className="text-xl font-semibold">{roi?.metrics?.resolved?.displayValue ?? "0"}</p>
+                <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.resolved?.confidence ?? "observed").replaceAll("_", " ")}</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <p className="text-xs text-[var(--text-muted)]">High-risk changes reviewed</p>
+                <p className="text-xl font-semibold">{roi?.metrics?.governed?.displayValue ?? "0 (0%)"}</p>
+                <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.governed?.confidence ?? "observed").replaceAll("_", " ")}</p>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <p className="text-xs text-[var(--text-muted)]">Risk trend improvement</p>
+                <p className="text-xl font-semibold capitalize">{(roi?.impactSummary?.trend ?? "stable").replaceAll("_", " ")}</p>
+                <p className="text-xs text-[var(--text-muted)]">{roi?.metrics?.trend?.displayValue ?? "0%"} estimated</p>
+              </CardBody>
+            </Card>
           </Grid>
           {!roi || !roi.ok ? (
             <p className="mt-3 text-xs text-[var(--text-muted)]">

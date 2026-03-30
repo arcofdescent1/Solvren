@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
-
-type Tab = { key: string; label: string; statuses: string[] };
-
-const TABS: Tab[] = [
-  { key: "open", label: "Open", statuses: ["open", "triaged", "assigned", "in_progress"] },
-  { key: "assigned", label: "Assigned", statuses: ["assigned", "in_progress"] },
-  { key: "pending_verification", label: "Pending verification", statuses: ["resolved"] },
-  { key: "verified", label: "Verified", statuses: ["verified"] },
-  { key: "dismissed", label: "Dismissed", statuses: ["dismissed"] },
-];
+import { ISSUE_STATUS_TAB_DEFS } from "./issueStatusTabs.model";
 
 function buildHref(searchParams: URLSearchParams, statusFilter: string | null) {
   const next = new URLSearchParams(searchParams);
@@ -34,7 +25,7 @@ export function IssueStatusTabs({
 
   return (
     <div className="flex flex-wrap gap-1 border-b border-[var(--border)]">
-      {TABS.map((tab) => {
+      {ISSUE_STATUS_TAB_DEFS.map((tab) => {
         const count = counts[tab.key] ?? 0;
         const isActive = activeTab === tab.key;
         const href = buildHref(searchParams, isActive ? null : tab.key);
@@ -65,15 +56,4 @@ export function IssueStatusTabs({
       })}
     </div>
   );
-}
-
-export function getStatusTabFromParam(statusParam: string | null): string {
-  if (!statusParam) return "open";
-  const t = TABS.find((tab) => tab.key === statusParam);
-  return t?.key ?? "open";
-}
-
-export function getStatusesForTab(tabKey: string): string[] {
-  const t = TABS.find((tab) => tab.key === tabKey);
-  return t?.statuses ?? TABS[0].statuses;
 }
