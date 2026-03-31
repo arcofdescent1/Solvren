@@ -65,7 +65,7 @@ export function HeroSection({
   title,
   subtitle,
   primaryCta = { href: "/signup", label: "Get Started" },
-  secondaryCta = { href: "/demo", label: "Book Demo" },
+  secondaryCta = { href: "/demo", label: "Book a Demo" },
   tertiaryCta,
   trustItems,
 }: {
@@ -140,11 +140,11 @@ function HeroShowcase() {
               <div className="text-xs uppercase tracking-[0.24em] text-cyan-200/70">Live change in review</div>
               <div className="mt-1 text-lg font-semibold text-white">Stripe Pricing Logic Update</div>
             </div>
-            <div className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rose-200">High risk</div>
+            <div className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rose-200">High Risk</div>
           </div>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <MockPanel title="Revenue Impact Report" tone="cyan">
+            <MockPanel title="Revenue Impact" tone="cyan">
               <div className="space-y-3 text-sm text-slate-300">
                 <div className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
                   <span>Risk score</span>
@@ -164,13 +164,13 @@ function HeroShowcase() {
                 </div>
               </div>
             </MockPanel>
-            <MockPanel title="Coordination Autopilot" tone="indigo">
+            <MockPanel title="Suggested Reviewers" tone="indigo">
               <div className="space-y-3 text-sm text-slate-300">
                 <div className="rounded-xl border border-white/8 bg-slate-950/40 p-3">
-                  <div className="text-xs uppercase tracking-[0.22em] text-slate-400">Suggested approvers</div>
+                  <div className="text-xs uppercase tracking-[0.22em] text-slate-400">Suggested reviewers</div>
                   <div className="mt-2 space-y-2">
                     {[
-                      "Finance Reviewer — pricing governance",
+                      "Finance Reviewer — Pricing governance",
                       "Billing Owner — Stripe ownership",
                     ].map((item) => (
                       <div key={item} className="rounded-lg bg-white/5 px-3 py-2 text-white">{item}</div>
@@ -195,8 +195,8 @@ function HeroShowcase() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {[
-              { label: "Changes in review", value: "14" },
-              { label: "Blocked by evidence", value: "3" },
+              { label: "Active changes", value: "14" },
+              { label: "Blocked by missing evidence", value: "3" },
               { label: "Overdue approvals", value: "2" },
             ].map((metric) => (
               <div key={metric.label} className="rounded-2xl border border-white/8 bg-white/5 p-4">
@@ -304,32 +304,34 @@ export function ProblemSection() {
     {
       title: "Without Solvren",
       points: [
-        "Revenue-impacting issues go undetected until they hit the bottom line",
-        "No way to quantify which issues matter most",
-        "Manual fixes and no verification that actions worked",
+        "Failed payments and refund leakage silently reduce revenue",
+        "CRM and billing systems drift out of sync",
+        "Teams waste time chasing issues manually across tools",
+        "Nobody knows which problems matter most",
+        "There is no clear way to measure recovered value or ROI",
       ],
     },
     {
-      title: "What breaks",
+      title: "With Solvren",
       points: [
-        "Failed payments and refund leakage drain revenue",
-        "CRM drift and reconciliation gaps create missed opportunities",
-        "No visibility into recovered value or ROI",
-      ],
-    },
-    {
-      title: "Why existing tools fall short",
-      points: [
-        "BI tools report after the fact—they don't detect or act",
-        "Ticketing systems track work but don't run playbooks",
-        "No closed loop to verify outcomes and prove value",
+        "Detect revenue-impacting issues automatically",
+        "Prioritize issues by real financial impact",
+        "Run safe playbooks to fix the problem",
+        "Verify the outcome before closing the issue",
+        "Show leadership exactly how much revenue was recovered or protected",
       ],
     },
   ];
 
   return (
-    <SectionFrame eyebrow="The problem" title="Revenue-impacting issues hide in your systems until it's too late.">
-      <div className="grid gap-6 lg:grid-cols-3">
+    <SectionFrame eyebrow="Why Solvren" title="Revenue-impacting issues hide in your systems until it is too late.">
+      <p className="max-w-4xl text-base leading-8 text-slate-300">
+        Disconnected systems, broken billing logic, CRM drift, failed payments, and bad operational changes quietly cost companies money every day. Most teams do not find these issues until revenue is already lost.
+      </p>
+      <p className="mt-4 max-w-4xl text-base leading-8 text-slate-300">
+        Solvren is the first platform built to detect those issues early, fix them safely, and prove the financial value recovered.
+      </p>
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
         {columns.map((column) => (
           <div key={column.title} className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20">
             <h3 className="text-xl font-bold text-white">{column.title}</h3>
@@ -368,7 +370,7 @@ export function ValuePillarsSection() {
   ];
 
   return (
-    <SectionFrame eyebrow="Why teams buy" title="A closed-loop system for protecting and growing revenue.">
+    <SectionFrame eyebrow="The Closed Loop" title="A closed-loop system for protecting and growing revenue">
       <div className="grid gap-6 lg:grid-cols-3">
         {features.map((feature) => {
           const Icon = iconMap[feature.icon];
@@ -388,7 +390,7 @@ export function ValuePillarsSection() {
 }
 
 export function WorkflowOverviewSection() {
-  const stepIcons = ["Layers3", "Search", "Gauge", "Zap", "CheckCircle2", "BarChart3"] as const;
+  const stepIcons = ["Layers3", "Search", "Gauge", "Zap", "BarChart3"] as const;
   const steps = HOW_IT_WORKS.map((s, i) => ({
     step: s.step,
     title: s.title,
@@ -397,7 +399,7 @@ export function WorkflowOverviewSection() {
   }));
 
   return (
-    <SectionFrame eyebrow="How it works" title="Connect, detect, quantify, act, verify, and track value in one closed loop.">
+    <SectionFrame eyebrow="How It Works" title="Get value in less than a day">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((item) => {
           const Icon = iconMap[item.icon];
@@ -469,26 +471,26 @@ export function AudienceCardsSection() {
   const cards = [
     {
       href: "/for-executives",
-      title: "For executives",
-      body: "See recovered revenue, avoided loss, and ROI at a glance. Executive dashboards with benchmarks and insights prove the value of revenue protection.",
+      title: "For Executives",
+      body: "See revenue at risk, recovered value, avoided loss, and ROI in one place.",
       icon: "BarChart3",
     },
     {
       href: "/for-engineering",
-      title: "For engineering",
-      body: "Run playbooks safely with idempotent execution, retries, and verification. Connect Stripe, HubSpot, Salesforce—and fix issues where they live.",
+      title: "For Engineering & Platform Teams",
+      body: "Safely automate fixes with retries, idempotency, approvals, and full audit history.",
       icon: "Cpu",
     },
     {
       href: "/for-finance",
-      title: "For finance & RevOps",
-      body: "Detect failed payments, refund leakage, and reconciliation gaps. Quantify impact, automate fixes, and track value with full auditability.",
+      title: "For Finance & RevOps",
+      body: "Stop failed payments, refund leakage, and reconciliation issues before they impact reporting and revenue.",
       icon: "Landmark",
     },
   ] as const;
 
   return (
-    <SectionFrame eyebrow="Built for cross-functional teams" title="Choose the lens that matches the buyer in the room.">
+    <SectionFrame eyebrow="Why Teams Buy" title="Why executives, RevOps, finance, and engineering teams buy Solvren">
       <div className="grid gap-6 lg:grid-cols-3">
         {cards.map((card) => {
           const Icon = iconMap[card.icon];
@@ -513,24 +515,24 @@ export function AudienceCardsSection() {
 export function FAQSection() {
   const faqs = [
     {
-      q: "How is Solvren different from our BI or ticketing tools?",
-      a: "BI tools report after the fact. Ticketing systems track work. Solvren detects revenue-impacting issues, quantifies their impact, runs playbooks to fix them, verifies outcomes, and tracks recovered revenue to prove ROI—a full closed loop.",
+      q: "How is Solvren different from BI, monitoring, or ticketing tools?",
+      a: "Those tools tell you what happened after the fact. Solvren detects the issue, estimates the financial impact, fixes it safely, verifies the result, and tracks the value recovered.",
     },
     {
-      q: "Does this require a lot of manual work?",
-      a: "No. Playbooks can run automatically with retries and idempotency. You can require approval for sensitive actions. Either way, every action is verified and tracked, so you know what worked.",
+      q: "Does Solvren require a lot of manual work?",
+      a: "No. Solvren can automatically run playbooks with retries, idempotency, and verification. You can require approval for sensitive actions.",
     },
     {
-      q: "Who owns this inside the organization?",
-      a: "RevOps, finance systems, billing/platform, and engineering leaders responsible for payments, CRM, subscriptions, and revenue workflows. Executive dashboards make ROI visible to leadership.",
+      q: "Who typically owns Solvren?",
+      a: "Most often it is owned by RevOps, finance systems, billing, or engineering leaders responsible for revenue-critical systems.",
     },
     {
-      q: "Where do most teams start?",
-      a: "Connect Stripe and run detector packs for failed payments and refund leakage. Add HubSpot or Salesforce for CRM data integrity. Prove your first value in minutes, then expand.",
+      q: "Where should we start?",
+      a: "Most companies begin by connecting Stripe and enabling detector packs for failed payments and refund leakage. Then they add HubSpot or Salesforce.",
     },
     {
-      q: "How does Solvren prove value?",
-      a: "By tracking recovered revenue and avoided loss in real time. Playbook performance metrics, time-to-value insights, and executive dashboards show measurable ROI from day one.",
+      q: "How quickly can we see value?",
+      a: "Most teams find their first issue and quantify their first recovered value within the first day.",
     },
   ];
 
@@ -587,17 +589,18 @@ export function FinalCTASection({
 
 export function ComparisonBand() {
   const rows = [
-    ["Detects revenue-impacting issues automatically", "Jira", "Slack", "Spreadsheets", "Solvren"],
-    ["Quantifies impact and prioritizes by value", "—", "—", "Manual", "Yes"],
-    ["Executes playbooks with retries and verification", "—", "—", "—", "Yes"],
+    ["Detects revenue-impacting issues automatically", "Partial", "No", "Partial", "Yes"],
+    ["Quantifies financial impact", "No", "No", "No", "Yes"],
+    ["Safely automates corrective actions", "No", "No", "No", "Yes"],
+    ["Verifies that the issue was resolved", "No", "No", "Partial", "Yes"],
     ["Tracks recovered revenue and proves ROI", "No", "No", "No", "Yes"],
   ];
   return (
-    <SectionFrame eyebrow="Why it is different" title="Generic tools track tasks. Solvren detects, fixes, and proves value.">
+    <SectionFrame eyebrow="Differentiation" title="Most tools help you see problems. Solvren helps you fix them.">
       <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
         <div className="grid grid-cols-5 border-b border-white/10 bg-white/5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
           <div className="px-5 py-4">Capability</div>
-          {rows[0].slice(1).map((c) => <div key={c} className="px-5 py-4">{c}</div>)}
+          {["BI Tools", "Ticketing Tools", "Monitoring Tools", "Solvren"].map((c) => <div key={c} className="px-5 py-4">{c}</div>)}
         </div>
         {rows.map((row) => (
           <div key={row[0]} className="grid grid-cols-5 border-t border-white/10 text-sm text-slate-200">
@@ -721,8 +724,8 @@ export function PricingCards() {
 
 export function UseCasesSection() {
   return (
-    <SectionFrame eyebrow="Use cases" title="Revenue protection that works where your data lives.">
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <SectionFrame eyebrow="Core Benefits" title="What Solvren helps you solve">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {USE_CASES.map((uc) => (
           <div key={uc.title} className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <h3 className="text-lg font-bold text-white">{uc.title}</h3>

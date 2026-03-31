@@ -4,15 +4,15 @@
  */
 
 export const HERO = {
-  headline: "Detect and fix revenue-impacting issues—automatically.",
+  headline: "Stop Revenue Leaks Before They Cost You Thousands",
   subheadline:
-    "Solvren connects to your systems, detects issues impacting revenue, quantifies their impact, takes action, verifies outcomes, and proves ROI.",
+    "Solvren monitors Stripe, HubSpot, Salesforce, and your other critical systems to detect revenue-impacting issues, quantify the risk, safely fix the problem, and prove the value recovered.",
   primaryCta: {
     label: "Get Started",
     href: "/signup",
   },
   secondaryCta: {
-    label: "Book Demo",
+    label: "Book a Demo",
     href: "/demo",
   },
 };
@@ -20,8 +20,8 @@ export const HERO = {
 export const TRUST_BAR = {
   items: [
     "Works with Stripe, HubSpot, Salesforce, and more",
-    "Enterprise-grade security and controls",
-    "Safe automation with full visibility and auditability",
+    "Enterprise-grade security",
+    "Safe automation with full audit trail",
   ],
 };
 
@@ -58,29 +58,29 @@ export const CORE_LOOP = {
 
 export const VALUE_PROPS = [
   {
-    title: "Detect Issues Across Systems",
+    title: "Detect Revenue-Impacting Issues",
     description:
-      "Surface hidden problems across Stripe, HubSpot, Salesforce, and other systems before they impact revenue.",
+      "Automatically identify failed payments, CRM drift, refund leakage, and reconciliation risk before revenue is lost.",
   },
   {
-    title: "Prioritize What Matters",
+    title: "Prioritize by Financial Impact",
     description:
-      "Quantify impact and focus your team on the highest-value issues first.",
+      "Quantify each issue with a risk score and likely financial impact so your team focuses on what matters most.",
   },
   {
-    title: "Take Action Automatically",
+    title: "Fix Issues Safely",
     description:
-      "Run playbooks to fix issues safely with retries, idempotency, and full audit trails.",
+      "Run approved playbooks with retries, idempotency, and safeguards that reduce operational risk.",
   },
   {
-    title: "Verify Outcomes",
+    title: "Verify Every Resolution",
     description:
-      "Ensure every action actually worked with built-in verification and reconciliation.",
+      "Confirm fixes worked with validation and reconciliation before closing the issue.",
   },
   {
-    title: "Prove ROI",
+    title: "Prove Recovered Value",
     description:
-      "Track recovered revenue and avoided loss in real time with a clear value dashboard.",
+      "Show leadership recovered revenue, avoided loss, and ROI with executive-ready reporting.",
   },
 ];
 
@@ -89,37 +89,31 @@ export const HOW_IT_WORKS = [
     step: "1",
     title: "Connect your systems",
     description:
-      "Integrate tools like Stripe, HubSpot, and Salesforce to start ingesting signals.",
+      "Connect Stripe, HubSpot, Salesforce, or your existing systems.",
   },
   {
     step: "2",
     title: "Detect issues automatically",
     description:
-      "Detector packs continuously identify anomalies and operational gaps impacting revenue.",
+      "Solvren automatically detects revenue-impacting issues.",
   },
   {
     step: "3",
-    title: "Quantify impact",
+    title: "Review impact and playbook",
     description:
-      "Each issue is scored based on financial impact and confidence.",
+      "Review the impact score and recommended playbook.",
   },
   {
     step: "4",
-    title: "Run playbooks",
+    title: "Approve or automate",
     description:
-      "Fix issues with automated or guided actions using safe, reliable execution.",
+      "Approve the action or allow Solvren to fix it automatically.",
   },
   {
     step: "5",
-    title: "Verify results",
-    description:
-      "Confirm that actions completed successfully and the issue is resolved.",
-  },
-  {
-    step: "6",
     title: "Track value",
     description:
-      "Measure recovered revenue and avoided loss with full transparency.",
+      "Track the revenue recovered and the issues prevented.",
   },
 ];
 
@@ -127,22 +121,27 @@ export const USE_CASES = [
   {
     title: "Failed Payment Recovery",
     description:
-      "Automatically detect and recover failed payments before revenue is lost.",
+      "Automatically detect and recover failed subscription and payment issues before revenue is lost.",
   },
   {
     title: "Refund Leakage",
     description:
-      "Identify and correct incorrect or unnecessary refunds.",
+      "Catch unnecessary or incorrect refunds and prevent money from slipping away.",
   },
   {
-    title: "CRM Data Integrity",
+    title: "CRM & Billing Drift",
     description:
-      "Fix inconsistencies across systems that lead to missed revenue opportunities.",
+      "Find inconsistencies between systems like HubSpot, Salesforce, and Stripe before they create missed revenue or bad customer experiences.",
   },
   {
     title: "Revenue Reconciliation",
     description:
-      "Detect mismatches across billing, CRM, and reporting systems.",
+      "Detect mismatches between systems, reports, and workflows that create hidden financial risk.",
+  },
+  {
+    title: "Change Risk & Governance",
+    description:
+      "Review high-risk operational changes before they create downstream revenue problems.",
   },
 ];
 
@@ -182,15 +181,15 @@ export const ROI_SECTION = {
 };
 
 export const FINAL_CTA = {
-  headline: "Start protecting your revenue today",
+  headline: "Stop revenue leaks before they become expensive problems.",
   subheadline:
-    "Connect your systems, detect your first issue, and prove your first value in minutes.",
+    "Connect your systems, detect your first issue, and prove value in minutes.",
   primaryCta: {
     label: "Get Started",
     href: "/signup",
   },
   secondaryCta: {
-    label: "Book Demo",
+    label: "Book a Demo",
     href: "/demo",
   },
 };
