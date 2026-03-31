@@ -18,6 +18,7 @@ const sbProSans = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.solvren.com"),
   title: {
     default: "Solvren — Know the Financial Risk of Every Revenue System Change",
     template: "%s | Solvren",

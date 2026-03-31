@@ -14,6 +14,7 @@ const navItems = [
   { href: "/security", label: "Security" },
   { href: "/pricing", label: "Pricing" },
 ];
+const CANONICAL_SITE_URL = "https://www.solvren.com";
 
 export function PublicHeader() {
   const [open, setOpen] = useState(false);
@@ -22,7 +23,7 @@ export function PublicHeader() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/65">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href={CANONICAL_SITE_URL} className="flex items-center gap-3">
             <img src="/images/Solvren.svg" alt="Solvren" className="h-10 w-10 shrink-0 object-contain" />
             <div>
               <div className="text-sm font-semibold tracking-tight text-white">Solvren</div>

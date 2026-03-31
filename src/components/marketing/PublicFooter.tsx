@@ -5,6 +5,7 @@ const socialLinks = [
   { label: "X", href: "#" },
   { label: "YouTube", href: "#" },
 ];
+const CANONICAL_SITE_URL = "https://www.solvren.com";
 
 export function PublicFooter() {
   return (
@@ -13,7 +14,7 @@ export function PublicFooter() {
         <div className="-mx-4 flex flex-wrap">
           <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
             <div className="mb-12 max-w-[380px] lg:mb-16">
-              <Link href="/" className="mb-8 inline-flex items-center gap-3">
+              <Link href={CANONICAL_SITE_URL} className="mb-8 inline-flex items-center gap-3">
                 <img src="/images/Solvren.svg" alt="Solvren" className="h-11 w-11 shrink-0 object-contain" />
                 <div>
                   <div className="text-base font-semibold text-white">Solvren</div>
