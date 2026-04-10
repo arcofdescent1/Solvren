@@ -30,9 +30,9 @@ export function mapWebhookPayload(
   const descKey = cfg.mappings["description"];
   const sevKey = cfg.mappings["severity"];
 
-  let title = pick(body, titleKey) || pick(body, "title") || pick(body, "summary");
-  let description = pick(body, descKey) || pick(body, "description") || pick(body, "details");
-  let severity = pick(body, sevKey) || pick(body, "severity") || pick(body, "priority");
+  const title = pick(body, titleKey) || pick(body, "title") || pick(body, "summary");
+  const description = pick(body, descKey) || pick(body, "description") || pick(body, "details");
+  const severity = pick(body, sevKey) || pick(body, "severity") || pick(body, "priority");
 
   let intakeRecordType = defaultIntakeRecordType;
   if (cfg.recordTypeField) {

@@ -23,7 +23,6 @@ export default function ValueStoriesListPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setErr(null);
     const q = orgId ? `?orgId=${encodeURIComponent(orgId)}` : "";
     const res = await fetch(`/api/outcomes/value-stories${q}`, { credentials: "include" });
     if (!res.ok) {
@@ -31,12 +30,15 @@ export default function ValueStoriesListPage() {
       setErr(j.error ?? res.statusText);
       return;
     }
+    setErr(null);
     const j = (await res.json()) as { items: Item[] };
     setItems(j.items ?? []);
   }, [orgId]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   return (

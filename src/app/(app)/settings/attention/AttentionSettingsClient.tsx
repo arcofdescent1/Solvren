@@ -17,7 +17,6 @@ export default function AttentionSettingsClient({ orgId, isAdmin }: Props) {
   const [err, setErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
     const res = await fetch(`/api/org/settings?orgId=${encodeURIComponent(orgId)}`);
     const data = await res.json().catch(() => ({}));
     setPayload(data.settings ?? null);
@@ -25,7 +24,9 @@ export default function AttentionSettingsClient({ orgId, isAdmin }: Props) {
   }, [orgId]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   async function save() {
@@ -48,6 +49,7 @@ export default function AttentionSettingsClient({ orgId, isAdmin }: Props) {
     setSaving(false);
     if (res.ok) {
       setMsg("Attention settings saved.");
+      setLoading(true);
       await load();
     } else {
       setErr((json as { error?: string }).error ?? "Save failed");
