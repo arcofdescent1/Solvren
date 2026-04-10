@@ -4,7 +4,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Issue, CreateIssueInput, IssueListParams } from "../domain";
+import type { CreateIssueInput, IssueListParams } from "../domain";
 import type { IssueRow } from "./types";
 
 export type { IssueRow };

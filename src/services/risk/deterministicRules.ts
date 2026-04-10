@@ -48,7 +48,6 @@ export type DeterministicSignal = {
 
 const billingSystems = ["Stripe", "Chargebee", "Zuora", "Recurly", "Braintree"];
 const marketingSystems = ["HubSpot", "Marketo", "Pardot"];
-const crmSystems = ["Salesforce", "HubSpot"];
 
 export function runDeterministicRules(intake: ChangeIntake): DeterministicSignal[] {
   const out: DeterministicSignal[] = [];

@@ -53,7 +53,6 @@ export default function JiraIntegrationCard({
   const siteUrl = config?.siteUrl ?? config?.siteName ?? "Jira Cloud";
   const projects = config?.projects ?? [];
   const configComplete = connected && Array.isArray(projects) && projects.length > 0;
-  const connectionStatus = !connected ? "disconnected" : configComplete ? "configured" : "connected";
 
   async function handleConnect() {
     if (!isAdmin) return;

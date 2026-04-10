@@ -2,11 +2,7 @@
  * Phase 4 — Dead-letter service (§16).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  insertDeadLetter,
-  getDeadLetter,
-  updateDeadLetterStatus,
-} from "../repositories/integration-dead-letters.repository";
+import { insertDeadLetter, updateDeadLetterStatus } from "../repositories/integration-dead-letters.repository";
 
 export type CreateDeadLetterInput = {
   orgId: string;

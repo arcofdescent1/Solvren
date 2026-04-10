@@ -7,7 +7,7 @@ import { createSimulation } from "@/modules/simulation/services/simulation-orche
 import { listSimulationRuns } from "@/modules/simulation/repositories/simulation-runs.repository";
 import { SimulationType } from "@/modules/simulation/domain";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const ctx = await requireAnyOrgPermission("admin.simulations.manage");
     const supabase = ctx.supabase;

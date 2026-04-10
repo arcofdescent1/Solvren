@@ -18,7 +18,7 @@ type Props = {
 
 export function IntegrationSetupActions({
   orgId,
-  provider,
+  provider: _provider,
   connected,
   onTest,
   testing = false,

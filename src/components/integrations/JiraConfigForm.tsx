@@ -62,7 +62,7 @@ export default function JiraConfigForm({
   const [fieldChangeType, setFieldChangeType] = useState(
     initialConfig?.fieldMappings?.changeType ?? ""
   );
-  const [statusMappings, setStatusMappings] = useState<Record<string, string>>(
+  const [statusMappings, _setStatusMappings] = useState<Record<string, string>>(
     { ...DEFAULT_STATUS_MAPPINGS, ...(initialConfig?.statusMappings ?? {}) }
   );
   const [webhookSync, setWebhookSync] = useState(

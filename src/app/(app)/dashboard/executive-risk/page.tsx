@@ -89,10 +89,6 @@ export default async function ExecutiveRiskPage() {
   const events = eventsData.events ?? [];
   const trendData = (await trendRes.json().catch(() => ({}))) as { ok?: boolean; trend?: Array<{ date: string; impact: number }> };
   const trend = trendData.trend ?? [];
-  const highRiskEvents = events.filter((e) => {
-    const b = (e.risk_bucket ?? "").toUpperCase();
-    return b === "HIGH" || b === "CRITICAL";
-  });
   const allEvents = events;
 
   return (

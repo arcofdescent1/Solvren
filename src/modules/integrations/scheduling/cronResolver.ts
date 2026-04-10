@@ -1,12 +1,12 @@
 /**
  * Phase 3 — Resolve next run time from cron expression.
  */
-export function getNextRunAt(cronExpression: string, fromDate: Date = new Date(), timezone = "UTC"): Date {
+export function getNextRunAt(cronExpression: string, fromDate: Date = new Date(), _timezone = "UTC"): Date {
   const parts = cronExpression.trim().split(/\s+/);
   if (parts.length < 5) {
     return new Date(fromDate.getTime() + 60 * 60 * 1000); // default 1h
   }
-  const [min, hour, dayOfMonth, month, dayOfWeek] = parts;
+  const [min, hour, _dayOfMonth, _month, _dayOfWeek] = parts;
   const next = new Date(fromDate);
 
   if (min !== "*") {

@@ -12,7 +12,7 @@ test.describe("Shell ownership", () => {
     await page.goto("/");
     await expect(page).toHaveURL("/");
     await expect(page.getByRole("banner").getByRole("link", { name: /sign in/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /request beta access/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /start free trial/i }).first()).toBeVisible();
     // App shell nav links to /home; public page has no direct app-shell nav link
     await expect(page.locator('a[href="/home"]')).not.toBeVisible();
   });
@@ -40,7 +40,7 @@ test.describe("Shell ownership", () => {
     await expect(page.getByRole("link", { name: "Help & Docs" })).toBeVisible();
     await expect(page.getByRole("link", { name: /my work/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /needs review/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
+    await expect(page.getByRole("link", { name: /start free trial/i })).not.toBeVisible();
   });
 
   test("authenticated visit to org settings sees app shell", async ({
@@ -52,7 +52,7 @@ test.describe("Shell ownership", () => {
     await expect(page.getByRole("heading", { name: /jira|integrations/i })).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
+    await expect(page.getByRole("link", { name: /start free trial/i })).not.toBeVisible();
   });
 
   test("home requires auth", async ({ page }) => {
@@ -72,6 +72,6 @@ test.describe("Shell ownership", () => {
     await expect(page.getByRole("banner").getByRole("link", { name: /sign in/i })).toBeVisible();
     await loginAs(page, "submitter");
     await expect(page.getByRole("heading", { name: /home/i })).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
+    await expect(page.getByRole("link", { name: /start free trial/i })).not.toBeVisible();
   });
 });

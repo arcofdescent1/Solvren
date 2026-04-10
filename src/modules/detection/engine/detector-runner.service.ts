@@ -189,7 +189,7 @@ export async function runDetector(
           }
         }
       }
-    } catch (e) {
+    } catch (_e) {
       errorCount++;
     }
   } else {

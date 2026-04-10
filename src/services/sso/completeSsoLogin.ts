@@ -31,7 +31,6 @@ export async function completeSsoLogin(
 ): Promise<CompleteSsoLoginResult> {
   const { admin, orgId, providerId, identity, protocol, allowJit, defaultRole = "viewer", successRedirectUrl } = params;
   const baseUrl = env.appUrl.replace(/\/$/, "");
-  const failUrl = `${baseUrl}/login?error=sso_failed`;
   const successUrl = successRedirectUrl ?? `${baseUrl}/dashboard`;
 
   if (!identity.email) {

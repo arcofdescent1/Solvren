@@ -21,7 +21,7 @@ export function createPrivilegedClient(reason: string): SupabaseClient {
     throw new Error("createPrivilegedClient: reason must be a non-empty description");
   }
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
+     
     console.info("[privileged:service-role]", reason);
   }
   return createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {

@@ -32,7 +32,6 @@ export async function GET(
     .maybeSingle();
   if (!member) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const orgId = (event as { org_id: string }).org_id;
   const timeline: Array<{
     timestamp: string;
     provider: string;

@@ -24,7 +24,7 @@ export type HealthSnapshotInput = {
 
 export function computeHealthState(
   metrics: HealthMetrics,
-  lastErrorAt?: string | null
+  _lastErrorAt?: string | null
 ): { state: ConnectorHealthState; reasons: string[] } {
   const reasons: string[] = [];
   let state = ConnectorHealthState.HEALTHY;

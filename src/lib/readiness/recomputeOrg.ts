@@ -212,7 +212,7 @@ export async function recomputeOrganizationReadiness(
         });
         if (insErr) {
           if (!String(insErr.message).includes("duplicate")) {
-            // eslint-disable-next-line no-console
+             
             console.warn("predicted_risk_events insert:", insErr.message);
           }
           continue;

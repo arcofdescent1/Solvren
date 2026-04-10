@@ -10,7 +10,7 @@ test.describe("Suite A - Authentication and Onboarding", () => {
   test("TC-AUTH-002: Login as existing user", async ({ page }) => {
     await loginAs(page, "owner");
     await expect(page).toHaveURL(/\/(dashboard|onboarding)/);
-    await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
+    await expect(page.getByRole("link", { name: /start free trial/i })).not.toBeVisible();
   });
 
   test("TC-AUTH-003: Reject invalid login", async ({ page }) => {

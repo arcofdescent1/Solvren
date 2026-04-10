@@ -2,7 +2,6 @@
  * Phase 2 — Entity links table (§13). Linked external records by provider.
  */
 import * as React from "react";
-import Link from "next/link";
 
 export type EntityLinkItem = {
   id: string;
@@ -17,9 +16,9 @@ export type EntityLinkItem = {
 
 export function EntityLinksTable({
   links,
-  orgId,
-  entityId,
-  onUnlink,
+  orgId: _orgId,
+  entityId: _entityId,
+  onUnlink: _onUnlink,
 }: {
   links: EntityLinkItem[];
   orgId: string;

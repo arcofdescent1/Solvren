@@ -2,7 +2,6 @@
  * Phase 5 — Process impact recalculation queue (§15).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAdminClient } from "@/lib/supabase/admin";
 import {
   claimNextQueuedJob,
   completeRecalcJob,

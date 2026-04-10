@@ -18,7 +18,6 @@ export class QualifiedLeadUnworkedImpactModel implements IImpactModel {
     const dealSize = (ctx.assumptions.avg_deal_size as number) ?? 25000;
     const decay = (ctx.assumptions.lead_response_decay_factor as number) ?? 0.1;
 
-    const timeline = (ctx.evidenceBundle.timeline ?? []) as Array<{ event: string; detail?: string }>;
     const tc = (ctx.evidenceBundle.thresholds_crossed ?? []) as Array<{ value?: number }>;
     const hoursSince = (tc[0]?.value as number) ?? 24;
     const decayFactor = Math.max(0.3, 1 - hoursSince * decay * 0.01);

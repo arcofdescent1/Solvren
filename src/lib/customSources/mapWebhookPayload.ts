@@ -1,4 +1,3 @@
-import type { MappingConfigV1 } from "@/lib/imports/mappingConfig";
 import { normalizeMappingConfig } from "@/lib/imports/mappingConfig";
 import { parseIntakeRecordType, type IntakeRecordType } from "@/lib/intake/intakeMapping";
 

@@ -203,7 +203,7 @@ export function getStripeRuntime(): ConnectorRuntime {
       return { jobId: "", status: "queued", error: "Use webhooks for Stripe sync" };
     },
 
-    async receiveWebhook(input) {
+    async receiveWebhook(_input) {
       // Webhook handling is in the dedicated route.
       return { received: true, processedStatus: "received" };
     },

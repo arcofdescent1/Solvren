@@ -9,8 +9,6 @@ import { CanonicalObjectType, getCanonicalFields } from "@/lib/integrations/cano
 import { inferSchemaFromPayload } from "@/lib/integrations/mapping/providerSchemaService";
 
 const PROVIDERS = ["hubspot", "salesforce", "stripe"] as const;
-const CANONICAL_TYPES: CanonicalObjectType[] = ["Customer", "Account", "Transaction", "Event", "FunnelStep", "IssueSignal"];
-const TRANSFORM_TYPES = ["trim", "lowercase", "uppercase", "null_if_empty", "iso_date", "unix_seconds", "unix_ms", "cents_to_dollars", "to_boolean", "to_string", "to_number"];
 
 function coerceTransformChain(chain: unknown): Array<{ type: string }> {
   if (!Array.isArray(chain)) return [];

@@ -17,7 +17,7 @@ type ResolveArgs = {
  * 2) Slack users.info email + get_auth_user_id_by_email + org membership
  */
 export async function resolveSlackToSolvrenUserId(args: ResolveArgs): Promise<string | null> {
-  const { orgId, slackTeamId, slackUserId, botToken, admin } = args;
+  const { orgId, slackTeamId: _slackTeamId, slackUserId, botToken, admin } = args;
 
   const { data: mapped } = await admin
     .from("slack_user_map")

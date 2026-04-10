@@ -87,7 +87,15 @@ export function DashboardNarrativeSummaryWithAI({
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [dashboardState, riskEvents.length, changeRequests.length, fallback.headline, fallback.summary, fallback.suggestedAction, fallback.topEventId]);
+  }, [
+    changeRequests,
+    dashboardState,
+    fallback.headline,
+    fallback.summary,
+    fallback.suggestedAction,
+    fallback.topEventId,
+    riskEvents,
+  ]);
 
   return (
     <DashboardNarrativeSummary

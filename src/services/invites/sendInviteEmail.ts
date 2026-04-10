@@ -3,11 +3,6 @@ import { env } from "@/lib/env";
 
 const resend = env.resendApiKey ? new Resend(env.resendApiKey) : null;
 
-function absoluteUrl(path: string): string {
-  const base = env.appUrl.replace(/\/$/, "");
-  return path.startsWith("http") ? path : `${base}${path}`;
-}
-
 export type SendInviteEmailParams = {
   to: string;
   orgName: string;

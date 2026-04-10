@@ -47,7 +47,7 @@ export function getSnowflakeRuntime(): ConnectorRuntime {
     async testConnection(input) {
       const conn = await getSnowflakeConnectionForAccount(input.integrationAccountId);
       if (!conn) return { success: false, message: "Snowflake not configured" };
-      const { rows, error } = await executeSnowflakeQuery(conn, "SELECT 1");
+      const { rows: _rows, error } = await executeSnowflakeQuery(conn, "SELECT 1");
       if (error) return { success: false, message: error };
       conn.destroy((err) => { if (err) {/* ignore */} });
       return { success: true, message: "Connected" };
@@ -86,7 +86,6 @@ export function getSnowflakeRuntime(): ConnectorRuntime {
       conn.destroy((err) => { if (err) {/* ignore */} });
 
       if (error) return { jobId: "", status: "queued", error };
-      let rowsMapped = 0;
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const mapped = await mapPayloadToCanonicalForIngestion(admin, {
@@ -109,7 +108,6 @@ export function getSnowflakeRuntime(): ConnectorRuntime {
             payload: row,
             canonicalOutput: mapped.canonical,
           });
-          rowsMapped++;
         }
       }
       return { jobId: `backfill-${Date.now()}`, status: "running" };

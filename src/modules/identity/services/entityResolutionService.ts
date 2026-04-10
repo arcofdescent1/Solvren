@@ -8,7 +8,6 @@ import type {
   ResolveExternalObjectResult,
 } from "../types";
 import { ENTITY_TYPE_POLICY } from "../constants";
-import { getLinkByExternal } from "../repositories/entityLinkRepository";
 import { getCanonicalEntityById } from "../repositories/canonicalEntityRepository";
 import { insertCanonicalEntity } from "../repositories/canonicalEntityRepository";
 import { insertEntityLink } from "../repositories/entityLinkRepository";
@@ -46,7 +45,7 @@ export async function resolveExternalObject(
   supabase: SupabaseClient,
   input: ResolveExternalObjectInput
 ): Promise<ResolveExternalObjectResult> {
-  const { orgId, provider, objectType, externalId, payload, integrationAccountId, observedAt } = input;
+  const { orgId, provider, objectType, externalId, payload, integrationAccountId, observedAt: _observedAt } = input;
   const entityType = inferEntityType(provider, objectType);
 
   const existing = await matchByExistingLink(supabase, orgId, provider, objectType, externalId);

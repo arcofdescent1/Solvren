@@ -6,12 +6,9 @@ import { IssueLifecycleState, IssueLifecycleEventType } from "../domain";
 import type { LifecycleContext } from "../domain/lifecycle-context";
 import type { LifecycleValidationResult } from "../domain/lifecycle-validation";
 import { insertLifecycleEvent } from "../repositories/issue-lifecycle-events.repository";
-import { insertTerminalClassification } from "../repositories/issue-terminal-classification.repository";
 import { insertNoActionDecision, getNoActionDecision } from "../repositories/issue-no-action-decision.repository";
-import { getTerminalClassification } from "../repositories/issue-terminal-classification.repository";
-import { validateTransition, validateClosureInvariant } from "./issue-lifecycle-validator.service";
+import { validateTransition } from "./issue-lifecycle-validator.service";
 import { gatherLifecycleChecks } from "./lifecycle-checks";
-import { selectIssueById } from "../../infrastructure/issueRepository";
 
 export type IssueLifecycleView = {
   issueId: string;

@@ -13,7 +13,6 @@ import {
 import {
   listOrgOnboardingMilestones,
   markMilestoneReached,
-  getMilestoneReached,
 } from "../repositories/org-onboarding-milestones.repository";
 
 export async function initializeOnboarding(
@@ -45,7 +44,7 @@ export async function evaluateOnboardingState(
   }
 
   const { data: steps } = await listOrgOnboardingSteps(supabase, orgId);
-  const { data: milestones } = await listOrgOnboardingMilestones(supabase, orgId);
+  await listOrgOnboardingMilestones(supabase, orgId);
 
   let state = obState.onboarding_state as OnboardingState;
 

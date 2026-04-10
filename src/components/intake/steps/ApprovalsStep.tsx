@@ -2,7 +2,7 @@
 
 import { Button } from "@/ui";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IntakeDraft } from "../types";
 import { CoordinationAutopilotCard } from "@/components/coordination/CoordinationAutopilotCard";
 
@@ -32,11 +32,20 @@ export function ApprovalsStep(props: {
     [suggestions]
   );
 
-  async function loadSuggestions() {
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+
+  const systemsInvolvedKey = useMemo(
+    () => JSON.stringify(draft.systems_involved ?? []),
+    [draft.systems_involved]
+  );
+
+  const loadSuggestions = useCallback(async () => {
+    const d = draftRef.current;
     setLoading(true);
     setMsg(null);
     try {
-      const res = await fetch(`/api/changes/${encodeURIComponent(draft.id)}/approval-mapping-suggestions`);
+      const res = await fetch(`/api/changes/${encodeURIComponent(d.id)}/approval-mapping-suggestions`);
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((json as { error?: string }).error ?? "Failed to load suggestions");
       setSuggestions((json as { suggestions?: typeof suggestions }).suggestions ?? []);
@@ -48,11 +57,11 @@ export function ApprovalsStep(props: {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadSuggestions();
-  }, [draft.id, draft.domain, draft.change_type, draft.structured_change_type, JSON.stringify(draft.systems_involved ?? [])]);
+    void loadSuggestions();
+  }, [loadSuggestions, draft.domain, draft.change_type, draft.id, draft.structured_change_type, systemsInvolvedKey]);
 
   async function applySuggestions() {
     setApplying(true);

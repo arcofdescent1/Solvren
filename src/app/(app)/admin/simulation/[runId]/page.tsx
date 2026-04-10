@@ -5,7 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader } from "@/ui";
 import { getSimulationRun } from "@/modules/simulation/repositories/simulation-runs.repository";
 import { listStepResults } from "@/modules/simulation/repositories/simulation-step-results.repository";
 import { listEntityResults } from "@/modules/simulation/repositories/simulation-entity-results.repository";

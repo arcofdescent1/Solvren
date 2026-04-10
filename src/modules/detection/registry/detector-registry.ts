@@ -53,7 +53,7 @@ export function getDetector(detectorKey: string): IDetector | undefined {
   return detectors.get(detectorKey);
 }
 
-export function getDetectorsForSignal(signalKey: string): IDetector[] {
+export function getDetectorsForSignal(_signalKey: string): IDetector[] {
   const result: IDetector[] = [];
   for (const d of detectors.values()) {
     // Detector subscription is defined in definitions; we match by detector key

@@ -5,7 +5,7 @@ import { Card, CardBody } from "@/ui";
 import type { DetectorDefinitionRow } from "@/modules/detection/domain/detector-definition";
 
 export function DetectorDetailClient({
-  orgId,
+  orgId: _orgId,
   detectorKey,
   detector,
 }: {

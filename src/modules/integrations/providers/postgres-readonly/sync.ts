@@ -8,7 +8,6 @@ import { persistWebhookToRawEvents } from "@/modules/signals/ingestion/webhook-t
 import type { IntegrationProvider } from "../../contracts/types";
 
 const ROW_LIMIT = 500;
-const PREVIEW_LIMIT = 25;
 
 export async function fetchTableRows(
   client: pg.Client,

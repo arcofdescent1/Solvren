@@ -19,7 +19,7 @@ export function IssueImpactSection({
   impactUnknown,
   issueId,
   calculationBreakdown,
-  assumptionsSnapshot,
+  assumptionsSnapshot: _assumptionsSnapshot,
   confidenceExplanation,
 }: IssueImpactSectionProps) {
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);

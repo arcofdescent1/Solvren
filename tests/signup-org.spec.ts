@@ -6,7 +6,7 @@
  */
 import { expect, test } from "@playwright/test";
 import { loginAs } from "./fixtures/auth";
-import { PERSONAS, UAT_PASSWORD } from "./fixtures/seed";
+import { UAT_PASSWORD } from "./fixtures/seed";
 
 test.describe("Signup page", () => {
   test("signup page renders with full name, email, password and Continue", async ({ page }) => {

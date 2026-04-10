@@ -14,7 +14,7 @@ type Playbook = {
   config?: { enabled: boolean; rollout_state: string } | null;
 };
 
-export function PlaybookCatalogClient({ orgId }: { orgId: string }) {
+export function PlaybookCatalogClient({ orgId: _orgId }: { orgId: string }) {
   const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
   const [loading, setLoading] = useState(true);
 

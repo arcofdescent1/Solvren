@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardBody } from "@/ui";
 
 type LifecycleEvent = {
@@ -34,18 +34,6 @@ const STATE_LABELS: Record<string, string> = {
   CLOSED: "Closed",
 };
 
-const PROGRESS_ORDER = [
-  "DETECTED",
-  "IMPACT_ESTIMATED",
-  "ACTION_PLANNED",
-  "ACTION_EXECUTED",
-  "VERIFICATION_PENDING",
-  "VERIFIED_SUCCESS",
-  "VERIFIED_FAILURE",
-  "NO_ACTION_TAKEN",
-  "CLOSED",
-];
-
 export function IssueLifecyclePanel({
   issueId,
   onCloseSuccess,
@@ -69,7 +57,7 @@ export function IssueLifecyclePanel({
   const [error, setError] = useState<string | null>(null);
   const [missingRequirements, setMissingRequirements] = useState<string[]>([]);
 
-  const fetchLifecycle = () => {
+  const fetchLifecycle = useCallback(() => {
     setLoading(true);
     fetch(`/api/issues/${issueId}/lifecycle`)
       .then((r) => r.json())
@@ -79,13 +67,13 @@ export function IssueLifecyclePanel({
       })
       .catch(() => setData(null))
       .finally(() => setLoading(false));
-  };
+  }, [issueId]);
 
   useEffect(() => {
     queueMicrotask(() => {
       fetchLifecycle();
     });
-  }, [issueId]);
+  }, [fetchLifecycle]);
 
   const canClose = data && ["VERIFIED_SUCCESS", "VERIFIED_FAILURE", "NO_ACTION_TAKEN"].includes(data.currentState);
   const canNoAction = data && ["IMPACT_ESTIMATED", "ACTION_PLANNED"].includes(data.currentState);
@@ -187,17 +175,6 @@ export function IssueLifecyclePanel({
       </Card>
     );
   }
-
-  const currentIdx = PROGRESS_ORDER.indexOf(data.currentState);
-  const displayStates = [
-    "DETECTED",
-    "IMPACT_ESTIMATED",
-    "ACTION_PLANNED",
-    "ACTION_EXECUTED",
-    "VERIFICATION_PENDING",
-    data.currentState === "VERIFIED_SUCCESS" ? "VERIFIED_SUCCESS" : data.currentState === "VERIFIED_FAILURE" ? "VERIFIED_FAILURE" : "NO_ACTION_TAKEN",
-    "CLOSED",
-  ].filter((s, i, a) => a.indexOf(s) === i);
 
   return (
     <Card>

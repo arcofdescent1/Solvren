@@ -17,7 +17,6 @@ import {
 import { ExecutionMode } from "@/modules/autonomy-safety/domain";
 
 const MODE_OPTIONS = Object.values(ExecutionMode);
-const SCOPE_OPTIONS = ["org", "integration", "action", "playbook", "issue_family", "environment"];
 
 export function AutonomyControlsPage() {
   const [orgMode, setOrgMode] = useState<string>("");

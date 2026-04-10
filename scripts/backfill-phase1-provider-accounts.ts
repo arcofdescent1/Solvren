@@ -9,7 +9,7 @@ async function main() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    // eslint-disable-next-line no-console
+     
     console.error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
     process.exit(1);
   }
@@ -77,12 +77,12 @@ async function main() {
     linked++;
   }
 
-  // eslint-disable-next-line no-console
+   
   console.log(`Backfill complete. Processed ${linked} provider records.`);
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
+   
   console.error(e);
   process.exit(1);
 });

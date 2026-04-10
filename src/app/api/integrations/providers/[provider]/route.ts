@@ -11,9 +11,11 @@ export async function GET(
 ) {
   try {
     const orgIdRaw = req.nextUrl.searchParams.get("orgId");
-    const ctx = orgIdRaw
-      ? await requireOrgPermission(parseRequestedOrgId(orgIdRaw), "integrations.view")
-      : await resolveDefaultOrgForUser();
+    if (orgIdRaw) {
+      await requireOrgPermission(parseRequestedOrgId(orgIdRaw), "integrations.view");
+    } else {
+      await resolveDefaultOrgForUser();
+    }
 
     const { provider } = await params;
   const manifest = getProviderManifest(provider);

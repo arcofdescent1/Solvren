@@ -15,7 +15,7 @@ type ExceptionRow = {
 
 export function PolicyExceptionsPanel({
   policyId,
-  orgId,
+  orgId: _orgId,
   exceptions,
 }: {
   policyId: string;

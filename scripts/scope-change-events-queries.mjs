@@ -5,7 +5,7 @@
  * Usage: node scripts/scope-change-events-queries.mjs
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const SKIP_PATH_PART = [

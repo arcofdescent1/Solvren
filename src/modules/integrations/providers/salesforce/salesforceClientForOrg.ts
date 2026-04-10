@@ -1,7 +1,6 @@
 /**
  * Phase 2 — Get Salesforce client for org.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 import { SalesforceClient } from "@/services/salesforce/SalesforceClient";

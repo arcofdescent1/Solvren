@@ -5,7 +5,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   IssueLifecycleState,
   type TerminalClassificationType,
-  type NoActionReason,
   isValidNoActionReason,
   isValidTerminalClassification,
 } from "../domain";

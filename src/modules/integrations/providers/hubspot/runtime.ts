@@ -13,7 +13,6 @@ import { fetchHubSpotSchema } from "./schema";
 import { buildHubSpotHealth } from "./health";
 import { mapPayloadToCanonicalForIngestion } from "@/lib/integrations/mapping/ingestionBridge";
 import { persistWebhookToRawEvents } from "@/modules/signals/ingestion/webhook-to-raw-event.bridge";
-import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
 
 const SCOPES =
   "crm.objects.contacts.read crm.objects.companies.read crm.objects.deals.read crm.schemas.contacts.read crm.schemas.companies.read crm.schemas.deals.read";

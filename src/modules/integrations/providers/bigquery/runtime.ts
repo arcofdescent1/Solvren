@@ -48,7 +48,7 @@ export function getBigQueryRuntime(): ConnectorRuntime {
       const client = await getBigQueryClientForAccount(input.integrationAccountId);
       if (!client) return { success: false, message: "BigQuery not configured" };
       try {
-        const [rows] = await client.query({ query: "SELECT 1" });
+        const [_rows] = await client.query({ query: "SELECT 1" });
         return { success: true, message: "Connected" };
       } catch (e) {
         return { success: false, message: e instanceof Error ? e.message : "Connection failed" };
@@ -85,7 +85,6 @@ export function getBigQueryRuntime(): ConnectorRuntime {
 
       try {
         const [rows] = await client.query({ query: `SELECT * FROM ${fullTable} LIMIT 500` });
-        let rowsMapped = 0;
         for (let i = 0; i < (rows ?? []).length; i++) {
           const row = (rows as Record<string, unknown>[])[i];
           const mapped = await mapPayloadToCanonicalForIngestion(admin, {
@@ -108,7 +107,6 @@ export function getBigQueryRuntime(): ConnectorRuntime {
               payload: row,
               canonicalOutput: mapped.canonical,
             });
-            rowsMapped++;
           }
         }
         return { jobId: `backfill-${Date.now()}`, status: "running" };

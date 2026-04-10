@@ -25,7 +25,7 @@ export function trackAppEvent(eventName: string, payload: AppEventPayload = {}) 
     return;
   }
   if (process.env.NODE_ENV !== "production") {
-    // eslint-disable-next-line no-console
+     
     console.debug("[app-analytics]", eventName, payload);
   }
 }

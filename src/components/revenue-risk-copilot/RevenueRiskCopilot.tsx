@@ -36,7 +36,7 @@ export function RevenueRiskCopilot(props: CopilotProps) {
       .catch(() => { if (!c) setData({ summary: "Unable to load guidance.", recommended_actions: [], alerts: [] }); })
       .finally(() => { if (!c) setLoading(false); });
     return () => { c = true; };
-  }, [activeOrgId, page]);
+  }, [activeOrgId, changeRequests, dashboardState, page, riskEvents]);
 
   if (!activeOrgId) return null;
 

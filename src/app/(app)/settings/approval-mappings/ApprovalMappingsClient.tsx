@@ -3,7 +3,7 @@
 import { Button, Card, CardBody, Input, NativeSelect, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui";
 import { Checkbox } from "@/ui/primitives/checkbox";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Role = { id: string; role_name: string; enabled: boolean };
 type Mapping = {
@@ -28,7 +28,7 @@ export default function ApprovalMappingsClient() {
   const [priority, setPriority] = useState("100");
   const [enabled, setEnabled] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setMsg(null);
     try {
@@ -47,17 +47,20 @@ export default function ApprovalMappingsClient() {
       }));
       setRoles(loadedRoles);
       setRows((mapJson as { rows?: Mapping[] }).rows ?? []);
-      if (!roleId && loadedRoles.length > 0) setRoleId(loadedRoles[0].id);
+      setRoleId((prev) => {
+        if (!prev && loadedRoles.length > 0) return loadedRoles[0].id;
+        return prev;
+      });
     } catch (e: unknown) {
       setMsg(e instanceof Error ? e.message : "Failed");
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
 
   async function createMapping() {
     setMsg(null);

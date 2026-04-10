@@ -10,7 +10,7 @@ export function generateExplanationCodes(
   fallbackCodes: string[],
   approvalRequired: boolean,
   usedColdStart: boolean,
-  actionDisplayName: string
+  _actionDisplayName: string
 ): string[] {
   const codes: string[] = [...fallbackCodes];
 

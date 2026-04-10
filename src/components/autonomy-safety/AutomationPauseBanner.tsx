@@ -19,7 +19,7 @@ type Props = {
   onDismiss?: () => void;
 };
 
-export function AutomationPauseBanner({ orgId, onDismiss }: Props) {
+export function AutomationPauseBanner({ orgId: _orgId, onDismiss }: Props) {
   const [pauses, setPauses] = useState<PauseInfo[]>([]);
 
   const fetchPauses = useCallback(async () => {

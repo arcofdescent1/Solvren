@@ -4,7 +4,6 @@
  * Phase 1 — Install flow UX (§13.5): value → permissions → auth → callback → test → backfill.
  */
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import type { ConnectorManifest } from "@/modules/integrations/contracts";
 
 export type IntegrationInstallFlowProps = {
@@ -14,8 +13,7 @@ export type IntegrationInstallFlowProps = {
   onCancel?: () => void;
 };
 
-export function IntegrationInstallFlow({ manifest, orgId, onComplete, onCancel }: IntegrationInstallFlowProps) {
-  const router = useRouter();
+export function IntegrationInstallFlow({ manifest, orgId, onComplete: _onComplete, onCancel }: IntegrationInstallFlowProps) {
   const [step, setStep] = React.useState<"value" | "permissions" | "connecting" | "done">("value");
   const [error, setError] = React.useState<string | null>(null);
 

@@ -18,7 +18,7 @@ export type MatchCandidateReviewPanelProps = {
 
 export function MatchCandidateReviewPanel({
   candidateId,
-  orgId,
+  orgId: _orgId,
   proposedCanonicalEntityId,
   primaryProvider,
   primaryObjectType,

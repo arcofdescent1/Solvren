@@ -76,7 +76,7 @@ export async function addTimelineEvent(params: AddTimelineEventParams): Promise<
   });
 
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.warn("change_timeline_events insert failed:", error.message);
   }
 }

@@ -93,9 +93,6 @@ export async function buildCoordinationInput(args: {
   const roleNameById = new Map(
     (rolesRows ?? []).map((r) => [String(r.id), String(r.role_name)])
   );
-  const memberIds = Array.from(
-    new Set((roleMembersRows ?? []).map((r) => String(r.user_id)).filter(Boolean))
-  );
   const canReviewByUser = new Map(
     (domainPermRows ?? []).map((p) => [String(p.user_id), Boolean(p.can_review)])
   );

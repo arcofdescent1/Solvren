@@ -79,7 +79,7 @@ export async function auditLog(
     if (required) {
       throw new AuditLogRequiredError(error.message);
     }
-    // eslint-disable-next-line no-console
+     
     console.warn("audit_log insert failed:", error.message);
   }
 }

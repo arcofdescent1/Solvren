@@ -27,7 +27,7 @@ export function authzErrorResponse(e: unknown): NextResponse {
   if (e instanceof AuthzError) {
     return NextResponse.json({ error: e.message }, { status: e.status });
   }
-  // eslint-disable-next-line no-console
+   
   console.error("[authz] unexpected error", e);
   return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
@@ -196,29 +196,26 @@ export const resolveRequestedOrgAccess = async (
 /** @deprecated Use requireOrgMembership */
 export const requireOrgAccess = requireOrgMembership;
 
-const RESOURCE_TABLES_BY_ID = [
-  "change_events",
-  "issues",
-  "revenue_policies",
-  "approval_mappings",
-  "approval_roles",
-  "policies",
-  "raw_events",
-  "normalized_signals",
-  "decision_logs",
-  "autonomy_pause_controls",
-  "policy_decision_logs",
-  "policy_exceptions",
-  "dead_letter_events",
-  "integration_dead_letters",
-  "integration_accounts",
-  "integration_action_executions",
-  "simulation_runs",
-  "approval_requests",
-  "detector_findings",
-] as const;
-
-export type ResourceOrgTableById = (typeof RESOURCE_TABLES_BY_ID)[number];
+export type ResourceOrgTableById =
+  | "change_events"
+  | "issues"
+  | "revenue_policies"
+  | "approval_mappings"
+  | "approval_roles"
+  | "policies"
+  | "raw_events"
+  | "normalized_signals"
+  | "decision_logs"
+  | "autonomy_pause_controls"
+  | "policy_decision_logs"
+  | "policy_exceptions"
+  | "dead_letter_events"
+  | "integration_dead_letters"
+  | "integration_accounts"
+  | "integration_action_executions"
+  | "simulation_runs"
+  | "approval_requests"
+  | "detector_findings";
 
 export type ResolveResourceInOrgArgs =
   | {

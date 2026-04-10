@@ -3,7 +3,6 @@
  * Creates a Jira issue from Solvren issue context and links it.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureValidJiraToken } from "@/services/jira/jiraAuthService";
 import { jiraPost } from "@/lib/jira/client";
 import { getIssueContext } from "../../../actions/issueContextService";

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card, CardBody, CardHeader, CardTitle, Input, NativeSelect, Table, Textarea } from "@/ui";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Domain = {
   key: string;
@@ -81,7 +81,7 @@ export default function DomainBuilderClient() {
     severity: "MEDIUM",
   });
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
@@ -106,11 +106,11 @@ export default function DomainBuilderClient() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedDomain]);
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
 
   const domainsMap = useMemo(
     () => new Map(domains.map((d) => [d.key, d])),

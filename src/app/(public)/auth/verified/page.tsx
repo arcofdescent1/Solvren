@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardBody, PageHeader } from "@/ui";
 
 export default function VerifiedPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [checked, setChecked] = useState(false);
 
@@ -34,7 +34,7 @@ export default function VerifiedPage() {
           setChecked(true);
         });
     });
-  }, [router, supabase.auth]);
+  }, [router, supabase]);
 
   function continueToApp() {
     router.push("/dashboard");

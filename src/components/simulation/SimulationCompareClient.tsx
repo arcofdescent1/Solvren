@@ -29,7 +29,7 @@ type ComparisonResult = {
 };
 
 export function SimulationCompareClient({
-  orgId,
+  orgId: _orgId,
   runs,
   initialBaselineId,
   initialCandidateId,

@@ -29,7 +29,7 @@ export async function seedDemoScenario(
   supabase: SupabaseClient,
   orgId: string,
   scenarioKey: string,
-  seedVersion: string
+  _seedVersion: string
 ): Promise<{ error: string | null }> {
   const builder = getScenarioBuilder(scenarioKey);
   if (!builder) return { error: `Unknown scenario: ${scenarioKey}` };

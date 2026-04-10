@@ -16,7 +16,6 @@ export class HighRiskChangeMissingEvidenceDetector implements IDetector {
 
   async evaluate(ctx: DetectorContext): Promise<DetectionResult> {
     const evidenceMissing = ctx.signals.filter((s) => s.signal_key === "change_evidence_missing");
-    const changeCreated = ctx.signals.filter((s) => s.signal_key === "change_created" || s.signal_key === "change_submitted");
     if (evidenceMissing.length === 0) return noFinding("none", "none");
 
     for (const sig of evidenceMissing) {

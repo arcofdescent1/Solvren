@@ -4,7 +4,6 @@
 import type { IImpactModel } from "../base/impact-model.interface";
 import type { ImpactModelContext } from "../base/impact-model-context";
 import type { ImpactModelResult } from "../base/impact-model-result";
-import { createEmptyResult } from "../base/impact-model-result";
 
 const MODEL_KEY = "revenue.failed_payment_unrecovered";
 const VERSION = "1.0";
@@ -15,7 +14,6 @@ export class FailedPaymentUnrecoveredImpactModel implements IImpactModel {
 
   async evaluate(ctx: ImpactModelContext): Promise<ImpactModelResult> {
     const timeline = (ctx.evidenceBundle.timeline ?? []) as Array<{ event: string; detail?: string }>;
-    const thresholdCrossed = (ctx.evidenceBundle.thresholds_crossed ?? []) as Array<{ threshold: string; value?: unknown }>;
     let amount = 0;
 
     for (const t of timeline) {

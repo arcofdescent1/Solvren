@@ -2,11 +2,7 @@
  * Phase 6 — Cohort eligibility service (§16.2).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  getOrgDimensions,
-  dimensionMatches,
-  type OrgBenchmarkDimensionsRow,
-} from "../repositories/org-benchmark-dimensions.repository";
+import { getOrgDimensions, dimensionMatches } from "../repositories/org-benchmark-dimensions.repository";
 
 export async function isOrgEligibleForCohort(
   supabase: SupabaseClient,

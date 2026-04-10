@@ -20,7 +20,7 @@ export type PolicyExceptionRow = {
 export async function listActiveExceptions(
   supabase: SupabaseClient,
   orgId: string,
-  context: Record<string, unknown>
+  _context: Record<string, unknown>
 ): Promise<{ data: PolicyExceptionRow[]; error: Error | null }> {
   const now = new Date().toISOString();
   const { data, error } = await supabase

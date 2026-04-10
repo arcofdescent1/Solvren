@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card, CardBody } from "@/ui";
 
-export function PolicyCenterClient({ orgId }: { orgId: string }) {
+export function PolicyCenterClient({ orgId: _orgId }: { orgId: string }) {
   const [policies, setPolicies] = useState<unknown[]>([]);
   const [paused, setPaused] = useState(false);
   const [loading, setLoading] = useState(true);

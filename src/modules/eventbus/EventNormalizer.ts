@@ -17,7 +17,7 @@ function inferRiskType(provider: string, object: string, field?: string): string
   return "config_change";
 }
 
-function baseScore(riskType: string, raw: RawIntegrationEvent): number {
+function baseScore(riskType: string, _raw: RawIntegrationEvent): number {
   let score = 30;
   if (riskType === "pricing_change") score += 30;
   if (riskType === "discount_override") score += 40;

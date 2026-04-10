@@ -1,7 +1,7 @@
 /**
  * Phase 3 — Policy rule DSL (§8.2).
  */
-import type { PolicyCondition, PolicyConditionGroup } from "./policy-condition";
+import type { PolicyConditionGroup } from "./policy-condition";
 
 export type PolicyRuleEffectBlock = {
   type: "BLOCK";

@@ -15,7 +15,7 @@ import {
   ValuePillarsSection,
   WorkflowOverviewSection,
 } from "@/components/marketing/MarketingBlocks";
-import { HERO, SAFE_AUTOMATION, USE_CASES } from "@/components/marketing/landingCopy";
+import { HERO, SAFE_AUTOMATION } from "@/components/marketing/landingCopy";
 
 /** When true, render content only (layout provides PublicShell). */
 export function LandingPage({ noShell = false }: { noShell?: boolean }) {

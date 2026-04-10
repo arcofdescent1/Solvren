@@ -4,10 +4,6 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type Body = { changeEventId: string };
 
-function dayKeyUTC() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export async function POST(req: Request) {
   const supabase = await createServerSupabaseClient();
   const { data: userRes } = await supabase.auth.getUser();

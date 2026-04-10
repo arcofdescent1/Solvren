@@ -9,7 +9,7 @@ import { executeAction } from "@/modules/integrations";
 import { preExecutionCheck } from "@/modules/policy/enforcement/preExecutionCheck";
 import { resolveGovernanceTraceFromApprovedPolicyRequest } from "@/modules/policy/repositories/approval-requests.repository";
 import { getAccountByOrgAndProvider } from "@/modules/integrations/core/integrationAccountsRepo";
-import { getAction, getManifestActionKey } from "../registry/action-registry";
+import { getManifestActionKey } from "../registry/action-registry";
 
 export type CreateExecutionTaskInput = {
   orgId: string;
@@ -197,7 +197,6 @@ export async function createExecutionTask(
     }
   }
 
-  const actionDef = getAction(input.taskType, input.externalSystem);
   const writebackStatus = input.executeImmediately ? "executing" : "pending";
 
   const { data: action, error: actionErr } = await insertIssueAction(supabase, {

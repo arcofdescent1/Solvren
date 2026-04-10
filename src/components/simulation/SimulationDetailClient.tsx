@@ -34,7 +34,7 @@ type EntityResult = {
 };
 
 export function SimulationDetailClient({
-  runId,
+  runId: _runId,
   run,
   summary,
   confidence,

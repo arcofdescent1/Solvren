@@ -4,14 +4,11 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-const CURSOR_KEY_PREFIX = "sync_cursor:";
-
 export async function getSyncCursor(
   supabase: SupabaseClient,
-  params: { orgId: string; provider: string; objectType: string }
+  _params: { orgId: string; provider: string; objectType: string }
 ): Promise<Record<string, unknown> | null> {
-  const key = `${CURSOR_KEY_PREFIX}${params.provider}:${params.objectType}`;
-  const { data } = await supabase
+  await supabase
     .from("integration_sync_jobs")
     .select("cursor_json")
     .eq("integration_account_id", "")

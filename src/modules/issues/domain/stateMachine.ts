@@ -1,7 +1,7 @@
 /**
  * Phase 0 — Issue state machine. Allowed transitions and invariant checks.
  */
-import type { IssueStatus, VerificationStatus } from "./index";
+import type { IssueStatus } from "./index";
 
 const TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
   open: ["triaged", "assigned", "dismissed"],

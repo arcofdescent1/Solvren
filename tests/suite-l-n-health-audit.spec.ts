@@ -3,7 +3,6 @@
  * TC-HEALTH-001, TC-AUDIT (API-level)
  */
 import { expect, test } from "@playwright/test";
-import { loginAs } from "./fixtures/auth";
 
 test.describe("Suite L - Integration Health", () => {
   test("TC-HEALTH: Health endpoint returns structured status", async ({ request }) => {

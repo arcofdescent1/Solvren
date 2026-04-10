@@ -5,7 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader } from "@/ui";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { getPolicyById } from "@/modules/policy/repositories/policies.repository";
 import { PolicyDetailClient } from "@/components/policy/PolicyDetailClient";

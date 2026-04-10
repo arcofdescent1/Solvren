@@ -3,7 +3,6 @@ import { ArrowRight, BadgeCheck, BarChart3, CheckCircle2, CircleDollarSign, File
 import {
   CORE_LOOP,
   FINAL_CTA,
-  HERO,
   HOW_IT_WORKS,
   INTEGRATIONS,
   ROI_SECTION,

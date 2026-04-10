@@ -4,7 +4,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   listInboundEventsForProcessing,
-  getInboundEventById,
   updateInboundEventStatus,
 } from "../repositories/integration-inbound-events.repository";
 import { assertValidInboundTransition } from "./inbound-status-machine";

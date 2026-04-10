@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Input, Textarea } from "@/ui";
 
 type Item = {
@@ -40,7 +40,7 @@ export default function EvidenceChecklist(props: { changeId: string }) {
   const [provideNote, setProvideNote] = useState("");
   const [provideUrl, setProvideUrl] = useState("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
@@ -63,20 +63,20 @@ export default function EvidenceChecklist(props: { changeId: string }) {
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    load();
   }, [props.changeId]);
 
   useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
     const handler = () => {
-      load();
+      void load();
       document.getElementById("evidence-checklist")?.scrollIntoView({ behavior: "smooth" });
     };
     window.addEventListener("evidence:refresh", handler);
     return () => window.removeEventListener("evidence:refresh", handler);
-  }, [props.changeId]);
+  }, [load]);
 
   async function setStatus(
     evidenceId: string,

@@ -35,7 +35,7 @@ function rankOf(code: AttentionDriverCode): number {
 }
 
 export function collectAttentionDrivers(input: AttentionDriverInput): RankedDriver[] {
-  const { view, userPendingApprovalAreas, hasExecSignoffRequired } = input;
+  const { view, userPendingApprovalAreas, hasExecSignoffRequired: _hasExecSignoffRequired } = input;
   const hits = new Set<AttentionDriverCode>();
 
   if (userPendingApprovalAreas.length > 0) {

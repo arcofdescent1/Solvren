@@ -2,7 +2,7 @@
 
 import { Button, Input, NativeSelect, PageHeader, Card, CardBody } from "@/ui";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 type Row = {
@@ -22,7 +22,7 @@ export default function ApprovalRoleMapAdminPage() {
   const [newRole, setNewRole] = useState("");
   const [newArea, setNewArea] = useState("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setToast(null);
     try {
@@ -37,11 +37,11 @@ export default function ApprovalRoleMapAdminPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [domain]);
 
   useEffect(() => {
-    load();
-  }, [domain]);
+    void load();
+  }, [load]);
 
   async function createRow() {
     setToast(null);

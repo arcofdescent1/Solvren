@@ -2,7 +2,7 @@
  * Gap 5 — Onboarding tracker. Evaluates org state and updates granular progress.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getOrgOnboardingState, upsertOrgOnboardingState } from "../repositories/org-onboarding-states.repository";
+import { getOrgOnboardingState } from "../repositories/org-onboarding-states.repository";
 import { initializeOnboarding } from "./onboarding-engine.service";
 
 export type OnboardingStage =
@@ -24,7 +24,7 @@ export type OnboardingProgress = {
 };
 
 async function hasConnectedIntegrations(supabase: SupabaseClient, orgId: string): Promise<boolean> {
-  const { data, count } = await supabase
+  const { count } = await supabase
     .from("integration_accounts")
     .select("id", { count: "exact", head: true })
     .eq("org_id", orgId)

@@ -53,7 +53,6 @@ export function validatePolicyDraft(draft: PolicyDraft): ValidationResult {
 
   const rules = draft.rules ?? [];
   const ruleKeys = new Set<string>();
-  let hasHardBlock = false;
   let hasApprovalRule = false;
   let hasBlockRule = false;
 
@@ -71,7 +70,6 @@ export function validatePolicyDraft(draft: PolicyDraft): ValidationResult {
 
     if (rule.effect?.type === "BLOCK") hasBlockRule = true;
     if (rule.effect?.type === "REQUIRE_APPROVAL") hasApprovalRule = true;
-    if (rule.hardBlock) hasHardBlock = true;
 
     if (rule.effect && !SUPPORTED_EFFECTS.includes(rule.effect.type)) {
       errors.push({ field: `${prefix}.effect.type`, code: "unsupported_effect", message: `Effect '${rule.effect.type}' is not supported.` });

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ShieldCheck, Plus, Trash2, Sparkles } from "lucide-react";
 import { DOCS_LINKS } from "@/config/helpCopy";
-import { InfoTooltip, LearnMoreLink, PageHelpDrawer, SectionHelp } from "@/components/help";
+import { InfoTooltip, LearnMoreLink, PageHelpDrawer } from "@/components/help";
 
 type Policy = {
   id: string;

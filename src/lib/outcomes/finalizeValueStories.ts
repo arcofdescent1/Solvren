@@ -118,8 +118,6 @@ export async function finalizeValueStoriesForOrg(
     return { finalized: 0, rejected: 0 };
   }
 
-  const overrides = s?.outcome_observation_overrides_json ?? null;
-
   const { data: pending } = await admin
     .from("value_stories")
     .select(

@@ -20,7 +20,7 @@ export async function runPhase6WorkerOnce(
   const supabase = createAdminClient();
   const { data: job, error } = await claimNextProcessingJob(supabase, jobType);
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.error("[phase6-worker]", jobType, error.message);
     return false;
   }
@@ -33,12 +33,12 @@ export async function runPhase6WorkerOnce(
       payload: (job.payload ?? {}) as Record<string, unknown>,
     });
     await completeProcessingJob(supabase, job.id);
-    // eslint-disable-next-line no-console
+     
     console.log("[phase6-worker]", jobType, "completed", job.id);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await failProcessingJob(supabase, job.id, msg, job.attempts, job.max_attempts);
-    // eslint-disable-next-line no-console
+     
     console.error("[phase6-worker]", jobType, "failed", job.id, msg);
   }
   return true;

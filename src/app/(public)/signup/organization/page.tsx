@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Input, Button, Card, CardBody, PageHeader } from "@/ui";
@@ -40,7 +40,7 @@ function suggestOrgNameFromEmail(email: string): string {
  * Shown after email verification when user has no org. Establishes org context.
  */
 export default function SignupOrganizationPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
 
   const [orgName, setOrgName] = useState("");
@@ -64,12 +64,14 @@ export default function SignupOrganizationPage() {
       }
       setReady(true);
       const email = user.email ?? "";
-      if (!orgName && email) {
+      setOrgName((prev) => {
+        if (prev) return prev;
+        if (!email) return prev;
         const suggested = suggestOrgNameFromEmail(email);
-        if (suggested) setOrgName(suggested);
-      }
+        return suggested || prev;
+      });
     });
-  }, [router, supabase.auth]);
+  }, [router, supabase]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

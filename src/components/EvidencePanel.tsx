@@ -131,7 +131,6 @@ export default function EvidencePanel({
 
   const suggestions =
     (missingEvidenceSuggestions?.suggestions ?? []) as Suggestion[];
-  const missingFromAI = missingEvidenceSuggestions?.missing_kinds ?? [];
 
   return (
     <div id="evidence-panel" className="border rounded p-4 space-y-4">

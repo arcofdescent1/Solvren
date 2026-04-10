@@ -21,7 +21,6 @@ export function IssueStatusTabs({
   counts: Record<string, number>;
 }) {
   const searchParams = useSearchParams();
-  const currentStatus = searchParams.get("status") ?? "";
 
   return (
     <div className="flex flex-wrap gap-1 border-b border-[var(--border)]">

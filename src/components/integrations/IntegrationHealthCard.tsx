@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, Badge } from "@/ui";
+import { Card, CardBody } from "@/ui";
 
 export type HealthStatus = "healthy" | "degraded" | "error" | null;
 

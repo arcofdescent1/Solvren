@@ -69,7 +69,7 @@ export function IssueActionsPanel({
   revenueAtRisk?: number | null;
 }) {
   const [actions, setActions] = useState<ActionRow[]>([]);
-  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [_tasks, setTasks] = useState<TaskRow[]>([]);
   const [executions, setExecutions] = useState<ExecutionRow[]>([]);
   const [availableActions, setAvailableActions] = useState<AvailableAction[]>([]);
   const [recommended, setRecommended] = useState<RecommendedData | null>(null);

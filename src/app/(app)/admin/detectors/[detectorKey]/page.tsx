@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { PageHeader } from "@/ui";
 import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { getDetectorDefinitionByKey } from "@/modules/detection/persistence/detector-definitions.repository";
 import { DetectorDetailClient } from "@/components/detection/DetectorDetailClient";

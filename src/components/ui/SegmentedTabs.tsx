@@ -35,7 +35,7 @@ export function SegmentedTabs({
           : "text-[color:var(--rg-text)] hover:bg-[color:var(--rg-panel-2)]";
 
         if (t.href) {
-          // eslint-disable-next-line @next/next/no-html-link-for-pages
+           
           return (
             <a key={t.key} href={t.href} className={cx(common, active)}>
               {t.label}

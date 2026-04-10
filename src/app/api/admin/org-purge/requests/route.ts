@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const orgIdRaw = req.nextUrl.searchParams.get("orgId");
     if (!orgIdRaw) return NextResponse.json({ error: "orgId required" }, { status: 400 });
     const orgId = parseRequestedOrgId(orgIdRaw);
-    const ctx = await requireOrgPermission(orgId, "domains.manage");
+    await requireOrgPermission(orgId, "domains.manage");
     const admin = createPrivilegedClient("org-purge:list requests");
     const { data, error } = await listPurgeRequestsForOrg(admin, orgId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

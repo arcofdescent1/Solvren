@@ -129,7 +129,7 @@ export async function resolveApprovalRequest(
   supabase: SupabaseClient,
   id: string,
   status: "approved" | "rejected" | "canceled",
-  resolvedByUserId?: string | null
+  _resolvedByUserId?: string | null
 ): Promise<{ data: ApprovalRequestRow | null; error: Error | null }> {
   const { data, error } = await supabase
     .from("approval_requests")

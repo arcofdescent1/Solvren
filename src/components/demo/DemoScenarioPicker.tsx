@@ -4,7 +4,6 @@
  * Phase 8 — Demo scenario picker.
  */
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/ui/primitives/button";
 import {
   Select,
   SelectContent,

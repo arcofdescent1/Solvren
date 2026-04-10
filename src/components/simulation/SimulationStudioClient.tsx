@@ -19,7 +19,7 @@ const AUTONOMY_MODES = [
   { value: "auto_execute_policy_bounded", label: "Auto execute (policy bounded)" },
 ];
 
-export function SimulationStudioClient({ orgId }: { orgId: string }) {
+export function SimulationStudioClient({ orgId: _orgId }: { orgId: string }) {
   const [simulations, setSimulations] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);

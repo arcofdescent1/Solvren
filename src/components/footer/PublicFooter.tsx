@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { footerBrand, footerLegalLine, footerTrustBadges, marketingFooterColumns } from "@/config/footerNav";
 import { FooterLink } from "./FooterLink";
@@ -64,12 +65,13 @@ export function PublicFooter() {
                 href="/"
                 className="mb-8 inline-flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
-                <img
+                <Image
                   src={footerBrand.logoSrc}
                   alt={footerBrand.logoAlt}
                   className="h-11 w-11 shrink-0 object-contain"
                   width={44}
                   height={44}
+                  unoptimized
                 />
                 <div>
                   <div className="text-base font-semibold text-white">{footerBrand.name}</div>
@@ -82,10 +84,10 @@ export function PublicFooter() {
                   {footerTrustBadges.map((b) =>
                     b.href ? (
                       <a key={b.src} href={b.href} className="inline-block" target="_blank" rel="noopener noreferrer">
-                        <img src={b.src} alt={b.alt} className="h-8 opacity-90" />
+                        <Image src={b.src} alt={b.alt} width={120} height={32} className="h-8 w-auto opacity-90" unoptimized />
                       </a>
                     ) : (
-                      <img key={b.src} src={b.src} alt={b.alt} className="h-8 opacity-90" />
+                      <Image key={b.src} src={b.src} alt={b.alt} width={120} height={32} className="h-8 w-auto opacity-90" unoptimized />
                     )
                   )}
                 </div>

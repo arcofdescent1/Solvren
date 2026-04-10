@@ -16,7 +16,7 @@ export async function POST(
   try {
     const { findingId } = await params;
 
-    const ctx = await resolveResourceInOrg({
+    await resolveResourceInOrg({
       table: "detector_findings",
       resourceId: findingId,
       permission: "admin.jobs.view",

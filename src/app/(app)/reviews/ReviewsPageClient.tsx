@@ -33,10 +33,7 @@ export default function ReviewsPageClient({
     if (hasIncidentsFilter) next.set("hasIncidents", "1");
     return `/reviews?${next.toString()}`;
   };
-  const inboxHref = () => {
-    const next = new URLSearchParams();
-    return `/reviews`;
-  };
+  const inboxHref = () => "/reviews";
 
   return (
     <div className="min-h-screen">

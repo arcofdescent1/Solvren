@@ -38,7 +38,7 @@ type DecisionLogRow = {
 };
 
 export function PolicyCenterClient({
-  orgId,
+  orgId: _orgId,
   policies,
   pendingApprovals,
   decisionLogs,

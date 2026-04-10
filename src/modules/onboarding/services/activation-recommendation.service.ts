@@ -6,7 +6,6 @@ import { getAccountsByOrg } from "@/modules/integrations/core/integrationAccount
 import { getOrgPlaybookConfigs } from "@/modules/autonomy/persistence/playbooks.repository";
 import { listPlaybookDefinitions } from "@/modules/autonomy/persistence/playbooks.repository";
 import { listOrgOnboardingSteps } from "../repositories/org-onboarding-steps.repository";
-import { listActivationRecommendations } from "../repositories/activation-recommendations.repository";
 
 export type RecommendationOutput = {
   recommendationType: string;

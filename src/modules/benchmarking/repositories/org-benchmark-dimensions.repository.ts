@@ -15,16 +15,6 @@ export type OrgBenchmarkDimensionsRow = {
   updated_at: string;
 };
 
-const DIMENSION_COLS = [
-  "company_size_band",
-  "arr_band",
-  "business_model",
-  "sales_motion",
-  "industry_family",
-  "integration_footprint_tier",
-  "operational_maturity_tier",
-] as const;
-
 const COHORT_TO_COL: Record<string, string> = {
   companySizeBand: "company_size_band",
   arrBand: "arr_band",

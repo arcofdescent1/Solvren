@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authzErrorResponse, requireAnyOrgPermission } from "@/lib/server/authz";
 import { listPendingApprovals } from "@/modules/policy/repositories/approval-requests.repository";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const ctx = await requireAnyOrgPermission("queue.admin.view");
     const { data, error } = await listPendingApprovals(ctx.supabase, ctx.orgId);

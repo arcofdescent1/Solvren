@@ -18,7 +18,7 @@ export function IssueCommentsPanel({
   issueId: string;
   comments: Comment[];
 }) {
-  const [comments, setComments] = useState(initialComments);
+  const [comments, _setComments] = useState(initialComments);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
 

@@ -88,7 +88,7 @@ export function getPostgresReadonlyRuntime(): ConnectorRuntime {
 
       try {
         await client.connect();
-        const { rowsProcessed, rowsMapped, nextCheckpoint, error } = await syncPostgresTable(admin, {
+        const { rowsProcessed: _rowsProcessed, rowsMapped: _rowsMapped, nextCheckpoint, error } = await syncPostgresTable(admin, {
           orgId,
           integrationAccountId: input.integrationAccountId,
           client,
@@ -133,7 +133,7 @@ export function getPostgresReadonlyRuntime(): ConnectorRuntime {
 
       try {
         await client.connect();
-        const { rowsProcessed, rowsMapped, nextCheckpoint: nextCp, error } = await syncPostgresTable(admin, {
+        const { rowsProcessed: _rowsProcessed2, rowsMapped: _rowsMapped2, nextCheckpoint: nextCp, error } = await syncPostgresTable(admin, {
           orgId,
           integrationAccountId: input.integrationAccountId,
           client,

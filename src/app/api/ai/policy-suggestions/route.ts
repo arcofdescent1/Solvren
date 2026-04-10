@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -46,9 +46,6 @@ export async function GET(req: NextRequest) {
 
   const pricingRisks = risks.filter((r) => (r.risk_type ?? "").toLowerCase().includes("pricing") || (r.risk_type ?? "").toLowerCase().includes("discount"));
   if (pricingRisks.length >= 2 && unapproved.length > 0) {
-    const impacts = pricingRisks.map((r) => Number(r.impact_amount)).filter(Number.isFinite);
-    const maxImpact = impacts.length ? Math.max(...impacts) : 100_000;
-    const threshold = maxImpact >= 500_000 ? 100_000 : maxImpact >= 100_000 ? 50_000 : 10_000;
     suggestions.push({
       name: "Discount limit",
       description: "Limit discounts above threshold without approval.",

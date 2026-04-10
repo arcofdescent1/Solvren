@@ -2,7 +2,6 @@
  * Phase 2 — Aggregates step and entity results into summary.
  */
 import type { SimulationEntityResultRow } from "../repositories/simulation-entity-results.repository";
-import { SimulationConfidenceBand, scoreToBand } from "../domain";
 
 export type ResultSummary = {
   projectedRecoveredAmount: number;

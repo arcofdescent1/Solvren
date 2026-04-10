@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/ui";
@@ -24,7 +25,7 @@ export function PublicHeader() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-10">
           <Link href={CANONICAL_SITE_URL} className="flex items-center gap-3">
-            <img src="/images/Solvren.svg" alt="Solvren" className="h-10 w-10 shrink-0 object-contain" />
+            <Image src="/images/Solvren.svg" alt="Solvren" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" priority />
             <div>
               <div className="text-sm font-semibold tracking-tight text-white">Solvren</div>
               <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-200/80">Revenue protection platform</div>

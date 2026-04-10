@@ -29,8 +29,8 @@ export default function SlackIntegrationCard({
   teamName,
   config,
   lastError,
-  lastSuccessAt,
-  healthStatus,
+  lastSuccessAt: _lastSuccessAt,
+  healthStatus: _healthStatus,
 }: Props) {
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);

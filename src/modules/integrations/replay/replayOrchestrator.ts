@@ -2,7 +2,7 @@
  * Phase 3 — Replay orchestrator.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { parseScope, resolveRecordsToReplay, type ReplayScope } from "./replayScopeResolver";
+import { parseScope, resolveRecordsToReplay } from "./replayScopeResolver";
 import { replaySingleEvent } from "./replayExecutor";
 
 export type StartReplayInput = {

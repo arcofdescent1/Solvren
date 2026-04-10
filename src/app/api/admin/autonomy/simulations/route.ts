@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authzErrorResponse, requireAnyOrgPermission } from "@/lib/server/authz";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const ctx = await requireAnyOrgPermission("admin.simulations.manage");
 

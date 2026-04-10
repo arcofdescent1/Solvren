@@ -3,7 +3,7 @@
 import { Button, Card, CardBody, Input, PageHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui";
 import { Checkbox } from "@/ui/primitives/checkbox";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type OrgMember = {
   user_id: string;
@@ -28,13 +28,7 @@ export default function ApprovalRolesClient({ orgId }: { orgId: string }) {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
 
-  const memberById = useMemo(() => {
-    const map = new Map<string, OrgMember>();
-    for (const m of members) map.set(m.user_id, m);
-    return map;
-  }, [members]);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setMsg(null);
     try {
@@ -57,11 +51,11 @@ export default function ApprovalRolesClient({ orgId }: { orgId: string }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [orgId]);
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
 
   async function createRole() {
     setMsg(null);

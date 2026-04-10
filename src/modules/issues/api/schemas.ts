@@ -13,7 +13,6 @@ const issueSourceType = z.enum([
   "verification_failure",
 ]);
 const issueSeverity = z.enum(["low", "medium", "high", "critical"]);
-const verificationStatus = z.enum(["pending", "passed", "failed", "not_required"]);
 
 export const CreateIssueFromSourceSchema = z.object({
   sourceType: issueSourceType,

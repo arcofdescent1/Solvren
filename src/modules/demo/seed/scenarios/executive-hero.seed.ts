@@ -65,7 +65,6 @@ export function buildExecutiveHeroSeed(orgId: string) {
   }
 
   const issues = buildSeedIssues(issueInputs);
-  const issueIdByKey = new Map(issues.map((iss) => [(iss as { issue_key: string }).issue_key, (iss as { id: string }).id]));
 
   // Actions for resolved/verified issues
   const actionInputs: Parameters<typeof buildSeedActions>[0] = [];

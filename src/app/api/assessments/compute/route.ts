@@ -368,7 +368,7 @@ export async function POST(req: Request) {
     await recomputeAndPersistRevenueFields(admin, {
       changeId: body.changeEventId,
     });
-  } catch (e) {
+  } catch (_e) {
     // Non-fatal: columns may not exist if migration 064 not applied
   }
 

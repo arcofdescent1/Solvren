@@ -1,7 +1,8 @@
-"use client";;
+"use client";
+
 import { Button } from "@/ui";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Incident = {
   id: string;
@@ -17,7 +18,7 @@ export default function IncidentsList({ changeEventId }: { changeEventId: string
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
@@ -30,20 +31,20 @@ export default function IncidentsList({ changeEventId }: { changeEventId: string
     } finally {
       setLoading(false);
     }
-  }
+  }, [changeEventId]);
 
   useEffect(() => {
-    load();
-  }, [changeEventId]);
+    void load();
+  }, [load]);
 
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { changeEventId?: string };
-      if (detail?.changeEventId === changeEventId) load();
+      if (detail?.changeEventId === changeEventId) void load();
     };
     window.addEventListener("incident-linked", handler);
     return () => window.removeEventListener("incident-linked", handler);
-  }, [changeEventId]);
+  }, [changeEventId, load]);
 
   return (
     <div className="border rounded p-4 space-y-2">

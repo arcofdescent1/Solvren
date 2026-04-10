@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Card, CardBody, Stack, Badge } from "@/ui";
 import SsoProviderForm from "./SsoProviderForm";
 
@@ -32,7 +32,7 @@ export default function SsoIntegrationCard({ orgId, isAdmin }: Props) {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  async function fetchConfig() {
+  const fetchConfig = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/org/settings/sso?orgId=${encodeURIComponent(orgId)}`);
@@ -41,11 +41,11 @@ export default function SsoIntegrationCard({ orgId, isAdmin }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [orgId]);
 
   useEffect(() => {
-    fetchConfig();
-  }, [orgId]);
+    void fetchConfig();
+  }, [fetchConfig]);
 
   async function handleCreateProvider(providerType: string, protocol: string) {
     if (!isAdmin) return;

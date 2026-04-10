@@ -10,7 +10,7 @@
 import type { ConnectorRuntime } from "../../contracts/runtime";
 import type { IntegrationProvider } from "../../contracts/types";
 
-export function createStubRuntime(provider: IntegrationProvider): ConnectorRuntime {
+export function createStubRuntime(_provider: IntegrationProvider): ConnectorRuntime {
   const stub = {
     async connect() {
       return { authUrl: "", stateToken: "", expiresAt: new Date().toISOString() };

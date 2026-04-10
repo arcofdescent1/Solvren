@@ -1,11 +1,9 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardBody, PageHeader } from "@/ui";
 
 export default function VerifyErrorPage() {
-  const supabase = createClient();
   const router = useRouter();
 
   async function resend() {

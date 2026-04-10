@@ -3,7 +3,7 @@ import { buildAttentionContext } from "@/lib/attention/buildAttentionContext";
 import { delegateApproval } from "@/lib/attention/delegateApproval";
 import { buildMaterialSnapshot } from "@/lib/attention/materialSnapshot";
 import { computeAttentionReasonHash } from "@/lib/attention/reasonHash";
-import { fetchLatestAttentionDelivery, insertAttentionDeliveryLog } from "@/lib/attention/notificationDeliveryLog";
+import { fetchLatestAttentionDelivery } from "@/lib/attention/notificationDeliveryLog";
 import { persistDelegationDecision } from "@/lib/attention/persistDelegationDecision";
 import { routeAttention } from "@/lib/attention/routeAttention";
 import { shouldSuppressAttentionNotification } from "@/lib/attention/shouldSuppressNotification";

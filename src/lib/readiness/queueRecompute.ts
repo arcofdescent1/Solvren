@@ -16,7 +16,7 @@ export async function queueReadinessRecompute(args: { orgId: string; changeEvent
     { onConflict: "change_event_id" }
   );
   if (error && !String(error.message).includes("duplicate")) {
-    // eslint-disable-next-line no-console
+     
     console.warn("readiness_recompute_queue:", error.message);
   }
 }

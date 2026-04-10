@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import {
-  PageHeader,
   PageHeaderV2,
   Card,
   CardBody,

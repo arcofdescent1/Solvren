@@ -8,7 +8,6 @@ import type { LifecycleContext } from "../domain/lifecycle-context";
 import type { LifecycleValidationResult } from "../domain/lifecycle-validation";
 import { insertLifecycleEvent } from "../repositories/issue-lifecycle-events.repository";
 import { insertTerminalClassification } from "../repositories/issue-terminal-classification.repository";
-import { getTerminalClassification } from "../repositories/issue-terminal-classification.repository";
 import { validateClosureInvariant } from "./issue-lifecycle-validator.service";
 import { gatherLifecycleChecks } from "./lifecycle-checks";
 

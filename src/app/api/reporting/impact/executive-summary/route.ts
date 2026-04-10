@@ -8,7 +8,7 @@ import { selectIssues, type IssueStatus } from "@/modules/issues";
 
 const OPEN_STATUSES: IssueStatus[] = ["open", "triaged", "assigned", "in_progress"];
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

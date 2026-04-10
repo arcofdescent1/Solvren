@@ -26,7 +26,7 @@ type RiskRow = {
   confidence_level: string | null;
 };
 
-function fallbackBriefing(top: RiskRow | null, exposure: number): {
+function fallbackBriefing(top: RiskRow | null, _exposure: number): {
   headline: string;
   summary: string;
   estimatedExposure: number;

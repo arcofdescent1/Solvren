@@ -7,7 +7,7 @@ import { Card, CardBody } from "@/ui";
 const SCOPES = ["global", "org", "environment", "action", "playbook", "issue_family", "integration", "risk_class"];
 const DISPOSITIONS = ["ALLOW", "BLOCK", "REQUIRE_APPROVAL"];
 
-export function PolicyCreateClient({ orgId }: { orgId: string }) {
+export function PolicyCreateClient({ orgId: _orgId }: { orgId: string }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

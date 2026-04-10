@@ -1,7 +1,8 @@
-"use client";;
+"use client";
+
 import { Button } from "@/ui";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
@@ -25,7 +26,7 @@ export default function ReportSuggestionsPanel(props: { changeId: string }) {
   const [applyE, setApplyE] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
@@ -38,11 +39,11 @@ export default function ReportSuggestionsPanel(props: { changeId: string }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [props.changeId]);
 
   useEffect(() => {
-    load();
-  }, [props.changeId]);
+    void load();
+  }, [load]);
 
   async function applyApprovals() {
     setApplyA(true);

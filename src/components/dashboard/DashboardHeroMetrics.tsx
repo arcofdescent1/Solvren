@@ -23,9 +23,9 @@ function formatMoney(n: number) {
 
 function ExplainLink({
   label,
-  metricKey,
-  displayValue,
-  showCalculationDetails,
+  metricKey: _metricKey,
+  displayValue: _displayValue,
+  showCalculationDetails: _showCalculationDetails,
   onOpen,
 }: {
   label: string;

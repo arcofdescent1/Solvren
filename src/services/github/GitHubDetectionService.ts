@@ -47,7 +47,7 @@ export function runDetection(params: RunDetectionParams): RunDetectionResult {
   let detectedDomain: string | null = null;
 
   for (const path of filePaths) {
-    const { matched, matchedFiles: mf } = matchFilePath(path, rules);
+    const { matched, matchedFiles: _mf } = matchFilePath(path, rules);
     if (matched.length > 0) {
       matchedFiles.push(path);
       for (const r of matched) {

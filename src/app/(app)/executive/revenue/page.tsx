@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { PageHeader, PageHeaderV2, Card, CardBody } from "@/ui";
+import { PageHeaderV2, Card, CardBody } from "@/ui";
 
 function fmtMoney(n: number) {
   try {

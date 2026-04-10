@@ -28,7 +28,6 @@ export function RiskBreakdownCard(props: {
   const revenueRisk = props.revenueRiskScore != null
     ? props.revenueRiskScore
     : Number(e.finalRisk ?? e.baseRisk ?? base);
-  const final = Number(e.finalRisk ?? revenueRisk);
 
   const hasExposureBreakdown =
     exposureComponents.surface != null ||

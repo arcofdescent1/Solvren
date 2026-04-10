@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getAccountById } from "../../core/integrationAccountsRepo";
 import { mapPayloadToCanonicalForIngestion } from "@/lib/integrations/mapping/ingestionBridge";
 import { persistWebhookToRawEvents } from "@/modules/signals/ingestion/webhook-to-raw-event.bridge";
-import { getCheckpoint, saveCheckpoint } from "../../scheduling/checkpointManager";
+import { getCheckpoint } from "../../scheduling/checkpointManager";
 import { getMysqlClientForAccount } from "./client";
 import { MYSQL_OBJECT_TYPES } from "./schema";
 import type { IntegrationProvider } from "../../contracts/types";
@@ -89,7 +89,6 @@ export function getMysqlReadonlyRuntime(): ConnectorRuntime {
       try {
         const [rows] = await conn.query(`SELECT ${colList} FROM \`${tableName}\` LIMIT 500`) as [Record<string, unknown>[], unknown];
         const rowList = Array.isArray(rows) ? rows : [];
-        let rowsMapped = 0;
         for (let i = 0; i < rowList.length; i++) {
           const row = rowList[i] as Record<string, unknown>;
           const mapped = await mapPayloadToCanonicalForIngestion(admin, {
@@ -112,7 +111,6 @@ export function getMysqlReadonlyRuntime(): ConnectorRuntime {
               payload: row,
               canonicalOutput: mapped.canonical,
             });
-            rowsMapped++;
           }
         }
         await conn.end();

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, CardBody, PageHeader } from "@/ui";
+import { Card, CardBody, PageHeader } from "@/ui";
 import Link from "next/link";
 import { WIZARD_STEPS, type IntakeDraft, type IntakeStepId } from "./types";
 import { SystemsStep } from "./steps/SystemsStep";

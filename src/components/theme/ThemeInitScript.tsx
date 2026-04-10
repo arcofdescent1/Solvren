@@ -17,6 +17,6 @@ export default function ThemeInitScript() {
   }
 })();`;
 
-  // eslint-disable-next-line react/no-danger
+   
   return <script dangerouslySetInnerHTML={{ __html: code }} />;
 }

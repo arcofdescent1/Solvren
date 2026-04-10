@@ -10,7 +10,7 @@ test.describe("Suite B — Navigation and Shell Stability", () => {
     await loginAs(page, "submitter");
     await page.goto("/");
     await expect(page).toHaveURL(/\/(home|onboarding)/);
-    await expect(page.getByRole("link", { name: /request beta access/i })).not.toBeVisible();
+    await expect(page.getByRole("link", { name: /start free trial/i })).not.toBeVisible();
   });
 
   test("TC-NAV-002: Public root for unauthenticated user", async ({ page }) => {
