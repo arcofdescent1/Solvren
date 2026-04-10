@@ -25,7 +25,22 @@ export default async function PublicLayout({
 
   const isAuthFlow = pathname.startsWith("/auth/reset-password");
   const isSignupFlow = pathname === "/signup" || pathname.startsWith("/signup/");
-  if (state.isAuthenticated && state.isVerified && !isAuthFlow && !isSignupFlow) {
+  const isPublicMarketingContentPath =
+    pathname.startsWith("/legal/") ||
+    pathname.startsWith("/platform") ||
+    pathname === "/contact" ||
+    pathname === "/about" ||
+    pathname === "/careers" ||
+    pathname === "/support" ||
+    pathname === "/status" ||
+    pathname === "/trust";
+  if (
+    state.isAuthenticated &&
+    state.isVerified &&
+    !isAuthFlow &&
+    !isSignupFlow &&
+    !isPublicMarketingContentPath
+  ) {
     redirect("/dashboard");
   }
 

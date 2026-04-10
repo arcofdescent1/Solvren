@@ -49,6 +49,7 @@ export type ReviewRow = {
   isEscalated: boolean;
   failedOutboxIds?: string[];
   pendingOutboxIds?: string[];
+  sourceMode?: string | null;
 };
 
 export async function GET(req: Request) {
@@ -62,6 +63,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const learnedRiskFilter = url.searchParams.get("learnedRisk") === "1";
   const hasIncidentsFilter = url.searchParams.get("hasIncidents") === "1";
+  const sourceModeFilter = url.searchParams.get("sourceMode");
   const view = (url.searchParams.get("view") ?? "all") as View;
   const validViews: View[] = [
     "my",
@@ -165,6 +167,7 @@ export async function GET(req: Request) {
     submitted_at: string | null;
     due_at: string | null;
     sla_status: string | null;
+    source_mode?: string | null;
   }> = [];
 
   if (viewParam === "needs-review") {
@@ -190,7 +193,9 @@ export async function GET(req: Request) {
     const { data: changes, error: ceErr } = await scopeActiveChangeEvents(
       supabase
         .from("change_events")
-        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .select(
+          "id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status, source_mode"
+        )
     ).in("id", ids);
     if (ceErr)
       return NextResponse.json({ error: ceErr.message }, { status: 500 });
@@ -199,14 +204,18 @@ export async function GET(req: Request) {
     const { data: overdueDue } = await scopeActiveChangeEvents(
       supabase
         .from("change_events")
-        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .select(
+          "id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status, source_mode"
+        )
         .in("org_id", orgIds)
         .eq("status", "IN_REVIEW")
     ).lt("due_at", nowIso);
     const { data: overdueEsc } = await scopeActiveChangeEvents(
       supabase
         .from("change_events")
-        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .select(
+          "id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status, source_mode"
+        )
         .in("org_id", orgIds)
         .eq("status", "IN_REVIEW")
     ).eq("sla_status", "ESCALATED");
@@ -240,7 +249,9 @@ export async function GET(req: Request) {
     const { data: changes, error: ceErr } = await scopeActiveChangeEvents(
       supabase
         .from("change_events")
-        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .select(
+          "id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status, source_mode"
+        )
     ).in("id", ids);
     if (ceErr)
       return NextResponse.json({ error: ceErr.message }, { status: 500 });
@@ -249,7 +260,9 @@ export async function GET(req: Request) {
     const q = scopeActiveChangeEvents(
       supabase
         .from("change_events")
-        .select("id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status")
+        .select(
+          "id, org_id, title, status, domain, created_by, submitted_at, due_at, sla_status, source_mode"
+        )
         .in("org_id", orgIds)
         .in("status", ["DRAFT", "READY", "IN_REVIEW", "SUBMITTED"])
     );
@@ -262,6 +275,15 @@ export async function GET(req: Request) {
   }
 
   changeRows = await filterVisibleChanges(supabase, userId, changeRows);
+
+  if (sourceModeFilter && sourceModeFilter !== "all") {
+    if (sourceModeFilter === "OTHER_LEGACY") {
+      changeRows = changeRows.filter((c) => !c.source_mode || c.source_mode === "UNKNOWN");
+    } else {
+      changeRows = changeRows.filter((c) => c.source_mode === sourceModeFilter);
+    }
+  }
+
   const changeIds = changeRows.map((c) => c.id);
   if (!changeIds.length)
     return NextResponse.json({
@@ -500,6 +522,7 @@ export async function GET(req: Request) {
         viewParam === "delivery-health"
           ? (pendingOutboxIdsMap.get(c.id) ?? [])
           : undefined,
+      sourceMode: c.source_mode ?? null,
     };
   });
 

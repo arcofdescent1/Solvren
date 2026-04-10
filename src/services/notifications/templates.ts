@@ -18,7 +18,10 @@ export type TemplateKey =
   | "comment_added"
   | "daily_inbox"
   | "weekly_digest"
-  | "high_risk_change_detected";
+  | "high_risk_change_detected"
+  | "predicted_risk_early_warning"
+  | "readiness_band_cross"
+  | "portfolio_deterioration";
 
 export type Rendered = {
   title: string;
@@ -53,6 +56,95 @@ export function renderTemplate(
       severity: "INFO",
       cta_label: "Open dashboard",
       cta_url: "/dashboard",
+    };
+  }
+  if (template_key === "outcomes_threshold") {
+    return {
+      title: String(payload?.headline ?? "Outcomes update"),
+      body: String(payload?.body ?? ""),
+      severity: "INFO",
+      cta_label: "View outcomes",
+      cta_url: "/outcomes",
+    };
+  }
+  if (template_key === "outcomes_report_ready") {
+    return {
+      title: "Your outcomes report is ready",
+      body: "Download your generated report from the outcomes area.",
+      severity: "INFO",
+      cta_label: "Open report",
+      cta_url: "/outcomes",
+    };
+  }
+  if (template_key === "outcomes_report_failed") {
+    return {
+      title: "Report generation failed",
+      body: String(payload?.errorMessage ?? "We could not finish your report. Try again or contact support."),
+      severity: "WARNING",
+      cta_label: "Outcomes",
+      cta_url: "/outcomes",
+    };
+  }
+  if (template_key === "attention_digest_dm") {
+    return {
+      title: "Attention digest",
+      body: String(payload?.text ?? "Your Solvren attention digest."),
+      severity: "INFO",
+      cta_label: "Open dashboard",
+      cta_url: "/dashboard",
+    };
+  }
+  if (template_key === "executive_dm_notification") {
+    const ceId = String(payload?.changeEventId ?? "");
+    if (!ceId) return null;
+    return {
+      title: "Executive briefing",
+      body: "A change needs your leadership review.",
+      severity: "WARNING",
+      cta_label: "View overview",
+      cta_url: `/executive/changes/${ceId}`,
+    };
+  }
+  if (template_key === "predicted_risk_early_warning") {
+    const changeEventId = String(payload?.changeEventId ?? "");
+    if (!changeEventId) return null;
+    const headline = String(payload?.headline ?? "Predicted risk");
+    const ptype = String(payload?.predictionType ?? "").replace(/_/g, " ");
+    const conf = payload?.confidence != null ? Number(payload.confidence) : null;
+    const confStr = conf != null && Number.isFinite(conf) ? `${Math.round(conf)}% confidence` : "";
+    return {
+      title: "Early warning: predicted risk",
+      body: [headline, ptype ? `Type: ${ptype}.` : "", confStr].filter(Boolean).join(" "),
+      severity: "WARNING",
+      cta_label: "View change",
+      cta_url: changeUrl(changeEventId),
+    };
+  }
+  if (template_key === "readiness_band_cross") {
+    const changeEventId = String(payload?.changeEventId ?? "");
+    if (!changeEventId) return null;
+    const to = String(payload?.to ?? "");
+    const from = String(payload?.from ?? "");
+    return {
+      title: "Portfolio readiness shift",
+      body: `Portfolio readiness moved${from ? ` from ${from}` : ""}${to ? ` to ${to}` : ""}.`,
+      severity: "WARNING",
+      cta_label: "Open readiness",
+      cta_url: "/readiness",
+    };
+  }
+  if (template_key === "portfolio_deterioration") {
+    const changeEventId = String(payload?.changeEventId ?? "");
+    if (!changeEventId) return null;
+    const parts: string[] = [];
+    if (payload?.scoreDrop) parts.push("readiness dropped by 10+ points in 7 days");
+    if (payload?.notReadyJump) parts.push("NOT READY releases increased by 2+");
+    return {
+      title: "Portfolio deterioration",
+      body: parts.length > 0 ? parts.join("; ") + "." : "Portfolio health worsened materially.",
+      severity: "WARNING",
+      cta_label: "Open readiness",
+      cta_url: "/readiness",
     };
   }
   if (template_key === "high_risk_change_detected") {

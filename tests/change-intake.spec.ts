@@ -12,7 +12,7 @@ test.describe("Submitter workflow", () => {
   });
 
   test("submitter can create draft and start guided intake", async ({ page }) => {
-    await page.goto("/changes/new");
+    await page.goto("/intake/new");
     await expect(page.getByTestId("start-guided-intake")).toBeVisible();
     await page.getByPlaceholder(/annual plan|title/i).fill("E2E Test Change");
     await page.getByTestId("start-guided-intake").click();

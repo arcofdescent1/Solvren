@@ -8,12 +8,16 @@ import {
   ListTodo,
   PlugZap,
   LifeBuoy,
+  ShieldAlert,
+  TrendingUp,
 } from "lucide-react";
 
 export type AppNavKey =
   | "home"
   | "issues"
   | "changes"
+  | "readiness"
+  | "outcomes"
   | "actions"
   | "insights"
   | "integrations"
@@ -52,6 +56,22 @@ export const PRIMARY_APP_NAV: AppNavItem[] = [
     icon: FileCheck,
     activeMatch: ["/changes", "/reviews", "/queue"],
     description: "Revenue-impacting changes in flight.",
+  },
+  {
+    key: "readiness",
+    label: "Readiness",
+    href: "/readiness",
+    icon: ShieldAlert,
+    activeMatch: ["/readiness"],
+    description: "Portfolio and release readiness with predicted risks.",
+  },
+  {
+    key: "outcomes",
+    label: "Outcomes",
+    href: "/outcomes",
+    icon: TrendingUp,
+    activeMatch: ["/outcomes"],
+    description: "Revenue protected, incidents prevented, and value stories.",
   },
   {
     key: "actions",

@@ -92,7 +92,7 @@ export default async function ExecutivePage() {
             <Link href="/changes" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               Revenue Changes →
             </Link>
-            <Link href="/changes/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+            <Link href="/intake/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               New Change →
             </Link>
           </div>

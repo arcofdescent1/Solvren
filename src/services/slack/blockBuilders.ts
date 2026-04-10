@@ -1,5 +1,7 @@
 // src/services/slack/blockBuilders.ts
 
+import { env } from "@/lib/env";
+
 type Mitigation = {
   recommendation: string;
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -110,25 +112,32 @@ export function buildApprovalRequestedBlocks(args: {
 
 export function buildApprovalActionButtons(args: {
   approvalId: string;
-  /** Full value for outbox flow (orgId, changeEventId, approvalId, outboxId) */
-  fullValue?: string;
-  /** When provided, Open button uses URL for one-click; else uses action */
+  orgId: string;
+  changeEventId: string;
+  outboxId?: string;
+  /** Operator change URL (optional); executive overview always uses app URL */
   changeUrl?: string | null;
 }) {
-  const { approvalId, fullValue, changeUrl } = args;
-  const value = fullValue ?? approvalId;
-  const openButton = changeUrl
-    ? {
-        type: "button" as const,
-        text: { type: "plain_text" as const, text: "Open" },
-        url: changeUrl,
-      }
-    : {
-        type: "button" as const,
-        text: { type: "plain_text" as const, text: "Open" },
-        action_id: "approval_open" as const,
-        value,
-      };
+  const { approvalId, orgId, changeEventId, outboxId } = args;
+  const value = JSON.stringify({
+    approval_id: approvalId,
+    org_id: orgId,
+    change_event_id: changeEventId,
+    outbox_id: outboxId ?? "",
+  });
+
+  const appBase = env.appUrl.replace(/\/$/, "");
+  const executiveOverviewUrl = `${appBase}/executive/changes/${changeEventId}?view=executive-lite`;
+
+  const overflowValue = (k: string) =>
+    JSON.stringify({
+      k,
+      approval_id: approvalId,
+      org_id: orgId,
+      change_event_id: changeEventId,
+      outbox_id: outboxId ?? "",
+    });
+
   return [
     {
       type: "actions" as const,
@@ -158,11 +167,37 @@ export function buildApprovalActionButtons(args: {
         },
         {
           type: "button" as const,
-          text: { type: "plain_text" as const, text: "Add comment" },
-          action_id: "approval_comment",
+          text: { type: "plain_text" as const, text: "Request Info" },
+          action_id: "approval_request_info",
           value,
         },
-        openButton,
+        {
+          type: "button" as const,
+          text: { type: "plain_text" as const, text: "Open Overview" },
+          url: executiveOverviewUrl,
+        },
+        {
+          type: "overflow" as const,
+          action_id: "approval_overflow",
+          options: [
+            {
+              text: { type: "plain_text" as const, text: "Delegate" },
+              value: overflowValue("delegate"),
+            },
+            {
+              text: { type: "plain_text" as const, text: "Defer" },
+              value: overflowValue("defer"),
+            },
+            {
+              text: { type: "plain_text" as const, text: "Follow" },
+              value: overflowValue("follow"),
+            },
+            {
+              text: { type: "plain_text" as const, text: "Mute similar" },
+              value: overflowValue("mute"),
+            },
+          ],
+        },
       ],
     },
   ];
@@ -244,5 +279,60 @@ export function buildDecisionStateBlocks(args: {
         { type: "mrkdwn", text: `*Surface*\n${revenueSurface ?? "—"}` },
       ],
     },
+  ];
+}
+
+/** Phase 5 — Slack early-warning actions (wired to /api/integrations/slack/actions). */
+export function buildPhase5PredictionSlackBlocks(args: {
+  title: string;
+  bodyMd: string;
+  changeUrl: string;
+  orgId: string;
+  changeEventId: string;
+  predictionType: string;
+  releaseId: string | null;
+}): unknown[] {
+  const compact = (o: Record<string, string>) => JSON.stringify(o);
+  const elements: unknown[] = [
+    {
+      type: "button",
+      text: { type: "plain_text", text: "View readiness" },
+      action_id: "p5_view_readiness",
+      value: compact({ orgId: args.orgId }),
+    },
+  ];
+  if (args.releaseId) {
+    elements.push({
+      type: "button",
+      text: { type: "plain_text", text: "Follow release" },
+      action_id: "p5_follow_release",
+      value: compact({ orgId: args.orgId, releaseId: args.releaseId }),
+    });
+  }
+  elements.push(
+    {
+      type: "button",
+      text: { type: "plain_text", text: "View change" },
+      url: args.changeUrl,
+    },
+    {
+      type: "button",
+      text: { type: "plain_text", text: "Mute prediction" },
+      action_id: "p5_mute_prediction",
+      value: compact({ orgId: args.orgId, predictionType: args.predictionType }),
+    },
+    {
+      type: "button",
+      text: { type: "plain_text", text: "Ask team" },
+      action_id: "p5_ask_resolve",
+      value: compact({ orgId: args.orgId, changeEventId: args.changeEventId }),
+    }
+  );
+  return [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: `*${args.title}*\n${args.bodyMd}` },
+    },
+    { type: "actions", elements },
   ];
 }

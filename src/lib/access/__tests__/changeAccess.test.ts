@@ -99,6 +99,16 @@ describe("canViewChangeWithContext", () => {
     expect(canViewChangeWithContext(userId, row({ status: "IN_REVIEW" }), c)).toBe(false);
   });
 
+  it("REVIEWER sees other members' DRAFT changes when not restricted", () => {
+    const c = ctx({
+      roleByOrgId: new Map([[orgId, "REVIEWER"]]),
+      domainViewByOrgDomain: new Map([["org1:REVENUE", true]]),
+    });
+    expect(
+      canViewChangeWithContext(userId, row({ created_by: "other-user", status: "DRAFT" }), c)
+    ).toBe(true);
+  });
+
   it("REVIEWER sees change when assigned even if domain view denied", () => {
     const c = ctx({
       roleByOrgId: new Map([[orgId, "REVIEWER"]]),

@@ -88,7 +88,7 @@ export function RiskCard(props: RiskCardProps) {
         </Link>
         {!changeEventId && (
           <Link
-            href={`/changes/new?linkRiskId=${id}`}
+            href={`/intake/new?linkRiskId=${id}`}
             className="inline-flex h-8 items-center justify-center rounded-md bg-[var(--primary)] px-3 text-xs font-medium text-[var(--primary-contrast)] hover:bg-[var(--primary-hover)]"
           >
             Create Change Request

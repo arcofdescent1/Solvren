@@ -9,6 +9,7 @@ import { markRevenueImpactStale } from "@/services/revenueImpact/markRevenueImpa
 import { runRevenueImpactGeneration } from "@/services/revenueImpact/runRevenueImpactGeneration";
 import { markCoordinationPlanStale } from "@/services/coordination/markCoordinationPlanStale";
 import { runCoordinationPlanGeneration } from "@/services/coordination/runCoordinationPlanGeneration";
+import { queueReadinessRecompute } from "@/lib/readiness/queueRecompute";
 
 type Body = {
   title?: string;
@@ -321,6 +322,20 @@ export async function PATCH(
     }
   } catch {
     // Readiness updates are best effort.
+  }
+
+  const readinessTriggerFields = new Set([
+    "rollback_time_estimate_hours",
+    "planned_release_at",
+    "requested_release_at",
+    "estimated_mrr_affected",
+    "percent_customer_base_affected",
+    "revenue_impact_areas",
+    "rollout_method",
+    "domain",
+  ]);
+  if (Object.keys(patch).some((k) => readinessTriggerFields.has(k))) {
+    void queueReadinessRecompute({ orgId: String(change.org_id), changeEventId: id });
   }
 
   return NextResponse.json({ ok: true });

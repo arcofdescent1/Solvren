@@ -12,8 +12,7 @@ import {
   VALUE_PROPS,
 } from "./landingCopy";
 import { Button } from "@/ui";
-import { PublicHeader } from "./PublicHeader";
-import { PublicFooter } from "./PublicFooter";
+import { PublicShell } from "@/components/layout/PublicShell";
 
 const iconMap = {
   Sparkles,
@@ -51,13 +50,7 @@ type Feature = {
 };
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <PublicHeader />
-      <main>{children}</main>
-      <PublicFooter />
-    </div>
-  );
+  return <PublicShell>{children}</PublicShell>;
 }
 
 export function HeroSection({

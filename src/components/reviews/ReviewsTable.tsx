@@ -14,7 +14,7 @@ import {
 import { trackAppEvent } from "@/lib/appAnalytics";
 import { HELP_COPY } from "@/config/helpCopy";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   EmptyStateHelp,
@@ -148,6 +148,7 @@ function getStatusLabel(row: Row) {
 
 export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilter }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [rows, setRows] = useState<Row[]>([]);
   const [counts, setCounts] = useState<Counts>({
@@ -167,6 +168,12 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
   const [domainFilter, setDomainFilter] = useState(searchParams.get("domain") ?? "");
   const [impactFilter, setImpactFilter] = useState(searchParams.get("impact") ?? "");
   const [ownerFilter, setOwnerFilter] = useState(searchParams.get("owner") ?? "");
+  const [sourceModeFilter, setSourceModeFilter] = useState(searchParams.get("sourceMode") ?? "");
+
+  const sourceModeFromUrl = searchParams.get("sourceMode") ?? "";
+  useEffect(() => {
+    setSourceModeFilter(sourceModeFromUrl);
+  }, [sourceModeFromUrl]);
 
   const resolvedView: CanonicalView =
     view === "my" || view === "needs-my-review"
@@ -184,8 +191,9 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
     sp.set("view", resolvedView);
     if (learnedRiskFilter) sp.set("learnedRisk", "1");
     if (hasIncidentsFilter) sp.set("hasIncidents", "1");
+    if (sourceModeFilter.trim()) sp.set("sourceMode", sourceModeFilter.trim());
     return `?${sp.toString()}`;
-  }, [resolvedView, learnedRiskFilter, hasIncidentsFilter]);
+  }, [resolvedView, learnedRiskFilter, hasIncidentsFilter, sourceModeFilter]);
 
   useEffect(() => {
     async function load() {
@@ -361,7 +369,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
         description="Track revenue-impacting changes, identify blockers quickly, and take the next best action."
         actions={
           <Link
-            href="/changes/new"
+            href="/intake/new"
             className="inline-flex h-9 items-center justify-center rounded-md bg-[var(--primary)] px-4 text-sm font-semibold text-[var(--primary-contrast)] shadow-sm transition-colors hover:opacity-90"
           >
             Declare Revenue Change
@@ -419,6 +427,21 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
               <option value="">All owners</option>
               <option value="me">Assigned to me</option>
               <option value="unassigned">Unassigned</option>
+            </select>
+            <select
+              value={sourceModeFilter}
+              onChange={(event) => {
+                const v = event.target.value;
+                setSourceModeFilter(v);
+                trackAppEvent("changes_filter_apply", { filter: "sourceMode", value: v });
+                router.replace(withQuery(pathname, searchParams, { sourceMode: v || null }));
+              }}
+              className="h-9 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 text-sm"
+              aria-label="Filter by intake source"
+            >
+              <option value="">All intake sources</option>
+              <option value="NATIVE">Native integrations</option>
+              <option value="OTHER_LEGACY">Other / legacy</option>
             </select>
           </div>
 
@@ -560,7 +583,11 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
         empty={
           filteredRows.length === 0 ? (
             <EmptyState
-              variant={searchText || domainFilter || impactFilter || ownerFilter ? "filtered_empty" : "good_empty"}
+              variant={
+                searchText || domainFilter || impactFilter || ownerFilter || sourceModeFilter
+                  ? "filtered_empty"
+                  : "good_empty"
+              }
               title={
                 resolvedView === "needs-review"
                   ? "No approvals are waiting on you."
@@ -571,12 +598,12 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
                   : "No changes match this view."
               }
               body={
-                searchText || domainFilter || impactFilter || ownerFilter
+                searchText || domainFilter || impactFilter || ownerFilter || sourceModeFilter
                   ? "Try clearing filters or broadening your search."
                   : "No immediate follow-up is needed in this view right now."
               }
               action={
-                <Link href="/changes/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                <Link href="/intake/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
                   Declare a new revenue change
                 </Link>
               }

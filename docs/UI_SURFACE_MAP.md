@@ -18,7 +18,7 @@ This is the authoritative information architecture for Solvren. All major functi
 
 ## Workflows
 
-- New Change → /changes/new
+- New intake → /intake/new (`/changes/new` redirects here)
 - Change Details → /changes/[id] (linked from tables only)
 
 ## Reporting

@@ -5,6 +5,8 @@
     { "path": "/api/integrations/slack/deliveries/process", "schedule": "0 3 * * *" },
     { "path": "/api/inbox/daily/run", "schedule": "0 13 * * *" },
     { "path": "/api/digests/weekly/run", "schedule": "0 14 * * 1" },
+    { "path": "/api/attention/digest/daily/run", "schedule": "0 15 * * *" },
+    { "path": "/api/attention/digest/weekly/run", "schedule": "0 16 * * 1" },
     { "path": "/api/cron/jira-sync", "schedule": "0 4 * * *" },
     { "path": "/api/cron/jira-retry-failures", "schedule": "0 5 * * *" },
     { "path": "/api/cron/decision/action-performance-stats", "schedule": "*/15 * * * *" },

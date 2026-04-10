@@ -81,6 +81,10 @@ Outline for website landing page. Sections and copy structure.
 
 ## 7. Footer
 
+> **Stale:** The minimal list below is superseded by the shipped footer. Canonical information architecture, link map, and copy live in `src/config/footerNav.ts` and `src/components/footer/PublicFooter.tsx` (4 columns: Brand, Product, Company, Legal & Trust).
+
+Legacy outline (do not implement from this section):
+
 - Product
 - Docs
 - Privacy

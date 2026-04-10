@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   Button,
   Input,
@@ -139,6 +140,7 @@ export default function OrganizationSettingsClient({ orgId, isAdmin }: Props) {
       approvals: partial.approvals ?? payload.approvals,
       domains: payload.domains,
       integrations: payload.integrations,
+      attentionRouting: payload.attentionRouting,
     };
     const res = await fetch("/api/org/settings", {
       method: "PUT",
@@ -212,6 +214,14 @@ export default function OrganizationSettingsClient({ orgId, isAdmin }: Props) {
           {errorMsg}
         </p>
       )}
+
+      <p className="text-sm text-[var(--text-muted)]">
+        For interruption thresholds and digest routing, open{" "}
+        <Link href="/settings/attention" className="font-semibold text-[var(--primary)] hover:underline">
+          Attention routing
+        </Link>
+        .
+      </p>
 
       {/* 1. Organization Profile */}
       <Card>

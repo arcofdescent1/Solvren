@@ -6,6 +6,7 @@ import {
   parseRequestedOrgId,
   requireOrgPermission,
 } from "@/lib/server/authz";
+import { ORG_ATTENTION_SETTINGS_SELECT, resolveOrgAttentionSettings } from "@/lib/attention/orgAttentionDefaults";
 
 // --- Legacy POST body (OrgSettingsForm)
 type SaveBody = {
@@ -41,6 +42,23 @@ export type OrgSettingsPayload = {
   };
   integrations: {
     slackConnected: boolean;
+  };
+  intake: {
+    adoptionMode: "NATIVE_FIRST" | "MANUAL_FIRST" | "HYBRID" | null;
+  };
+  attentionRouting: {
+    executiveRevenueEscalationThresholdUsd: number;
+    seniorTechRevenueEscalationThresholdUsd: number;
+    departmentLeaderRevenueEscalationThresholdUsd: number;
+    immediateDeployWindowHours: number;
+    digestIncludeMediumRisk: boolean;
+    suppressLowRiskExecNotifications: boolean;
+    executiveDefaultRoute: "IMMEDIATE" | "DAILY_DIGEST" | "WEEKLY_DIGEST";
+    seniorTechDefaultRoute: "IMMEDIATE" | "DAILY_DIGEST" | "WEEKLY_DIGEST";
+    departmentLeaderDefaultRoute: "IMMEDIATE" | "DAILY_DIGEST" | "WEEKLY_DIGEST";
+    operatorDefaultRoute: "IMMEDIATE" | "DAILY_DIGEST" | "WEEKLY_DIGEST";
+    attentionDailyDigestEnabled: boolean;
+    attentionWeeklyDigestEnabled: boolean;
   };
 };
 
@@ -79,11 +97,19 @@ export async function GET(req: Request) {
     supabase
       .from("organization_settings")
       .select(
-        "org_id, slack_enabled, slack_webhook_url, email_enabled, notification_emails, timezone, primary_notification_email, default_review_sla_hours, require_evidence_before_approval, daily_inbox_enabled"
+        `org_id, slack_enabled, slack_webhook_url, email_enabled, notification_emails, timezone, primary_notification_email, default_review_sla_hours, require_evidence_before_approval, daily_inbox_enabled, adoption_mode, ${ORG_ATTENTION_SETTINGS_SELECT}`
       )
       .eq("org_id", orgId)
       .maybeSingle()
-      .then((r) => (r.error ? supabase.from("organization_settings").select("org_id, slack_enabled, slack_webhook_url, email_enabled, notification_emails").eq("org_id", orgId).maybeSingle() : r))
+      .then((r) =>
+        r.error
+          ? supabase
+              .from("organization_settings")
+              .select("org_id, slack_enabled, slack_webhook_url, email_enabled, notification_emails")
+              .eq("org_id", orgId)
+              .maybeSingle()
+          : r
+      )
       .then((r) => ({ data: r.data, error: r.error })),
     supabase.from("digest_settings").select("enabled, timezone").eq("org_id", orgId).maybeSingle(),
     supabase.from("org_domains").select("domain_key, enabled").eq("org_id", orgId).then((r) => r.data ?? []),
@@ -102,6 +128,7 @@ export async function GET(req: Request) {
     slack_enabled?: boolean | null;
     slack_webhook_url?: string | null;
     email_enabled?: boolean | null;
+    adoption_mode?: string | null;
   } | null;
   const digest = digestRow as { enabled?: boolean; timezone?: string | null } | null;
   const domainKeys = (domainsRows as { domain_key: string; enabled: boolean }[]).map((d) => d.domain_key);
@@ -111,6 +138,22 @@ export async function GET(req: Request) {
     const { data: dRows } = await supabase.from("domains").select("key, name").in("key", domainKeys);
     domainNames = Object.fromEntries((dRows ?? []).map((d: { key: string; name: string }) => [d.key, d.name]));
   }
+
+  const ar = resolveOrgAttentionSettings(settings as Record<string, unknown> | null);
+  const attentionRouting: OrgSettingsPayload["attentionRouting"] = {
+    executiveRevenueEscalationThresholdUsd: ar.executiveRevenueThresholdUsd,
+    seniorTechRevenueEscalationThresholdUsd: ar.seniorTechRevenueThresholdUsd,
+    departmentLeaderRevenueEscalationThresholdUsd: ar.departmentLeaderRevenueThresholdUsd,
+    immediateDeployWindowHours: ar.immediateDeployWindowHours,
+    digestIncludeMediumRisk: ar.digestIncludeMediumRisk,
+    suppressLowRiskExecNotifications: ar.suppressLowRiskExecNotifications,
+    executiveDefaultRoute: ar.executiveDefaultRoute,
+    seniorTechDefaultRoute: ar.seniorTechDefaultRoute,
+    departmentLeaderDefaultRoute: ar.departmentLeaderDefaultRoute,
+    operatorDefaultRoute: ar.operatorDefaultRoute,
+    attentionDailyDigestEnabled: ar.attentionDailyDigestEnabled,
+    attentionWeeklyDigestEnabled: ar.attentionWeeklyDigestEnabled,
+  };
 
   const payload: OrgSettingsPayload = {
     organization: {
@@ -142,6 +185,11 @@ export async function GET(req: Request) {
     integrations: {
       slackConnected: !!slackRow?.data,
     },
+    intake: {
+      adoptionMode:
+        (settings?.adoption_mode as OrgSettingsPayload["intake"]["adoptionMode"]) ?? "HYBRID",
+    },
+    attentionRouting,
   };
 
     return NextResponse.json({ ok: true, settings: payload });
@@ -160,6 +208,8 @@ export async function PUT(req: NextRequest) {
       organization?: OrgSettingsPayload["organization"];
       notifications?: OrgSettingsPayload["notifications"];
       approvals?: OrgSettingsPayload["approvals"];
+      intake?: Partial<OrgSettingsPayload["intake"]>;
+      attentionRouting?: Partial<OrgSettingsPayload["attentionRouting"]>;
     };
     try {
       body = (await req.json()) as typeof body;
@@ -174,6 +224,15 @@ export async function PUT(req: NextRequest) {
     const org = body.organization;
     const notifications = body.notifications;
     const approvals = body.approvals;
+    const attentionRouting = body.attentionRouting;
+    const intake = body.intake;
+
+    const ADOPTION = new Set(["NATIVE_FIRST", "MANUAL_FIRST", "HYBRID"]);
+    if (intake?.adoptionMode !== undefined && intake.adoptionMode !== null) {
+      if (!ADOPTION.has(intake.adoptionMode)) {
+        return NextResponse.json({ error: "Invalid adoption mode" }, { status: 400 });
+      }
+    }
 
     if (org?.name !== undefined) {
       const name = String(org.name ?? "").trim();
@@ -199,6 +258,39 @@ export async function PUT(req: NextRequest) {
       const hours = Number(approvals.defaultReviewSlaHours);
       if (!Number.isInteger(hours) || hours < 1 || hours > 720)
         return NextResponse.json({ error: "Default review SLA must be between 1 and 720 hours" }, { status: 400 });
+    }
+
+    const ROUTE_SET = new Set(["IMMEDIATE", "DAILY_DIGEST", "WEEKLY_DIGEST"]);
+    if (attentionRouting) {
+      const th = [
+        attentionRouting.executiveRevenueEscalationThresholdUsd,
+        attentionRouting.seniorTechRevenueEscalationThresholdUsd,
+        attentionRouting.departmentLeaderRevenueEscalationThresholdUsd,
+      ];
+      for (const t of th) {
+        if (t !== undefined && (typeof t !== "number" || !Number.isFinite(t) || t < 0)) {
+          return NextResponse.json({ error: "Invalid attention revenue threshold" }, { status: 400 });
+        }
+      }
+      if (
+        attentionRouting.immediateDeployWindowHours !== undefined &&
+        (!Number.isInteger(attentionRouting.immediateDeployWindowHours) ||
+          attentionRouting.immediateDeployWindowHours < 1 ||
+          attentionRouting.immediateDeployWindowHours > 168)
+      ) {
+        return NextResponse.json({ error: "Deploy window hours must be 1–168" }, { status: 400 });
+      }
+      for (const k of [
+        "executiveDefaultRoute",
+        "seniorTechDefaultRoute",
+        "departmentLeaderDefaultRoute",
+        "operatorDefaultRoute",
+      ] as const) {
+        const v = attentionRouting[k];
+        if (v !== undefined && !ROUTE_SET.has(v)) {
+          return NextResponse.json({ error: "Invalid default route" }, { status: 400 });
+        }
+      }
     }
 
     const admin = createPrivilegedClient("PUT /api/org/settings: org row + organization_settings upserts");
@@ -227,7 +319,9 @@ export async function PUT(req: NextRequest) {
       notifications?.slack_webhook_url !== undefined ||
       notifications?.email_enabled !== undefined ||
       approvals?.defaultReviewSlaHours !== undefined ||
-      approvals?.requireEvidenceBeforeApproval !== undefined;
+      approvals?.requireEvidenceBeforeApproval !== undefined ||
+      intake?.adoptionMode !== undefined ||
+      attentionRouting !== undefined;
 
     if (hasSettingsUpdates) {
       const { data: existing } = await admin
@@ -262,6 +356,34 @@ export async function PUT(req: NextRequest) {
         require_evidence_before_approval:
           approvals?.requireEvidenceBeforeApproval ?? cur.require_evidence_before_approval ?? true,
         daily_inbox_enabled: notifications?.dailyInboxEnabled ?? cur.daily_inbox_enabled ?? false,
+        executive_revenue_escalation_threshold_usd:
+          attentionRouting?.executiveRevenueEscalationThresholdUsd ?? cur.executive_revenue_escalation_threshold_usd ?? 100000,
+        senior_tech_revenue_escalation_threshold_usd:
+          attentionRouting?.seniorTechRevenueEscalationThresholdUsd ?? cur.senior_tech_revenue_escalation_threshold_usd ?? 50000,
+        department_leader_revenue_escalation_threshold_usd:
+          attentionRouting?.departmentLeaderRevenueEscalationThresholdUsd ??
+          cur.department_leader_revenue_escalation_threshold_usd ??
+          25000,
+        immediate_deploy_window_hours:
+          attentionRouting?.immediateDeployWindowHours ?? cur.immediate_deploy_window_hours ?? 24,
+        digest_include_medium_risk:
+          attentionRouting?.digestIncludeMediumRisk ?? cur.digest_include_medium_risk ?? true,
+        suppress_low_risk_exec_notifications:
+          attentionRouting?.suppressLowRiskExecNotifications ?? cur.suppress_low_risk_exec_notifications ?? true,
+        executive_default_route:
+          attentionRouting?.executiveDefaultRoute ?? cur.executive_default_route ?? "IMMEDIATE",
+        senior_tech_default_route:
+          attentionRouting?.seniorTechDefaultRoute ?? cur.senior_tech_default_route ?? "IMMEDIATE",
+        department_leader_default_route:
+          attentionRouting?.departmentLeaderDefaultRoute ?? cur.department_leader_default_route ?? "IMMEDIATE",
+        operator_default_route:
+          attentionRouting?.operatorDefaultRoute ?? cur.operator_default_route ?? "IMMEDIATE",
+        attention_daily_digest_enabled:
+          attentionRouting?.attentionDailyDigestEnabled ?? cur.attention_daily_digest_enabled ?? false,
+        attention_weekly_digest_enabled:
+          attentionRouting?.attentionWeeklyDigestEnabled ?? cur.attention_weekly_digest_enabled ?? false,
+        adoption_mode:
+          intake?.adoptionMode !== undefined ? intake.adoptionMode : (cur.adoption_mode ?? "HYBRID"),
       };
       const { error: e } = await admin
         .from("organization_settings")

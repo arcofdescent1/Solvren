@@ -1,5 +1,5 @@
 import { PublicHeader } from "@/components/marketing/PublicHeader";
-import { PublicFooter } from "@/components/marketing/PublicFooter";
+import { PublicFooter } from "@/components/footer/PublicFooter";
 
 /**
  * Single authoritative public/marketing shell.

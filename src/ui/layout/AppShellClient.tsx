@@ -7,6 +7,7 @@ import { Content } from "./Content";
 import { LayoutProvider, useLayout } from "./LayoutContext";
 import { TooltipProvider } from "@/ui/primitives/tooltip";
 import type { OrgMembership } from "@/lib/org/activeOrg";
+import { AppFooter } from "@/components/footer/AppFooter";
 
 export type AppShellClientProps = {
   user?: { id: string; email?: string } | null;
@@ -34,7 +35,7 @@ function AppShellInner({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col bg-[var(--bg-app)] text-[var(--text)]">
       <Topbar
         user={user}
         memberships={memberships}
@@ -57,7 +58,10 @@ function AppShellInner({
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <Content>{children}</Content>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <Content className="min-h-0 flex-1">{children}</Content>
+        <AppFooter />
+      </div>
     </div>
   );
 }

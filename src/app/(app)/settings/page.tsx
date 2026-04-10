@@ -10,6 +10,11 @@ const SETTINGS_LINKS = [
     description: "Name, profile, and organization-level defaults.",
   },
   {
+    title: "Attention routing",
+    href: "/settings/attention",
+    description: "Who gets interrupted, revenue thresholds, and attention digests.",
+  },
+  {
     title: "Team & access",
     href: "/settings/users",
     description: "Manage who has access and what they can do.",

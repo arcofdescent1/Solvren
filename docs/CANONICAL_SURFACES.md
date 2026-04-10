@@ -33,10 +33,14 @@ Use this as the single reference for canonical UI routes and API families. Befor
 
 ## 2. Change Workflow
 
+| Old | New |
+|-----|-----|
+| `/changes/new` | Redirects to `/intake/new` (Phase 3) |
+
 | Feature | Canonical UI Route | Canonical API Family |
 |---------|--------------------|----------------------|
 | Change detail | `/changes/[id]` | `/api/changes/[id]/*` |
-| New change | `/changes/new` | `/api/changes/draft`, `/api/changes/submit` |
+| New intake | `/intake/new` | `/api/intake`, `/api/changes/draft`, `/api/changes/submit` |
 | Change intake | `/changes/[id]/intake` | `/api/changes/[id]/intake` |
 | Revenue impact report | (panel on change detail) | `/api/changes/[id]/revenue-impact`, `/api/changes/[id]/revenue-impact/generate` |
 | Coordination plan | (panel on change detail) | `/api/changes/[id]/coordination-plan` |

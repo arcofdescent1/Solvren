@@ -55,6 +55,9 @@ export default async function SettingsOrganizationPage() {
               <Link href="/settings/approval-mappings" className="text-sm font-semibold text-[var(--primary)] hover:underline">
                 Approval mappings
               </Link>
+              <Link href="/settings/attention" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                Attention routing
+              </Link>
             </div>
           }
         />

@@ -2,6 +2,7 @@ import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
+import { queueReadinessRecompute } from "@/lib/readiness/queueRecompute";
 
 function uniq<T>(arr: T[]): T[] {
   return Array.from(new Set(arr));
@@ -115,6 +116,8 @@ export async function POST(
       sample: insertedRows.slice(0, 10).map((r) => ({ kind: r.kind, label: r.label })),
     },
   });
+
+  void queueReadinessRecompute({ orgId, changeEventId: changeId });
 
   return NextResponse.json({ ok: true, applied: insertedRows.length });
 }

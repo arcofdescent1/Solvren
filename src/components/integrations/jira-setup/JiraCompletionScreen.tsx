@@ -48,7 +48,7 @@ export function JiraCompletionScreen({ siteUrl, projects, features }: Props) {
           <Link href="/dashboard">
             <Button variant="outline">Go to dashboard</Button>
           </Link>
-          <Link href="/changes/new">
+          <Link href="/intake/new">
             <Button>Create first change</Button>
           </Link>
         </div>

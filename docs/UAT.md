@@ -514,8 +514,8 @@ Each test case includes:
 **Steps:**
 
 1. Look for "New Change" or create-change action.
-2. Attempt to create a change (e.g., navigate to /changes/new if link visible).
-3. If no link, attempt direct URL /changes/new.
+2. Attempt to create a change (e.g., navigate to /intake/new if link visible; `/changes/new` redirects there).
+3. If no link, attempt direct URL /intake/new or /changes/new.
 
 **Expected Results:**
 

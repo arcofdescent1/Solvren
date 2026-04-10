@@ -17,6 +17,12 @@ import { Resend } from "resend";
 import { env } from "@/lib/env";
 import { requireCronSecret } from "@/lib/cronAuth";
 import { logError, logInfo } from "@/lib/observability/logger";
+import { buildExecutiveChangeView } from "@/lib/executive/buildExecutiveChangeView";
+import { buildExecutiveDmSlackBlocks } from "@/lib/server/slack/executiveDmBlocks";
+import { buildPhase5PredictionSlackBlocks } from "@/services/slack/blockBuilders";
+import { slackApi } from "@/lib/server/slack/slackApi";
+import { insertAttentionDeliveryLog } from "@/lib/attention/notificationDeliveryLog";
+import type { AttentionRoutingResult } from "@/lib/attention/types";
 
 const MAX_BATCH = 50;
 const MAX_ATTEMPTS = 8;
@@ -339,6 +345,151 @@ export async function POST(req: Request) {
           | string
           | null;
 
+        if (install?.bot_token && row.template_key === "executive_dm_notification") {
+          const changeIdDm = (p.changeEventId ?? row.change_event_id) as string;
+          const slackUserId = String((p as { slackUserId?: string }).slackUserId ?? "");
+          if (!slackUserId) {
+            await markBlocked(String(row.id), "executive_dm_missing_slack_user", Number(row.attempt_count ?? 0));
+            processed += 1;
+            continue;
+          }
+          const execView = await buildExecutiveChangeView(admin, changeIdDm);
+          if (!execView) {
+            await markBlocked(String(row.id), "executive_dm_change_not_found", Number(row.attempt_count ?? 0));
+            processed += 1;
+            continue;
+          }
+          const open = (await slackApi(install.bot_token, "conversations.open", {
+            users: slackUserId,
+          })) as { channel?: { id?: string } };
+          const dmChannel = open.channel?.id;
+          if (!dmChannel) {
+            await markBlocked(String(row.id), "executive_dm_open_failed", Number(row.attempt_count ?? 0));
+            processed += 1;
+            continue;
+          }
+          const overviewUrl = absoluteUrl(`/executive/changes/${changeIdDm}`);
+          const interruptionReason =
+            typeof p.interruptionReason === "string" && p.interruptionReason.trim().length > 0
+              ? p.interruptionReason.trim()
+              : null;
+          const blocks = buildExecutiveDmSlackBlocks({
+            view: execView,
+            overviewUrl,
+            orgId: String(row.org_id),
+            interruptionReason,
+          });
+          const slackRes = await slackPostMessage({
+            botToken: install.bot_token,
+            channel: dmChannel,
+            text: `Solvren: ${execView.title}`,
+            blocks,
+          });
+          const slackTs = (slackRes as { ts?: string }).ts;
+          if (slackTs) {
+            await admin.from("notification_outbox_slack_refs").upsert(
+              {
+                outbox_id: row.id,
+                org_id: row.org_id,
+                channel_id: dmChannel,
+                message_ts: slackTs,
+              },
+              { onConflict: "outbox_id" }
+            );
+          }
+          const logUserId = typeof p.userId === "string" ? p.userId : null;
+          const logHash = typeof p.reasonHash === "string" ? p.reasonHash : null;
+          const logMaterial = p.materialSnapshot;
+          const logEvent = typeof p.eventType === "string" ? p.eventType : "APPROVAL_REQUIRED";
+          if (logUserId && logHash && logMaterial && typeof logMaterial === "object") {
+            const routeForLog: AttentionRoutingResult = {
+              userId: logUserId,
+              persona: "EXECUTIVE",
+              routeType:
+                typeof p.routeType === "string" && ["IMMEDIATE", "DAILY_DIGEST", "WEEKLY_DIGEST", "SUPPRESS"].includes(String(p.routeType))
+                  ? (p.routeType as AttentionRoutingResult["routeType"])
+                  : "IMMEDIATE",
+              channel: "SLACK_DM",
+              deliveryTemplate:
+                typeof p.deliveryTemplate === "string"
+                  ? (p.deliveryTemplate as AttentionRoutingResult["deliveryTemplate"])
+                  : "EXECUTIVE_ALERT",
+              requiresAction: true,
+              reason: interruptionReason ?? "",
+              primaryReasonCode:
+                typeof p.primaryReasonCode === "string"
+                  ? (p.primaryReasonCode as AttentionRoutingResult["primaryReasonCode"])
+                  : "ROUTINE",
+            };
+            try {
+              await insertAttentionDeliveryLog(admin, {
+                orgId: String(row.org_id),
+                userId: logUserId,
+                changeId: changeIdDm,
+                eventType: logEvent as import("@/lib/attention/types").AttentionEventType,
+                route: routeForLog,
+                reasonHash: logHash,
+                material: logMaterial as import("@/lib/attention/types").MaterialSnapshotV1,
+                primaryReasonCode: String(p.primaryReasonCode ?? "ROUTINE"),
+              });
+            } catch {
+              // non-fatal: table may not exist until migration applied
+            }
+          }
+          await admin
+            .from("notification_outbox")
+            .update({
+              status: "SENT",
+              sent_at: new Date().toISOString(),
+              last_error: null,
+              delivered_count: 1,
+            })
+            .eq("id", row.id);
+          processed += 1;
+          continue;
+        }
+
+        if (install?.bot_token && row.template_key === "attention_digest_dm") {
+          const slackUserIdDigest = String((p as { slackUserId?: string }).slackUserId ?? "");
+          const digestText = String((p as { text?: string }).text ?? "Solvren attention digest");
+          if (!slackUserIdDigest) {
+            await markBlocked(String(row.id), "attention_digest_missing_slack_user", Number(row.attempt_count ?? 0));
+            processed += 1;
+            continue;
+          }
+          const openDigest = (await slackApi(install.bot_token, "conversations.open", {
+            users: slackUserIdDigest,
+          })) as { channel?: { id?: string } };
+          const dmCh = openDigest.channel?.id;
+          if (!dmCh) {
+            await markBlocked(String(row.id), "attention_digest_open_failed", Number(row.attempt_count ?? 0));
+            processed += 1;
+            continue;
+          }
+          await slackPostMessage({
+            botToken: install.bot_token,
+            channel: dmCh,
+            text: digestText.slice(0, 3000),
+            blocks: [
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: digestText.slice(0, 2800) },
+              },
+            ],
+          });
+          await admin
+            .from("notification_outbox")
+            .update({
+              status: "SENT",
+              sent_at: new Date().toISOString(),
+              last_error: null,
+              delivered_count: 1,
+            })
+            .eq("id", row.id);
+          processed += 1;
+          continue;
+        }
+
         if (install?.bot_token && channel) {
           if (row.template_key === "daily_inbox") {
             const payload = p as Record<string, unknown>;
@@ -472,26 +623,56 @@ export async function POST(req: Request) {
 
           const changeId = (p.changeEventId ?? row.change_event_id) as string;
           const title = (p.title ?? changeId) as string;
+
           const isApprovalRequested = row.template_key === "approval_requested";
+          const isPhase5Prediction = row.template_key === "predicted_risk_early_warning";
 
           if (!isApprovalRequested) {
-            const text = `*${rendered.title}*\n${rendered.body}\n<${absoluteUrl(rendered.cta_url)}|${rendered.cta_label}>`;
+            let blocks: unknown[] = [
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: `*${rendered.title}*\n${rendered.body}` },
+              },
+              {
+                type: "actions",
+                elements: [
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: rendered.cta_label },
+                    url: absoluteUrl(rendered.cta_url),
+                  },
+                ],
+              },
+            ];
+            if (isPhase5Prediction) {
+              const { data: rcRel } = await admin
+                .from("release_changes")
+                .select("release_id")
+                .eq("change_event_id", changeId)
+                .maybeSingle();
+              const releaseId =
+                rcRel && typeof (rcRel as { release_id?: string }).release_id === "string"
+                  ? (rcRel as { release_id: string }).release_id
+                  : null;
+              const predType = String(p.predictionType ?? "");
+              const extra = predType
+                ? `\n*Prediction type:* ${predType.replace(/_/g, " ")}`
+                : "";
+              blocks = buildPhase5PredictionSlackBlocks({
+                title: rendered.title,
+                bodyMd: `${rendered.body}${extra}`,
+                changeUrl: absoluteUrl(`/changes/${changeId}`),
+                orgId,
+                changeEventId: changeId,
+                predictionType: predType,
+                releaseId,
+              });
+            }
             const slackRes = await slackPostMessage({
               botToken: install.bot_token,
               channel,
               text: rendered.title,
-              blocks: [
-                {
-                  type: "section",
-                  text: { type: "mrkdwn", text: `*${rendered.title}*\n${rendered.body}` },
-                },
-                {
-                  type: "actions",
-                  elements: [
-                    { type: "button", text: { type: "plain_text", text: rendered.cta_label }, url: absoluteUrl(rendered.cta_url) },
-                  ],
-                },
-              ],
+              blocks: blocks as Record<string, unknown>[],
             });
             const slackTs = (slackRes as { ts?: string }).ts;
             if (slackTs) {

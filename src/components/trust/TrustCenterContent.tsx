@@ -15,8 +15,6 @@ import {
   FileCheck,
   ServerCog,
 } from "lucide-react";
-import { PublicHeader } from "@/components/marketing/PublicHeader";
-import { PublicFooter } from "@/components/marketing/PublicFooter";
 import { Button } from "@/ui";
 import { TrustSecurityRequestForm } from "./TrustSecurityRequestForm";
 
@@ -162,9 +160,8 @@ export function TrustCenterContent() {
   const [securityFormOpen, setSecurityFormOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <PublicHeader />
-      <main>
+    <div className="bg-slate-950 text-white">
+      <div>
         {/* 1. Hero */}
         <section className="relative overflow-hidden border-b border-white/10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.12),_transparent_40%),linear-gradient(180deg,_rgba(15,23,42,0.6),_transparent)]" />
@@ -432,8 +429,7 @@ export function TrustCenterContent() {
             </div>
           </div>
         </section>
-      </main>
-      <PublicFooter />
+      </div>
 
       <TrustSecurityRequestForm open={securityFormOpen} onOpenChange={setSecurityFormOpen} />
     </div>

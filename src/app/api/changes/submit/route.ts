@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import { auditLog } from "@/lib/audit";
 import { addTimelineEvent } from "@/services/timeline/addTimelineEvent";
 import { enqueueNotificationEvents } from "@/services/notifications/createNotifications";
+import { enqueueExecutiveDmNotifications } from "@/services/notifications/enqueueExecutiveDmNotifications";
 import { enqueueJiraIssuePropertySync, enqueueJiraCommentSync } from "@/services/jira/jiraSyncService";
 import { authStateFromUser, requireVerifiedResponse } from "@/lib/auth";
 import { assertDomainEnabled } from "@/services/domains/validateDomainEnabled";
@@ -770,6 +771,17 @@ export async function POST(req: Request) {
       .insert(rows);
     if (outboxErr) {
       // best effort: don't fail the submit
+    } else {
+      try {
+        await enqueueExecutiveDmNotifications(admin, {
+          orgId: change.org_id,
+          changeEventId: body.changeEventId,
+          title: (change as { title?: string }).title ?? null,
+          riskBucket: latestAssessment.risk_bucket as string | null,
+        });
+      } catch {
+        // best effort
+      }
     }
   }
 

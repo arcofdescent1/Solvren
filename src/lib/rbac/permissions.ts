@@ -99,6 +99,9 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
   REVIEWER: new Set<CanonicalPermission>([
     "dashboard.view",
     "change.view",
+    "change.create",
+    "change.edit.own_draft",
+    "change.submit",
     "change.approve",
     "change.comment",
     "change.evidence.provide",

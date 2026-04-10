@@ -103,6 +103,13 @@ export function canViewChangeWithContext(
     ? Boolean(ctx.domainViewByOrgDomain.get(domainKey))
     : true;
 
+  // Phase 3 — DRAFT visibility: creator plus reviewers in the same org (admins already returned above).
+  if (st === "DRAFT") {
+    if (isCreator) return true;
+    if (role === "REVIEWER") return true;
+    return false;
+  }
+
   if (role === "REVIEWER") {
     return isAssigned || (hasDomainView && (st === "IN_REVIEW" || st === "APPROVED"));
   }

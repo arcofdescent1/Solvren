@@ -3,6 +3,7 @@ import { DocsSearch, DocsSidebar, DocsCommandBar, DocsCommandTrigger } from "@/c
 import { DocsAnalyticsProvider } from "@/components/docs/DocsAnalyticsProvider";
 import { ThemeToggle } from "@/ui/theme/ThemeToggle";
 import { getDocsNav } from "@/lib/docs/getDocsNav";
+import { PublicFooter } from "@/components/footer/PublicFooter";
 
 export default function DocsLayout({
   children,
@@ -12,7 +13,7 @@ export default function DocsLayout({
   const nav = getDocsNav();
 
   return (
-    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col bg-[var(--bg-app)] text-[var(--text)]">
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg-surface)]/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
@@ -70,12 +71,13 @@ export default function DocsLayout({
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex min-h-0 flex-1">
         <DocsSidebar nav={nav} />
         <main className="min-w-0 flex-1 px-4 py-8 lg:px-8 text-[var(--text)]">
           {children}
         </main>
       </div>
+      <PublicFooter />
       <DocsAnalyticsProvider />
       <DocsCommandBar />
     </div>

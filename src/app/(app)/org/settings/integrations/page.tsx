@@ -48,8 +48,8 @@ const PROVIDER_ROUTES: Record<
     setupHref: "/org/settings/integrations/stripe",
   },
   csv: {
-    href: "/org/settings/integrations/csv",
-    setupHref: "/org/settings/integrations/csv",
+    href: "/imports/new",
+    setupHref: "/imports/new",
   },
   postgres_readonly: {
     href: "/org/settings/integrations/postgres-readonly",
@@ -132,7 +132,6 @@ export default async function IntegrationsMarketplacePage() {
     "stripe",
     "netsuite",
     "github",
-    "csv",
     "postgres_readonly",
     "mysql_readonly",
     "snowflake",
@@ -151,6 +150,9 @@ export default async function IntegrationsMarketplacePage() {
         description="Connect systems for risk detection and governance. Each integration shows its readiness tier."
         right={
           <div className="flex items-center gap-4">
+            <Link href="/imports/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+              Spreadsheet imports
+            </Link>
             <Link href="/integrations/mappings" className="text-sm font-semibold text-[var(--primary)] hover:underline">
               Mappings
             </Link>

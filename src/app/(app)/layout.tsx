@@ -6,9 +6,10 @@ import { AppShell } from "@/ui/layout/app-shell";
 export const runtime = "nodejs";
 
 /**
- * App route layout: auth guard + app shell (top nav, side nav).
+ * App route layout: auth guard + app shell (top nav, side nav, footer links).
  * Unauthenticated users redirect to login.
  * Unverified users redirect to verify-pending.
+ * Legal/support links are rendered by `AppFooter` inside `AppShellClient`.
  */
 export default async function AppLayout({
   children,

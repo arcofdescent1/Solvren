@@ -8,7 +8,7 @@ import { CHANGE_IDS, CHANGE_TITLES } from "./fixtures/seed";
 test.describe("Suite E - Change Request Creation", () => {
   test("TC-CHANGE-001: Create draft change request", async ({ page }) => {
     await loginAs(page, "submitter");
-    await page.goto("/changes/new");
+    await page.goto("/intake/new");
     await expect(page.getByTestId("start-guided-intake")).toBeVisible();
     await page.getByPlaceholder(/annual plan|e\.g\./i).fill("E2E Pricing Change Test");
     await page.getByTestId("start-guided-intake").click();

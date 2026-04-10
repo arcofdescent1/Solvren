@@ -11,6 +11,7 @@ import {
   bindGovernanceApprovalRequest,
   deploymentGovernanceEnvironment,
 } from "@/modules/governance";
+import { queueReadinessRecompute } from "@/lib/readiness/queueRecompute";
 
 type Body = {
   evidenceId: string;
@@ -186,6 +187,8 @@ export async function POST(
       metadata: { evidence_kind: updated.kind, label: updated.label },
     });
   }
+
+  void queueReadinessRecompute({ orgId, changeEventId: changeId });
 
   return NextResponse.json({ ok: true, item: updated });
 }

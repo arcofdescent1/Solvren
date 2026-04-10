@@ -14,7 +14,7 @@ test.describe("RBAC", () => {
 
   test("viewer creating draft gets blocked by API", async ({ page }) => {
     await loginAs(page, "viewer");
-    await page.goto("/changes/new");
+    await page.goto("/intake/new");
     await expect(page.getByTestId("start-guided-intake")).toBeVisible({ timeout: 10_000 });
     await page.getByTestId("start-guided-intake").click();
     await expect(page.getByText(/Forbidden|forbidden|permission|not allowed/i)).toBeVisible({ timeout: 5_000 });

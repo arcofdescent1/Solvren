@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { parseCsv } from "@/modules/integrations/providers/csv/parser";
+import { storeIntegrationFileUpload } from "@/lib/imports/integrationUpload";
 
-const BUCKET = "integration-uploads";
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(req: NextRequest) {
@@ -27,41 +27,23 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = createAdminClient();
-    const path = `${ctx.orgId}/csv/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-
-    const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, content, {
-      contentType: file.type || "text/csv",
-      upsert: false,
-    });
-    if (uploadErr) {
-      return NextResponse.json({ error: uploadErr.message }, { status: 500 });
-    }
-
     const fullParsed = parseCsv(content);
-    const { data: uploadRow, error: insertErr } = await admin
-      .from("integration_file_uploads")
-      .insert({
-        org_id: ctx.orgId,
-        integration_account_id: null,
-        storage_path: path,
-        filename: file.name,
-        content_type: file.type || "text/csv",
-        row_count: fullParsed.rowCount,
-        status: "uploaded",
-        uploaded_by: ctx.user.id,
-      })
-      .select("id, filename, row_count, created_at")
-      .single();
-
-    if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
+    const uploadRow = await storeIntegrationFileUpload(admin, {
+      orgId: ctx.orgId,
+      userId: ctx.user.id,
+      buffer: Buffer.from(content, "utf8"),
+      filename: file.name,
+      contentType: file.type || "text/csv",
+      rowCount: fullParsed.rowCount,
+    });
 
     return NextResponse.json({
       ok: true,
       upload: {
-        id: (uploadRow as { id: string }).id,
-        filename: (uploadRow as { filename: string }).filename,
-        rowCount: (uploadRow as { row_count: number }).row_count,
-        createdAt: (uploadRow as { created_at: string }).created_at,
+        id: uploadRow.id,
+        filename: uploadRow.filename,
+        rowCount: uploadRow.row_count,
+        createdAt: uploadRow.created_at,
       },
     });
   } catch (e) {

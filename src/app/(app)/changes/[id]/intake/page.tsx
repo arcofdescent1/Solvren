@@ -21,8 +21,7 @@ export default async function ChangeIntakePage({
     .eq("id", id)
     .single();
 
-  if (error || !change)
-    redirect("/changes/new");
+  if (error || !change) redirect("/intake/new");
 
   const status = (change.status ?? "DRAFT") as string;
   if (status !== "DRAFT" && status !== "READY") {
