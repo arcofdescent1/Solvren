@@ -1,4 +1,5 @@
 -- Phase 6 — Queue-based async processing (A2.2) + tenant-scoped jobs
+-- Renumbered from 175_* (duplicate version with 175_phase0_security_hardening.sql).
 
 CREATE TABLE IF NOT EXISTS public.processing_jobs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -39,6 +40,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_processing_jobs_org_idempotency
   WHERE idempotency_key IS NOT NULL;
 
 ALTER TABLE public.processing_jobs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS processing_jobs_select ON public.processing_jobs;
+DROP POLICY IF EXISTS processing_jobs_insert ON public.processing_jobs;
+DROP POLICY IF EXISTS processing_jobs_update ON public.processing_jobs;
+DROP POLICY IF EXISTS processing_jobs_delete ON public.processing_jobs;
 
 CREATE POLICY processing_jobs_select ON public.processing_jobs FOR SELECT
   USING (public.is_org_member(org_id) OR auth.role() = 'service_role');

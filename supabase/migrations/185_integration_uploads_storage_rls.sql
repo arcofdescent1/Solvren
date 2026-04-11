@@ -2,8 +2,8 @@
 -- Path format: {org_id}/csv/{timestamp}-{filename}
 -- Only org members can upload, read, update, delete files in their org's folder.
 
--- Ensure storage.objects has RLS enabled (Supabase default)
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Do not ALTER storage.objects here: migration role is not table owner on hosted Supabase;
+-- RLS is already enabled on storage.objects by default.
 
 -- Drop if re-running migration
 DROP POLICY IF EXISTS integration_uploads_insert ON storage.objects;

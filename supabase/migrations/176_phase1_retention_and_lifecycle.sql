@@ -1,6 +1,31 @@
 -- Phase 1 — data retention registry (org-scoped defaults; no UI in Phase 1).
 -- Soft-delete column on change_events for lifecycle (queries must filter deleted_at IS NULL).
 
+-- Ensure is_org_admin exists (defined in 175_phase0_security_hardening.sql; some remotes had
+-- duplicate 175_* numbering so this helper may be missing even when version 175 is recorded).
+CREATE OR REPLACE FUNCTION public.is_org_admin(p_org_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.organization_members m
+    WHERE m.org_id = p_org_id
+      AND m.user_id = auth.uid()
+      AND lower(trim(m.role)) IN ('owner', 'admin')
+  );
+$$;
+
+COMMENT ON FUNCTION public.is_org_admin(uuid) IS
+  'Phase 0: true if auth.uid() is owner or admin in p_org_id. Use in RLS when stricter than is_org_member.';
+
+REVOKE ALL ON FUNCTION public.is_org_admin(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_org_admin(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_org_admin(uuid) TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.data_retention_policies (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
