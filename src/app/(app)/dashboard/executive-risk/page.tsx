@@ -6,6 +6,7 @@ import { RevenueRiskCopilot } from "@/components/revenue-risk-copilot/RevenueRis
 import { RiskCard } from "@/components/risk/RiskCard";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { Phase3ExecutiveTracker } from "@/components/onboarding/phase3/Phase3ExecutiveTracker";
 
 function formatMoney(n: number) {
   if (!Number.isFinite(n)) return "—";
@@ -94,6 +95,7 @@ export default async function ExecutiveRiskPage() {
   return (
     <div className="flex gap-6">
       <div className="min-w-0 flex-1 space-y-6">
+      <Phase3ExecutiveTracker path="/dashboard/executive-risk" />
       <PageHeader
         breadcrumbs={[
           { label: "Overview", href: "/dashboard" },

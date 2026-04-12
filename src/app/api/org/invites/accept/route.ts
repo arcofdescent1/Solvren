@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const { data: invite, error: inviteErr } = await admin
     .from("org_invites")
-    .select("id, org_id, email, role, status, expires_at")
+    .select("id, org_id, email, role, status, expires_at, department")
     .eq("token_hash", tokenHash)
     .maybeSingle();
 
@@ -87,11 +87,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, alreadyMember: true, orgId: invite.org_id });
   }
 
-  const { error: memErr } = await admin.from("organization_members").insert({
+  const dept = (invite as { department?: string | null }).department;
+  const memberRow: Record<string, unknown> = {
     org_id: invite.org_id,
     user_id: userRes.user.id,
     role: invite.role,
-  });
+  };
+  if (dept && String(dept).trim()) {
+    memberRow.department = String(dept).trim();
+  }
+
+  const { error: memErr } = await admin.from("organization_members").insert(memberRow);
 
   if (memErr) return NextResponse.json({ error: memErr.message }, { status: 500 });
 

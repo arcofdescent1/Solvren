@@ -7,8 +7,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 type OnboardingData = {
-  firstValueReached: boolean;
+  firstValueReached?: boolean;
   firstValueAt?: string | null;
+  tracker?: { firstValueReached?: boolean; firstValueAt?: string | null };
 };
 
 export function FirstValueBanner() {
@@ -18,7 +19,7 @@ export function FirstValueBanner() {
     try {
       const res = await fetch("/api/onboarding/state");
       if (res.ok) {
-        const d = await res.json();
+        const d = (await res.json()) as OnboardingData;
         setData(d);
       }
     } catch {
@@ -32,7 +33,8 @@ export function FirstValueBanner() {
     });
   }, [fetchState]);
 
-  if (!data?.firstValueReached) return null;
+  const reached = data?.tracker?.firstValueReached ?? data?.firstValueReached;
+  if (!reached) return null;
 
   return (
     <div className="rounded-lg border border-[color:var(--rg-success)]/30 bg-[color:var(--rg-success)]/5 px-4 py-3">

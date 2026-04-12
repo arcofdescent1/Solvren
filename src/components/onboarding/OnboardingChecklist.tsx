@@ -17,9 +17,16 @@ type Step = {
 };
 
 type OnboardingData = {
-  onboardingState: string;
-  firstValueReached: boolean;
-  currentStepKey: string | null;
+  onboardingState?: string;
+  firstValueReached?: boolean;
+  currentStepKey?: string | null;
+  tracker?: {
+    onboardingState?: string;
+    firstValueReached?: boolean;
+    currentStepKey?: string | null;
+    onboardingStage?: string;
+    percentComplete?: number;
+  };
   stage?: string;
   percentComplete?: number;
   integrationsConnected?: boolean;
@@ -38,7 +45,7 @@ export function OnboardingChecklist() {
     try {
       const res = await fetch("/api/onboarding/state");
       if (res.ok) {
-        const d = await res.json();
+        const d = (await res.json()) as OnboardingData;
         setData(d);
       }
     } catch {
@@ -72,7 +79,7 @@ export function OnboardingChecklist() {
           />
         </div>
         <p className="mb-4 text-xs text-[color:var(--rg-text-muted)]">
-          {percent}% complete • {data.stage ?? data.onboardingState}
+          {percent}% complete • {data.tracker?.onboardingStage ?? data.stage ?? data.onboardingState}
         </p>
         <ul className="space-y-2">
           {data.steps.map((step) => (

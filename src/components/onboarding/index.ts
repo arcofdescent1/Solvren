@@ -1,6 +1,9 @@
+export { GuidedOnboardingWizard } from "./GuidedOnboardingWizard";
 export { OnboardingWizard } from "./OnboardingWizard";
 export { OnboardingChecklist } from "./OnboardingChecklist";
 export { FirstValueBanner } from "./FirstValueBanner";
 export { ActivationRecommendationsPanel } from "./ActivationRecommendationsPanel";
 export { PlaybookPerformanceDashboard } from "./PlaybookPerformanceDashboard";
 export { PlaybookPerformanceCard } from "./PlaybookPerformanceCard";
+export { ActivationWizard } from "./phase2/ActivationWizard";
+export { AdoptionWizard } from "./phase3/AdoptionWizard";

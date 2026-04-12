@@ -66,6 +66,10 @@ function isWeeklyDigest(templateKey: string) {
   return k.includes("weekly") && k.includes("digest");
 }
 
+function isExecutiveSummaryTemplate(templateKey: string) {
+  return (templateKey ?? "").toLowerCase() === "executive_summary";
+}
+
 /** Policy: allow non-digest email alerts on FREE plan? Set false for paid-only. */
 const ALLOW_NON_DIGEST_EMAIL_ON_FREE = false;
 
@@ -338,6 +342,56 @@ export async function POST(req: Request) {
             );
             processed += 1;
           }
+          continue;
+        }
+
+        if (install?.bot_token && row.template_key === "executive_summary") {
+          const summaryChannel = (p.channelId ?? install?.default_channel_id) as string | null;
+          if (!summaryChannel) {
+            await markBlocked(String(row.id), "executive_summary_missing_slack_channel", Number(row.attempt_count ?? 0));
+            processed += 1;
+            continue;
+          }
+          const blocks: Record<string, unknown>[] = [
+            {
+              type: "section",
+              text: { type: "mrkdwn", text: `*${rendered.title}*\n${rendered.body}` },
+            },
+            {
+              type: "actions",
+              elements: [
+                {
+                  type: "button",
+                  text: { type: "plain_text", text: rendered.cta_label },
+                  url: absoluteUrl(rendered.cta_url),
+                },
+              ],
+            },
+          ];
+          const slackRes = await slackPostMessage({
+            botToken: install.bot_token,
+            channel: summaryChannel,
+            text: rendered.title,
+            blocks,
+          });
+          const slackTs = (slackRes as { ts?: string }).ts;
+          if (slackTs) {
+            await admin.from("notification_outbox_slack_refs").upsert(
+              { outbox_id: row.id, org_id: row.org_id, channel_id: summaryChannel, message_ts: slackTs },
+              { onConflict: "outbox_id" }
+            );
+          }
+          const { error: sentExec } = await admin
+            .from("notification_outbox")
+            .update({
+              status: "SENT",
+              sent_at: new Date().toISOString(),
+              last_error: null,
+              delivered_count: 1,
+            })
+            .eq("id", row.id);
+          if (sentExec) throw new Error(sentExec.message);
+          processed += 1;
           continue;
         }
 
@@ -833,7 +887,8 @@ export async function POST(req: Request) {
           continue;
         }
 
-        const digest = isWeeklyDigest(String(row.template_key ?? ""));
+        const digest =
+          isWeeklyDigest(String(row.template_key ?? "")) || isExecutiveSummaryTemplate(String(row.template_key ?? ""));
         if (digest) {
           if (!canUseWeeklyDigest(planFromString(plan_key), status)) {
             await markBlocked(

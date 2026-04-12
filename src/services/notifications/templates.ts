@@ -147,6 +147,17 @@ export function renderTemplate(
       cta_url: "/readiness",
     };
   }
+  if (template_key === "executive_summary") {
+    const title = String(payload?.title ?? "Weekly executive summary");
+    const body = String(payload?.body ?? "Open Solvren for your latest executive metrics.");
+    return {
+      title,
+      body,
+      severity: "INFO",
+      cta_label: "Open executive summary",
+      cta_url: "/executive?from=email_summary",
+    };
+  }
   if (template_key === "high_risk_change_detected") {
     const riskEventId = String(payload?.riskEventId ?? "");
     const provider = String(payload?.provider ?? "").toLowerCase();

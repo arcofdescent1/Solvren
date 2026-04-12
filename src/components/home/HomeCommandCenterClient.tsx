@@ -23,10 +23,12 @@ import {
   WhatHappensNextCallout,
   WhySurfacedText,
 } from "@/components/help";
+import { Phase2ActivationSuccessCard } from "@/components/home/Phase2ActivationSuccessCard";
 
 type Props = {
   userId: string;
   orgId: string | null;
+  showPhase2SuccessCard?: boolean;
   priorities: HomeWorkItem[];
   assigned: HomeWorkItem[];
   waiting: HomeWorkItem[];
@@ -103,6 +105,7 @@ export default function HomeCommandCenterClient({
   setupIncomplete,
   roiSignal,
   roiSignalAsOf,
+  showPhase2SuccessCard = false,
 }: Props) {
   useEffect(() => {
     trackAppEvent("home_page_view", { user_id: userId, org_id: orgId, section: "home" });
@@ -117,6 +120,8 @@ export default function HomeCommandCenterClient({
         helper="Solvren helps your team detect revenue-impacting issues, govern risky changes, and coordinate action before problems become losses."
         helpTrigger={<PageHelpDrawer page="home" />}
       />
+
+      {showPhase2SuccessCard ? <Phase2ActivationSuccessCard /> : null}
 
       <Card className="border-[var(--primary)]/25 bg-[color:color-mix(in_oklab,var(--primary)_6%,white)] shadow-sm">
         <CardBody>

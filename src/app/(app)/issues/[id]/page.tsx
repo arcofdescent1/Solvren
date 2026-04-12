@@ -24,6 +24,7 @@ import {
   IssueLifecyclePanel,
 } from "@/components/issues";
 import { IssueImpactSection } from "@/components/impact";
+import { Phase3IssueReviewedTracker } from "@/components/onboarding/phase3/Phase3IssueReviewedTracker";
 
 export default async function IssueDetailPage({
   params,
@@ -178,6 +179,7 @@ export default async function IssueDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <Phase3IssueReviewedTracker issueId={issueId} />
       <IssueDetailHeader issue={issue} />
       <div className="grid gap-4 md:grid-cols-2">
         <IssueOwnerPanel issue={issue} />

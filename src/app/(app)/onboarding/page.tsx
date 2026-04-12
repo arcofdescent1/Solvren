@@ -1,11 +1,12 @@
 /**
  * Phase 10 — Onboarding wizard page.
  */
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
 import { PageHeader } from "@/ui";
-import { OnboardingWizard } from "@/components/onboarding";
+import { GuidedOnboardingWizard } from "@/components/onboarding";
 
 export default async function OnboardingPage() {
   const supabase = await createServerSupabaseClient();
@@ -22,7 +23,9 @@ export default async function OnboardingPage() {
         title="Onboarding"
         description="Complete setup to reach your first value"
       />
-      <OnboardingWizard />
+      <Suspense fallback={<p className="text-sm text-[color:var(--rg-text-muted)]">Loading…</p>}>
+        <GuidedOnboardingWizard />
+      </Suspense>
     </div>
   );
 }

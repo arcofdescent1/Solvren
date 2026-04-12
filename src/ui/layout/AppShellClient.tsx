@@ -8,6 +8,8 @@ import { LayoutProvider, useLayout } from "./LayoutContext";
 import { TooltipProvider } from "@/ui/primitives/tooltip";
 import type { OrgMembership } from "@/lib/org/activeOrg";
 import { AppFooter } from "@/components/footer/AppFooter";
+import { Phase3AdoptionBanner } from "@/components/onboarding/phase3/Phase3AdoptionBanner";
+import { Phase4EnterpriseBanner } from "@/components/onboarding/phase4/Phase4EnterpriseBanner";
 
 export type AppShellClientProps = {
   user?: { id: string; email?: string } | null;
@@ -16,6 +18,14 @@ export type AppShellClientProps = {
   unreadCount?: number;
   myWorkCount?: number;
   needsReviewCount?: number;
+  phase3Banner?: { show: boolean; phase3Status: string | null; eligible: boolean } | null;
+  phase4Banner?: {
+    show: boolean;
+    phase4Status: string | null;
+    cadenceReminder: boolean;
+    executiveStreak: number;
+    executiveTarget: number;
+  } | null;
   children: React.ReactNode;
 };
 
@@ -26,6 +36,8 @@ function AppShellInner({
   unreadCount,
   myWorkCount,
   needsReviewCount,
+  phase3Banner,
+  phase4Banner,
   children,
 }: AppShellClientProps) {
   const { sidebarOpen, setSidebarOpen } = useLayout();
@@ -46,6 +58,16 @@ function AppShellInner({
         sidebarOpen={sidebarOpen}
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
       />
+      {phase3Banner?.show ? (
+        <Phase3AdoptionBanner phase3Status={phase3Banner.phase3Status} eligible={phase3Banner.eligible} />
+      ) : phase4Banner?.show ? (
+        <Phase4EnterpriseBanner
+          phase4Status={phase4Banner.phase4Status}
+          cadenceReminder={phase4Banner.cadenceReminder}
+          executiveStreak={phase4Banner.executiveStreak}
+          executiveTarget={phase4Banner.executiveTarget}
+        />
+      ) : null}
       <Sidebar
         user={user}
         open={sidebarOpen}

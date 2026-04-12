@@ -1,6 +1,10 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { authStateFromUser } from "@/lib/auth";
+import { getActiveOrg } from "@/lib/org/activeOrg";
+import { shouldRedirectToGuidedOnboarding } from "@/lib/onboarding/guidedPhase1Gate";
+import { shouldRedirectToPhase2Activation } from "@/lib/onboarding/phase2Gate";
 import { AppShell } from "@/ui/layout/app-shell";
 
 export const runtime = "nodejs";
@@ -26,6 +30,17 @@ export default async function AppLayout({
 
   if (!state.isVerified) {
     redirect("/auth/verify-pending");
+  }
+
+  const { activeOrgId } = await getActiveOrg(supabase, data.user!.id);
+  if (activeOrgId) {
+    const pathname = (await headers()).get("x-pathname") ?? "";
+    if (pathname && (await shouldRedirectToGuidedOnboarding(supabase, activeOrgId, pathname))) {
+      redirect("/onboarding");
+    }
+    if (pathname && (await shouldRedirectToPhase2Activation(supabase, activeOrgId, pathname))) {
+      redirect("/onboarding/activation");
+    }
   }
 
   return <AppShell>{children}</AppShell>;

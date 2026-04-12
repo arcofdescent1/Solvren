@@ -8,6 +8,7 @@ import {
   Badge,
 } from "@/ui";
 import { RiskExplanationPanel } from "@/components/ai/RiskExplanationPanel";
+import { Phase3RiskAlertViewedTracker } from "@/components/onboarding/phase3/Phase3RiskAlertViewedTracker";
 
 function riskBadge(bucket: string) {
   const v = bucket?.toUpperCase();
@@ -196,6 +197,7 @@ export default async function RiskEventDetailPage({
 
   return (
     <div className="space-y-6">
+      <Phase3RiskAlertViewedTracker riskEventId={eventId} />
       <PageHeader
         breadcrumbs={[
           { label: "Overview", href: "/dashboard" },

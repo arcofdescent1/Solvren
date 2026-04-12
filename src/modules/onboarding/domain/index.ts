@@ -20,3 +20,20 @@ export {
   type RecommendationType,
   type RecommendationStatus,
 } from "./activation-recommendation";
+export {
+  GUIDED_FLOW_VERSION,
+  GUIDED_STEP_ORDER,
+  ONBOARDING_PROVIDER_KEYS,
+  ONBOARDING_USE_CASE_KEYS,
+  COMPANY_SIZES,
+  INDUSTRIES,
+  PRIMARY_GOALS,
+  type GuidedPhase1Status,
+  type GuidedStepKey,
+  type OnboardingIntegrationPresentationStatus,
+  type CompanySize,
+  type Industry,
+  type PrimaryGoal,
+  type OnboardingUseCaseKey,
+  type OnboardingProviderKey,
+} from "./guided-phase1";

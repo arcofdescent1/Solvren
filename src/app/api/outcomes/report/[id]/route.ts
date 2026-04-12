@@ -7,6 +7,9 @@ import {
   parseRequestedOrgId,
   requireOrgPermission,
 } from "@/lib/server/authz";
+import { auditLog } from "@/lib/audit";
+import { trackServerAppEvent } from "@/lib/analytics/serverAppAnalytics";
+import { isExecutiveUserForPhase1 } from "@/lib/rbac/isExecutiveUserForPhase1";
 
 type Row = {
   id: string;
@@ -47,6 +50,45 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
     const errMsg =
       r.error_json && typeof r.error_json.message === "string" ? r.error_json.message : undefined;
+
+    if ((r.status === "COMPLETED" || r.status === "COMPLETE") && userRes.user) {
+      const { data: wrap } = await admin
+        .from("org_qbr_reports")
+        .select("id")
+        .eq("generated_report_id", id)
+        .maybeSingle();
+      const wrapId = (wrap as { id?: string } | null)?.id;
+      if (wrapId) {
+        const exec = await isExecutiveUserForPhase1(supabase, userRes.user.id, orgId);
+        if (exec) {
+          const since = new Date(Date.now() - 3600000).toISOString();
+          const { count: recentOpens } = await admin
+            .from("audit_log")
+            .select("id", { count: "exact", head: true })
+            .eq("org_id", orgId)
+            .eq("action", "qbr_report_opened")
+            .eq("entity_id", wrapId)
+            .gte("created_at", since);
+          if ((recentOpens ?? 0) === 0) {
+            await auditLog(admin, {
+              orgId,
+              actorId: userRes.user.id,
+              actorType: "USER",
+              action: "qbr_report_opened",
+              entityType: "qbr_report",
+              entityId: wrapId,
+              metadata: { generatedReportId: id },
+            });
+            await trackServerAppEvent(admin, {
+              orgId,
+              userId: userRes.user.id,
+              event: "qbr_report_opened",
+              properties: { orgQbrReportId: wrapId, generatedReportId: id },
+            });
+          }
+        }
+      }
+    }
 
     return NextResponse.json({
       id: r.id,

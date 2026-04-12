@@ -1,8 +1,10 @@
-"use client";;
+"use client";
+
 import { Button } from "@/ui";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { postPhase3Interaction } from "@/components/onboarding/phase3/postPhase3Interaction";
 
 type Approval = {
   id: string;
@@ -87,6 +89,8 @@ export default function ApprovalsPanel({
       setMsg(decision === "APPROVED" ? "Approved." : "Rejected.");
       setMsgKind("info");
     }
+
+    postPhase3Interaction({ type: "approval_decision", refType: "approval", refId: approvalId });
 
     router.refresh();
     window.dispatchEvent(new CustomEvent("timeline:refresh"));

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Card, CardBody, PageHeaderV2, Stack } from "@/ui";
 import { ValueStoryTimeline } from "@/components/outcomes/ValueStoryTimeline";
+import { Phase3ValueStoryTracker } from "@/components/onboarding/phase3/Phase3ValueStoryTracker";
 import type { EvidenceJsonV1 } from "@/lib/outcomes/types";
 
 type StoryRow = {
@@ -86,6 +87,7 @@ export default function ValueStoryDetailPage() {
 
   return (
     <Stack gap={6} className="pb-10">
+      {id ? <Phase3ValueStoryTracker storyId={id} /> : null}
       <PageHeaderV2
         title={story?.headline ?? "Value story"}
         description={story ? `${story.outcome_type.replace(/_/g, " ")} · ${story.status}` : ""}

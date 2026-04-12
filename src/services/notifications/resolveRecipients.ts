@@ -27,6 +27,29 @@ export async function resolveRecipientsForTemplate(
   templateKey: string,
   payload: Record<string, unknown>
 ): Promise<string[]> {
+  if (templateKey === "executive_summary") {
+    const ids = new Set<string>();
+    const { data: admins } = await db
+      .from("organization_members")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .in("role", ["owner", "admin"]);
+    for (const u of admins ?? []) {
+      const id = (u as { user_id?: string }).user_id;
+      if (id) ids.add(id);
+    }
+    const { data: leads } = await db
+      .from("organization_members")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .eq("department", "Leadership");
+    for (const u of leads ?? []) {
+      const id = (u as { user_id?: string }).user_id;
+      if (id) ids.add(id);
+    }
+    return [...ids];
+  }
+
   if (templateKey === "outcomes_report_ready" || templateKey === "outcomes_report_failed") {
     const raw = payload.recipientUserIds;
     if (Array.isArray(raw)) {

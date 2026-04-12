@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { headers } from "next/headers";
 import {
   PageHeaderV2,
@@ -18,6 +19,8 @@ import ExecutiveNarrativeCard from "@/components/executive/ExecutiveNarrativeCar
 import RevenueAtRiskCard from "@/components/executive/RevenueAtRiskCard";
 import TopDriversTable from "@/components/executive/TopDriversTable";
 import ExecutiveInsightsPanel from "@/components/executive/ExecutiveInsightsPanel";
+import { Phase3ExecutiveTracker } from "@/components/onboarding/phase3/Phase3ExecutiveTracker";
+import { Phase3FromEmailSummaryTracker } from "@/components/onboarding/phase3/Phase3FromEmailSummaryTracker";
 
 function formatMoney(n: number) {
   if (!Number.isFinite(n)) return "-";
@@ -72,6 +75,10 @@ export default async function ExecutivePage() {
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <Phase3FromEmailSummaryTracker />
+      </Suspense>
+      <Phase3ExecutiveTracker path="/executive" />
       <PageHeaderV2
         breadcrumbs={[
           { label: "Insights", href: "/insights" },

@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardBody, EmptyState, Grid, PageHeaderV2, SectionHeader, Stack } from "@/ui";
 import { MetricHelpTooltip, PageHelpDrawer } from "@/components/help";
 import { trackAppEvent } from "@/lib/appAnalytics";
+import { Phase3ExecutiveTracker } from "@/components/onboarding/phase3/Phase3ExecutiveTracker";
+import { Phase3FromEmailSummaryTracker } from "@/components/onboarding/phase3/Phase3FromEmailSummaryTracker";
 import type { RoiSummaryResponse } from "@/features/roi/types";
 
 function confidenceLabel(confidence: RoiSummaryResponse["metrics"]["prevented"]["confidence"]) {
@@ -43,6 +45,10 @@ export default function ExecutiveROIPage() {
 
   return (
     <Stack gap={6}>
+      <Suspense fallback={null}>
+        <Phase3FromEmailSummaryTracker />
+      </Suspense>
+      <Phase3ExecutiveTracker path="/executive/roi" />
       <PageHeaderV2
         breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "ROI" }]}
         title="Impact and outcomes"

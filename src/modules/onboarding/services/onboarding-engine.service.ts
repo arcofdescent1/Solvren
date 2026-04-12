@@ -25,6 +25,9 @@ export async function initializeOnboarding(
   await upsertOrgOnboardingState(supabase, {
     orgId,
     onboardingState: OnboardingState.NOT_STARTED,
+    guidedFlowVersion: "1",
+    guidedPhase1Status: "NOT_STARTED",
+    guidedCurrentStepKey: "welcome",
   });
   await markMilestoneReached(supabase, orgId, "org_created");
   const { error } = await initializeOrgOnboardingSteps(supabase, orgId);

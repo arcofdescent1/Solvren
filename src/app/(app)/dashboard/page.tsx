@@ -43,6 +43,28 @@ export default async function DashboardPage() {
   const orgIds = memberships.map((m) => m.org_id);
   const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
 
+  let showPhase2SuccessCard = false;
+  if (activeOrgId) {
+    const [{ data: obs }, { data: ucs }] = await Promise.all([
+      supabase.from("org_onboarding_states").select("phase2_status, phase2_completed_at").eq("org_id", activeOrgId).maybeSingle(),
+      supabase
+        .from("user_phase2_success_card_state")
+        .select("dismissed_at")
+        .eq("org_id", activeOrgId)
+        .eq("user_id", userRes.user.id)
+        .maybeSingle(),
+    ]);
+    const o = obs as { phase2_status?: string | null; phase2_completed_at?: string | null } | null;
+    const u = ucs as { dismissed_at?: string | null } | null;
+    const completedAt = o?.phase2_completed_at;
+    showPhase2SuccessCard = Boolean(
+      o?.phase2_status === "COMPLETED" &&
+        completedAt &&
+        !u?.dismissed_at &&
+        Date.now() - new Date(completedAt).getTime() < 7 * 86400000
+    );
+  }
+
   const nowIso = new Date().toISOString();
   const [changesRaw, myApprovals, issueRows, failedOutbox, impactRows, incidentRows, integrations, riskEvents, auditRows] =
     await Promise.all([
@@ -269,6 +291,7 @@ export default async function DashboardPage() {
     <HomeCommandCenterClient
       userId={userRes.user.id}
       orgId={activeOrgId ?? null}
+      showPhase2SuccessCard={showPhase2SuccessCard}
       priorities={priorities}
       assigned={assigned}
       waiting={waiting}
