@@ -17,7 +17,10 @@ export function BuildHabitStep(props: {
   }, []);
 
   useEffect(() => {
-    void load();
+    const t = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [load]);
 
   const needInteractions = Math.max(0, 5 - props.interactionCount);

@@ -36,7 +36,10 @@ export function ExpandCoverageStep(props: {
   }, []);
 
   useEffect(() => {
-    void loadRecs();
+    const t = window.setTimeout(() => {
+      void loadRecs();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [loadRecs]);
 
   const onExpand = async (r: Rec) => {

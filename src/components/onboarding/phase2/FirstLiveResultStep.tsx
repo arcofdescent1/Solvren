@@ -22,22 +22,27 @@ export function FirstLiveResultStep(props: {
   allComplete: boolean;
   onRefresh: () => Promise<void>;
 }) {
+  const { orgId, phase2Status, currentStepKey, allComplete, onRefresh } = props;
   const router = useRouter();
   const [event, setEvent] = useState<LiveEvent | null>(null);
   const [timedOut, setTimedOut] = useState(false);
-  const startedAt = useRef<number>(Date.now());
+  const startedAt = useRef<number | null>(null);
   const seenTracked = useRef(false);
   const completedTracked = useRef(false);
 
   useEffect(() => {
-    if (props.allComplete) {
+    if (allComplete) {
       router.replace("/dashboard");
       return;
+    }
+    if (startedAt.current === null) {
+      startedAt.current = Date.now();
     }
     let cancelled = false;
     const iv = setInterval(async () => {
       if (cancelled) return;
-      if (Date.now() - startedAt.current > 10 * 60 * 1000) {
+      const start = startedAt.current ?? Date.now();
+      if (Date.now() - start > 10 * 60 * 1000) {
         setTimedOut(true);
         clearInterval(iv);
         return;
@@ -46,7 +51,7 @@ export function FirstLiveResultStep(props: {
       const j = (await res.json()) as { status?: string; event?: LiveEvent | null };
       if (j.status === "READY" && j.event) {
         setEvent(j.event);
-        await props.onRefresh();
+        await onRefresh();
         clearInterval(iv);
       }
     }, 10_000);
@@ -55,28 +60,28 @@ export function FirstLiveResultStep(props: {
       const j = (await res.json()) as { status?: string; event?: LiveEvent | null };
       if (!cancelled && j.status === "READY" && j.event) {
         setEvent(j.event);
-        await props.onRefresh();
+        await onRefresh();
       }
     })();
     return () => {
       cancelled = true;
       clearInterval(iv);
     };
-  }, [props.allComplete, props.onRefresh, router]);
+  }, [allComplete, onRefresh, router]);
 
   useEffect(() => {
     if (!event || seenTracked.current) return;
     seenTracked.current = true;
-    trackAppEvent("onboarding_phase2_first_live_result_seen", phase2BasePayload(props.orgId, props.phase2Status, props.currentStepKey));
-  }, [event, props.orgId, props.phase2Status, props.currentStepKey]);
+    trackAppEvent("onboarding_phase2_first_live_result_seen", phase2BasePayload(orgId, phase2Status, currentStepKey));
+  }, [event, orgId, phase2Status, currentStepKey]);
 
   useEffect(() => {
-    if (!props.allComplete || completedTracked.current) return;
+    if (!allComplete || completedTracked.current) return;
     completedTracked.current = true;
-    trackAppEvent("onboarding_phase2_completed", phase2BasePayload(props.orgId, "COMPLETED", props.currentStepKey));
-  }, [props.allComplete, props.orgId, props.currentStepKey]);
+    trackAppEvent("onboarding_phase2_completed", phase2BasePayload(orgId, "COMPLETED", currentStepKey));
+  }, [allComplete, orgId, currentStepKey]);
 
-  if (props.allComplete) {
+  if (allComplete) {
     return (
       <Card>
         <CardBody>

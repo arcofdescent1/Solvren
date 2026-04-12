@@ -38,7 +38,10 @@ export function ProveValueStep(props: {
   }, [props.orgId, props.phase3Status, props.currentStepKey]);
 
   useEffect(() => {
-    void load();
+    const t = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [load]);
 
   if (!proof) return <p className="text-sm text-[var(--text-muted)]">Loading value proof…</p>;

@@ -16,8 +16,8 @@ import type { HomeActivityItem, HomeWorkItem } from "@/features/home/presentatio
 import { buildRoiSummary } from "@/features/roi/buildRoiSummary";
 import type { RoiTrendState } from "@/features/roi/types";
 
-function relTime(iso: string) {
-  const ms = Date.now() - new Date(iso).getTime();
+function relTime(iso: string, nowMs: number) {
+  const ms = nowMs - new Date(iso).getTime();
   const mins = Math.floor(ms / 60000);
   if (mins < 60) return `${Math.max(mins, 1)}m ago`;
   const hours = Math.floor(mins / 60);
@@ -34,6 +34,8 @@ export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
   const { data: userRes } = await supabase.auth.getUser();
   if (!userRes.user) redirect("/login");
+
+  const nowMs = new Date().getTime();
 
   const { data: memberships } = await supabase
     .from("organization_members")
@@ -61,7 +63,7 @@ export default async function DashboardPage() {
       o?.phase2_status === "COMPLETED" &&
         completedAt &&
         !u?.dismissed_at &&
-        Date.now() - new Date(completedAt).getTime() < 7 * 86400000
+        nowMs - new Date(completedAt).getTime() < 7 * 86400000
     );
   }
 
@@ -279,7 +281,7 @@ export default async function DashboardPage() {
         id: row.id,
         title: action.replaceAll("_", " "),
         context: row.entity_type ? String(row.entity_type) : undefined,
-        relativeTime: relTime(row.created_at),
+        relativeTime: relTime(row.created_at, nowMs),
         destination,
         objectType: row.entity_type === "issue" ? "Issue" : row.entity_type === "change" ? "Change" : "System",
       } as HomeActivityItem;
