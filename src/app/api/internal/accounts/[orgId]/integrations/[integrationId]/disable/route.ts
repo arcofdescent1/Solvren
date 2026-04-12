@@ -5,7 +5,7 @@ import { requireInternalEmployeeApi } from "@/lib/internal/auth";
 import { resolveIntegrationTarget } from "@/lib/internal/phase2/integrationsReadModel";
 import { canAccessInternalTab, canDisableEnableIntegration, internalHasPermission } from "@/lib/internal/permissions";
 import { disconnectIntegration } from "@/modules/integrations/auth/connectionManager";
-import { getAccountById, updateIntegrationAccount } from "@/modules/integrations/core/integrationAccountsRepo";
+import { getAccountById } from "@/modules/integrations/core/integrationAccountsRepo";
 
 export const runtime = "nodejs";
 

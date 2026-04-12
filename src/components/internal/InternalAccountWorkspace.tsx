@@ -77,11 +77,14 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
   const rawTab = searchParams.get("tab");
   const tab: TabKey = isTabKey(rawTab) ? rawTab : "overview";
 
-  const setTab = (t: TabKey) => {
-    const q = new URLSearchParams(searchParams.toString());
-    q.set("tab", t);
-    router.replace(`${pathname}?${q.toString()}`);
-  };
+  const setTab = useCallback(
+    (t: TabKey) => {
+      const q = new URLSearchParams(searchParams.toString());
+      q.set("tab", t);
+      router.replace(`${pathname}?${q.toString()}`);
+    },
+    [router, pathname, searchParams]
+  );
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
@@ -172,7 +175,7 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
     if (!session.tabs[tab]) {
       setTab("overview");
     }
-  }, [session, tab]);
+  }, [session, tab, setTab]);
 
   useEffect(() => {
     setLoading(true);
