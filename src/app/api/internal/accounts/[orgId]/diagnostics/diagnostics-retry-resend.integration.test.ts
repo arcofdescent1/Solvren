@@ -12,7 +12,7 @@
  *   NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_INTEGRATION_URL)
  *   SUPABASE_SERVICE_ROLE_KEY
  *
- * Run: `npm run test:integration:internal-portal` (filters by suite name substring `notification_outbox`).
+ * Run: `npm run test:integration:internal-portal` (Vitest file filter).
  */
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
