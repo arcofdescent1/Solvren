@@ -95,6 +95,8 @@ export const ORG_PURGE_TABLE_SPECS = [
   { table: "integration_source_configs", orgColumn: "org_id" as const },
   { table: "integration_sync_checkpoints", orgColumn: "org_id" as const },
   { table: "integration_sync_schedules", orgColumn: "org_id" as const },
+  { table: "internal_admin_audit_log", orgColumn: "org_id" as const },
+  { table: "internal_onboarding_overrides", orgColumn: "org_id" as const },
   { table: "issue_impact_summaries", orgColumn: "org_id" as const },
   { table: "issue_jira_links", orgColumn: "org_id" as const },
   { table: "issue_lifecycle_events", orgColumn: "org_id" as const },
