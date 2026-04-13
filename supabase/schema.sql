@@ -20,10 +20,13 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   create type change_status as enum (
     'DRAFT',
+    'READY',
     'SUBMITTED',
     'IN_REVIEW',
     'APPROVED',
-    'REJECTED'
+    'REJECTED',
+    'CLOSED',
+    'RESOLVED'
   );
 exception when duplicate_object then null; end $$;
 
