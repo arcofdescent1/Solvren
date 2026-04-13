@@ -68,6 +68,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const myWorkCount = (needsReviewCount ?? 0) + (myIssueCount ?? 0);
 
   let phase3Banner: { show: boolean; phase3Status: string | null; eligible: boolean } | null = null;
+  let isDemoOrg = false;
+  if (activeOrgId) {
+    const { data: orgDemo } = await supabase.from("organizations").select("is_demo").eq("id", activeOrgId).maybeSingle();
+    isDemoOrg = Boolean((orgDemo as { is_demo?: boolean } | null)?.is_demo);
+  }
+
   let phase4Banner: {
     show: boolean;
     phase4Status: string | null;
@@ -123,6 +129,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       needsReviewCount={needsReviewCount ?? 0}
       phase3Banner={phase3Banner}
       phase4Banner={phase4Banner}
+      isDemoOrg={isDemoOrg}
     >
       {children}
     </AppShellClient>

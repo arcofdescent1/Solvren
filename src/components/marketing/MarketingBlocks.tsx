@@ -57,7 +57,7 @@ export function HeroSection({
   title,
   subtitle,
   primaryCta = { href: "/signup", label: "Get Started" },
-  secondaryCta = { href: "/demo", label: "Book a Demo" },
+  secondaryCta = { href: "/contact", label: "Book a Demo" },
   tertiaryCta,
   trustItems,
 }: {

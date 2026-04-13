@@ -13,7 +13,7 @@ export const HERO = {
   },
   secondaryCta: {
     label: "Book a Demo",
-    href: "/demo",
+    href: "/contact",
   },
 };
 
@@ -190,7 +190,7 @@ export const FINAL_CTA = {
   },
   secondaryCta: {
     label: "Book a Demo",
-    href: "/demo",
+    href: "/contact",
   },
 };
 

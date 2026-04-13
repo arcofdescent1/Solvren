@@ -35,10 +35,24 @@ export default async function AppLayout({
   const { activeOrgId } = await getActiveOrg(supabase, data.user!.id);
   if (activeOrgId) {
     const pathname = (await headers()).get("x-pathname") ?? "";
-    if (pathname && (await shouldRedirectToGuidedOnboarding(supabase, activeOrgId, pathname))) {
+    const { data: orgFlags } = await supabase
+      .from("organizations")
+      .select("is_demo")
+      .eq("id", activeOrgId)
+      .maybeSingle();
+    const isDemoWorkspace = Boolean((orgFlags as { is_demo?: boolean } | null)?.is_demo);
+    if (
+      !isDemoWorkspace &&
+      pathname &&
+      (await shouldRedirectToGuidedOnboarding(supabase, activeOrgId, pathname))
+    ) {
       redirect("/onboarding");
     }
-    if (pathname && (await shouldRedirectToPhase2Activation(supabase, activeOrgId, pathname))) {
+    if (
+      !isDemoWorkspace &&
+      pathname &&
+      (await shouldRedirectToPhase2Activation(supabase, activeOrgId, pathname))
+    ) {
       redirect("/onboarding/activation");
     }
   }
