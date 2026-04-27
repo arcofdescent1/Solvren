@@ -1,6 +1,10 @@
 /**
  * Phase 8 — Demo seed service.
  * Clears demo data and reseeds for a scenario.
+ *
+ * Governance data (`change_events`, approvals, evidence, etc.) is not reset here.
+ * Sales demo orgs use `scripts/seed-solara-demo.ts` (operator script); a future
+ * extension can call shared builders from `resetDemoOrg` for demo-flag orgs.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getScenarioBuilder } from "../seed/scenario-registry";
