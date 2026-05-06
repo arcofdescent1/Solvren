@@ -10,6 +10,7 @@ import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
 import { refreshAccessToken, needsRefresh } from "@/services/hubspot/HubSpotAuthService";
 import { env } from "@/lib/env";
 import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { userCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     if (!account || !credsRaw) return NextResponse.json({ status: "error", error: "HubSpot not connected" }, { status: 400 });
 
-    const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+    const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>, userCredentialReveal(ctx.orgId, "hubspot", ctx.user.id, "manual_retry")) as {
     access_token?: string;
     refresh_token?: string;
     expires_at?: string | null;

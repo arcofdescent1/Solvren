@@ -4,7 +4,7 @@
  * so route handlers run in Vitest without browser cookies.
  *
  * Requires Supabase with migrations through internal portal + notification_outbox
- * (incl. `technical_support` on internal_employee_accounts).
+ * (incl. Phase 4 `employee_profiles` + legacy `internal_employee_accounts` optional).
  *
  * Env:
  *   RUN_INTEGRATION_TESTS=1
@@ -90,10 +90,25 @@ describe.skipIf(!enabled || !url || !serviceKey || !portalIntegration)(
     });
     if (ieErr) throw ieErr;
 
+    const { error: p4Err } = await admin.from("employee_profiles").insert({
+      user_id: empUserId,
+      email: empEmail,
+      role: "ENGINEERING",
+      status: "active",
+    });
+    if (p4Err) throw p4Err;
+
     ctx = {
       user: stubUser(empUserId, empEmail),
       emailLower: empEmail,
       employeeRole: "technical_support",
+      phase4Profile: {
+        id: randomUUID(),
+        userId: empUserId,
+        email: empEmail,
+        role: "ENGINEERING",
+        status: "active",
+      },
       admin,
     };
 
@@ -104,6 +119,7 @@ describe.skipIf(!enabled || !url || !serviceKey || !portalIntegration)(
     vi.mocked(requireInternalEmployeeApi).mockReset();
     if (!admin) return;
     try {
+      await admin.from("employee_profiles").delete().eq("user_id", empUserId);
       await admin.from("internal_employee_accounts").delete().eq("user_id", empUserId);
     } catch {
       /* best effort */

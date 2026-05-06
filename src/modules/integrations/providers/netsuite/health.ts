@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 import { NetSuiteClient } from "@/services/netsuite/NetSuiteClient";
 import type { IntegrationHealthReport, TestConnectionResult } from "../../contracts/runtime";
 
@@ -17,7 +18,9 @@ export async function testNetSuiteConnection(orgId: string): Promise<TestConnect
     .eq("provider", "netsuite")
     .maybeSingle();
 
-  const creds = credsRaw ? revealCredentialTokenFields(credsRaw as Record<string, unknown>) : null;
+  const creds = credsRaw
+    ? revealCredentialTokenFields(credsRaw as Record<string, unknown>, systemCredentialReveal(orgId, "netsuite"))
+    : null;
   const accountId = (account as { account_id?: string } | null)?.account_id;
   const accountName = (account as { account_name?: string } | null)?.account_name ?? null;
   const clientId = (creds as { client_id?: string } | null)?.client_id;

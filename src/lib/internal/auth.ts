@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 import { authStateFromUser } from "@/lib/auth";
 import { createPrivilegedClient } from "@/lib/server/adminClient";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getEmployeeProfile } from "@/lib/server/auth/require-employee";
+import type { EmployeeProfile } from "@/lib/server/employee/phase4EmployeeRoleMap";
+import { phase4RoleToInternalEmployeeRole } from "@/lib/server/employee/phase4EmployeeRoleMap";
 import type { InternalEmployeeRole } from "./employeeRoles";
 
 export const SOLVREN_EMAIL_SUFFIX = "@solvren.com";
@@ -14,22 +17,9 @@ export type InternalEmployeeContext = {
   user: User;
   emailLower: string;
   employeeRole: InternalEmployeeRole;
+  phase4Profile: EmployeeProfile;
   admin: SupabaseClient;
 };
-
-function parseEmployeeRole(v: string): InternalEmployeeRole | null {
-  const r = v as InternalEmployeeRole;
-  if (
-    r === "support_admin" ||
-    r === "billing_support" ||
-    r === "account_ops" ||
-    r === "technical_support" ||
-    r === "super_admin"
-  ) {
-    return r;
-  }
-  return null;
-}
 
 export type InternalApiGate =
   | { ok: true; ctx: InternalEmployeeContext }
@@ -59,37 +49,23 @@ export async function requireInternalEmployeeApi(): Promise<InternalApiGate> {
 
   const admin = createPrivilegedClient("requireInternalEmployeeApi: internal employee gate");
 
-  const { data: row, error } = await admin
-    .from("internal_employee_accounts")
-    .select("user_id, email, employee_role, is_active")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error || !row) {
+  const phase4Profile = await getEmployeeProfile(admin, user.id);
+  if (!phase4Profile || phase4Profile.status !== "active") {
     return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
-  const active = Boolean((row as { is_active?: boolean }).is_active);
-  if (!active) {
-    return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
-  }
-
-  const employeeRole = parseEmployeeRole(String((row as { employee_role?: string }).employee_role ?? ""));
-  if (!employeeRole) {
-    return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
-  }
-
-  const storedEmail = String((row as { email?: string }).email ?? "").toLowerCase();
-  if (storedEmail !== emailLower) {
+  if (phase4Profile.email !== emailLower) {
     await admin
-      .from("internal_employee_accounts")
+      .from("employee_profiles")
       .update({ email: emailLower, updated_at: new Date().toISOString() })
       .eq("user_id", user.id);
   }
 
+  const employeeRole = phase4RoleToInternalEmployeeRole(phase4Profile.role);
+
   return {
     ok: true,
-    ctx: { user, emailLower, employeeRole, admin },
+    ctx: { user, emailLower, employeeRole, phase4Profile, admin },
   };
 }
 
@@ -113,26 +89,19 @@ export async function getInternalPageGate(): Promise<InternalPageGate> {
 
   const admin = createPrivilegedClient("getInternalPageGate: internal layout");
 
-  const { data: row, error } = await admin
-    .from("internal_employee_accounts")
-    .select("user_id, email, employee_role, is_active")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error || !row || !Boolean((row as { is_active?: boolean }).is_active)) {
+  const phase4Profile = await getEmployeeProfile(admin, user.id);
+  if (!phase4Profile || phase4Profile.status !== "active") {
     return { gate: "forbidden" };
   }
 
-  const employeeRole = parseEmployeeRole(String((row as { employee_role?: string }).employee_role ?? ""));
-  if (!employeeRole) return { gate: "forbidden" };
-
-  const storedEmail = String((row as { email?: string }).email ?? "").toLowerCase();
-  if (storedEmail !== emailLower) {
+  if (phase4Profile.email !== emailLower) {
     await admin
-      .from("internal_employee_accounts")
+      .from("employee_profiles")
       .update({ email: emailLower, updated_at: new Date().toISOString() })
       .eq("user_id", user.id);
   }
 
-  return { gate: "ok", ctx: { user, emailLower, employeeRole, admin } };
+  const employeeRole = phase4RoleToInternalEmployeeRole(phase4Profile.role);
+
+  return { gate: "ok", ctx: { user, emailLower, employeeRole, phase4Profile, admin } };
 }

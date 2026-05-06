@@ -2,18 +2,70 @@ import type { NextConfig } from "next";
 import path from "path";
 import { withSentryConfig } from "@sentry/nextjs";
 
+/**
+ * Phase 1 CSP: measured hardening (explicit high-trust hosts + https:/wss: fallbacks).
+ * Before changing: verify login, Supabase, Sentry, and integrations in staging (see security-reports/PHASE1-OPERATIONAL.md).
+ * Do not add Cross-Origin-Resource-Policy: same-origin (breaks OAuth/embeds).
+ */
+function buildConnectSrcParts(): string[] {
+  const parts: string[] = [
+    "'self'",
+    "https:",
+    "wss:",
+    "https://*.supabase.co",
+    "wss://*.supabase.co",
+    "https://*.sentry.io",
+    "https://*.ingest.sentry.io",
+    "https://api.stripe.com",
+    "https://*.vercel-insights.com",
+  ];
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  try {
+    if (supabaseUrl) {
+      parts.push(new URL(supabaseUrl).origin);
+    }
+  } catch {
+    /* ignore malformed */
+  }
+
+  const sentryDsn =
+    process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN ?? "";
+  try {
+    if (sentryDsn) {
+      parts.push(new URL(sentryDsn).origin);
+    }
+  } catch {
+    /* ignore */
+  }
+
+  return [...new Set(parts)];
+}
+
 const nextConfig: NextConfig = {
   async headers() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    const supabaseHost = (() => {
-      try {
-        return supabaseUrl ? new URL(supabaseUrl).origin : "";
-      } catch {
-        return "";
-      }
-    })();
-    const connectSrc = ["'self'", "https:", "wss:"];
-    if (supabaseHost) connectSrc.push(supabaseHost);
+    const isProd = process.env.NODE_ENV === "production";
+    const connectSrc = buildConnectSrcParts();
+
+    const scriptSrc = isProd
+      ? ["'self'", "'unsafe-inline'", "https:"]
+      : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:"];
+
+    const styleSrc = ["'self'", "'unsafe-inline'"];
+
+    const cspDirectives = [
+      "default-src 'self'",
+      `script-src ${scriptSrc.join(" ")}`,
+      `style-src ${styleSrc.join(" ")}`,
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      `connect-src ${connectSrc.join(" ")}`,
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      ...(isProd ? (["upgrade-insecure-requests"] as const) : []),
+    ].join("; ");
 
     const security: { key: string; value: string }[] = [
       { key: "X-Content-Type-Options", value: "nosniff" },
@@ -25,19 +77,13 @@ const nextConfig: NextConfig = {
       },
       {
         key: "Content-Security-Policy",
-        value: [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-          "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: blob: https:",
-          "font-src 'self' data:",
-          `connect-src ${connectSrc.join(" ")}`,
-          "frame-ancestors 'self'",
-        ].join("; "),
+        value: cspDirectives,
       },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      { key: "X-DNS-Prefetch-Control", value: "off" },
     ];
 
-    if (process.env.NODE_ENV === "production") {
+    if (isProd) {
       security.unshift({
         key: "Strict-Transport-Security",
         value: "max-age=63072000; includeSubDomains; preload",

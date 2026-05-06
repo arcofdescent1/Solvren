@@ -3,6 +3,7 @@
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 import { SalesforceClient } from "@/services/salesforce/SalesforceClient";
 
 export async function getSalesforceClientForOrg(orgId: string): Promise<SalesforceClient | null> {
@@ -21,7 +22,7 @@ export async function getSalesforceClientForOrg(orgId: string): Promise<Salesfor
 
   if (!sfOrg || !credsRaw) return null;
 
-  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>, systemCredentialReveal(orgId, "salesforce")) as {
     client_id: string;
     client_secret?: string;
     salesforce_username?: string;

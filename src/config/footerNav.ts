@@ -54,6 +54,7 @@ export const marketingFooterColumns: FooterColumn[] = [
       // Marketing overview: `/integrations` is reserved for the authenticated app hub.
       { label: "Integrations", href: "/platform/integrations" },
       { label: "Security", href: "/security", analyticsKey: "footer_security" },
+      { label: "Security baseline", href: "/security/baseline" },
       { label: "Documentation", href: "/docs", analyticsKey: "footer_docs" },
       { label: "Pricing", href: "/pricing", analyticsKey: "footer_pricing" },
     ],
@@ -80,6 +81,7 @@ export const marketingFooterColumns: FooterColumn[] = [
       { label: "Data Processing Addendum", href: "/legal/dpa" },
       { label: "Cookie Policy", href: "/legal/cookies" },
       { label: "Security & Trust", href: "/security", analyticsKey: "footer_security" },
+      { label: "Security baseline", href: "/security/baseline" },
       { label: "Responsible Disclosure", href: "/security/responsible-disclosure" },
     ],
   },

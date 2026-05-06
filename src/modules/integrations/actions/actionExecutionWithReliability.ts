@@ -27,6 +27,10 @@ import {
 } from "../reliability/services/integration-health.service";
 import { insertDeadLetter } from "../reliability/repositories/integration-dead-letters.repository";
 import { preExecutionCheck } from "@/modules/policy/enforcement/preExecutionCheck";
+import {
+  requireWriteBackAllowed,
+  WriteBackNotAllowedError,
+} from "@/lib/server/writeback/writeback-policy";
 
 export type ExecuteActionParams = {
   orgId: string;
@@ -186,6 +190,26 @@ async function runExecution(
         governance_trace_id: policyCheck.governanceTraceId,
       });
     }
+  }
+
+  const fullActionKeyForAudit = params.actionKey.includes(".") ? params.actionKey : `${provider}.${params.actionKey}`;
+  try {
+    await requireWriteBackAllowed({
+      orgId: params.orgId,
+      provider,
+      actionType: fullActionKeyForAudit,
+      actorUserId: params.userId ?? null,
+    });
+  } catch (e) {
+    if (e instanceof WriteBackNotAllowedError) {
+      return {
+        success: false,
+        executionId,
+        errorCode: "write_back_disabled",
+        errorMessage: e.message,
+      };
+    }
+    throw e;
   }
 
   const attemptCount = (exec.attempt_count ?? 0) + 1;

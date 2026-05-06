@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 const REFRESH_BUFFER_MS = 2 * 60 * 1000;
 
@@ -18,7 +19,7 @@ export async function ensureHubSpotAccessTokenForOrg(
   if (readErr) return { ok: false, error: readErr.message };
   if (!credsRaw) return { ok: false, error: "hubspot_not_connected" };
 
-  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>, systemCredentialReveal(orgId, "hubspot", "oauth_refresh")) as {
     access_token?: string;
     refresh_token?: string | null;
     expires_at?: string | null;

@@ -4,6 +4,7 @@
 import snowflake from "snowflake-sdk";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export type SnowflakeConnection = snowflake.Connection;
 
@@ -38,7 +39,7 @@ export async function getSnowflakeConnectionForAccount(
   if (!configRow || !credsRow) return null;
 
   const config = (configRow as { config_json: Record<string, unknown> }).config_json;
-  const creds = revealCredentialTokenFields(credsRow as Record<string, unknown>) as { access_token?: string; client_secret?: string };
+  const creds = revealCredentialTokenFields(credsRow as Record<string, unknown>, systemCredentialReveal(orgId, "snowflake", "provider_api_call", integrationAccountId)) as { access_token?: string; client_secret?: string };
   const password = creds.access_token ?? creds.client_secret ?? "";
   if (!password) return null;
 

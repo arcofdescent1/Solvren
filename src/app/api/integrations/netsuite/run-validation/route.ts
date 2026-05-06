@@ -4,6 +4,7 @@ import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@
 import { NetSuiteClient } from "@/services/netsuite/NetSuiteClient";
 import { auditLog } from "@/lib/audit";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { userCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 import { env } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
@@ -23,7 +24,9 @@ export async function POST(req: NextRequest) {
 
     const { data: account } = await admin.from("netsuite_accounts").select("id, account_id").eq("org_id", ctx.orgId).maybeSingle();
     const { data: credsRaw } = await admin.from("integration_credentials").select("client_id, client_secret").eq("org_id", ctx.orgId).eq("provider", "netsuite").maybeSingle();
-    const creds = credsRaw ? revealCredentialTokenFields(credsRaw as Record<string, unknown>) : null;
+    const creds = credsRaw
+      ? revealCredentialTokenFields(credsRaw as Record<string, unknown>, userCredentialReveal(ctx.orgId, "netsuite", ctx.user.id, "manual_retry"))
+      : null;
     if (!account || !creds || !(creds as { client_id?: string }).client_id || !(creds as { client_secret?: string }).client_secret) {
       return NextResponse.json({ error: "NetSuite not connected" }, { status: 400 });
     }

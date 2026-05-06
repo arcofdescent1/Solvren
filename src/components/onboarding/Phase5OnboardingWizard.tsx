@@ -6,6 +6,7 @@ import { Card, CardBody, Stack, Button } from "@/ui";
 
 type Step =
   | "NOT_STARTED"
+  | "REVIEW_PRIVACY_MODE"
   | "CONNECT_INTEGRATION"
   | "ANALYZING"
   | "FIRST_INSIGHTS"
@@ -21,6 +22,7 @@ function fmtMoney(cents: number) {
 
 export function Phase5OnboardingWizard() {
   const [step, setStep] = useState<Step | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payload, setPayload] = useState<{
@@ -39,6 +41,7 @@ export function Phase5OnboardingWizard() {
     const res = await fetch("/api/onboarding/state");
     const j = (await res.json()) as {
       ok?: boolean;
+      orgId?: string;
       step?: Step;
       error?: string;
       connectedCount?: number;
@@ -51,6 +54,7 @@ export function Phase5OnboardingWizard() {
       setLoading(false);
       return;
     }
+    setOrgId(j.orgId ?? null);
     setStep(j.step ?? null);
     setPayload({
       connectedCount: j.connectedCount ?? 0,
@@ -105,6 +109,35 @@ export function Phase5OnboardingWizard() {
     })();
   }, [step, payload?.initialDetectionTriggered, load]);
 
+  const choosePrivacyAndContinue = async (privacyMode: "minimal" | "expanded") => {
+    if (!orgId) {
+      setError("Missing organization");
+      return;
+    }
+    setError(null);
+    const pr = await fetch("/api/org/security/privacy-mode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orgId, privacyMode }),
+    });
+    if (!pr.ok) {
+      const j = (await pr.json().catch(() => ({}))) as { error?: string };
+      setError(j.error ?? "Could not save privacy mode");
+      return;
+    }
+    const done = await fetch("/api/onboarding/state", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete_privacy_review" }),
+    });
+    if (!done.ok) {
+      const j = (await done.json().catch(() => ({}))) as { error?: string };
+      setError(j.error ?? "Could not continue onboarding");
+      return;
+    }
+    await load();
+  };
+
   const advanceInsights = async () => {
     await fetch("/api/onboarding/state", {
       method: "POST",
@@ -138,6 +171,34 @@ export function Phase5OnboardingWizard() {
 
   return (
     <Stack gap={4}>
+      {step === "REVIEW_PRIVACY_MODE" && (
+        <Card>
+          <CardBody>
+            <p className="font-semibold">Choose your data protection mode</p>
+            <p className="mt-2 text-sm text-[var(--text-muted)]">
+              <strong>Minimal Data Mode</strong> is recommended: operational signals, failure rates, and estimates without raw
+              revenue payloads. <strong>Expanded Insights Mode</strong> optionally adds limited derived financial bands.
+              Automation &quot;safe mode&quot; is separate—see settings after setup.
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-muted)]">
+              Write-back to external systems stays off until you enable it in{" "}
+              <Link href="/settings/security" className="font-semibold text-[var(--primary)] hover:underline">
+                Security settings
+              </Link>
+              .
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="default" onClick={() => void choosePrivacyAndContinue("minimal")}>
+                Continue with Minimal Data Mode
+              </Button>
+              <Button variant="secondary" onClick={() => void choosePrivacyAndContinue("expanded")}>
+                Use Expanded Insights Mode
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       {step === "CONNECT_INTEGRATION" && (
         <Card>
           <CardBody>

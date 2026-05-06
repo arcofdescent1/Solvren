@@ -1,10 +1,17 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { openai } from "@/lib/openai";
 import type { RevenueImpactReport } from "@/services/ai/schemas/revenueImpactReport";
 import { revenueImpactReportJsonSchema } from "@/services/ai/schemas/revenueImpactReport";
+import { assertLlmOperationalPromptAllowed } from "@/lib/server/privacy/operational-persist";
 
 export async function generateRevenueImpactReport(args: {
   change: Record<string, unknown>;
+  supabase?: SupabaseClient;
+  orgId?: string;
 }): Promise<{ report: RevenueImpactReport; model: string }> {
+  if (args.supabase && args.orgId) {
+    await assertLlmOperationalPromptAllowed(args.supabase, args.orgId);
+  }
   const c = args.change;
 
   const input = {

@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getOpenAI } from "@/lib/openai";
 import { logAiRequest, checkAiDailyLimit } from "@/lib/ai/log-request";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 type Body = { risk_event_id: string };
 
@@ -49,6 +50,9 @@ export async function POST(req: Request) {
       { status: 429 }
     );
   }
+
+  const denied = await guardOrgLlmPrompt(supabase, (event as unknown as { org_id: string }).org_id);
+  if (denied) return denied;
 
   const openai = getOpenAI();
   if (!openai) {

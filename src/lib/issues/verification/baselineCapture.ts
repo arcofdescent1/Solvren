@@ -14,6 +14,7 @@ import {
   fetchSalesforceRaw,
 } from "@/lib/value-engine/metrics/salesforceVerificationMetrics";
 import { canonicalVerificationRuleKey } from "./canonicalRuleKey";
+import { assertFinancialEstimatePersistAllowed } from "@/lib/server/privacy/operational-persist";
 
 export type Phase4Baseline = {
   rule: string;
@@ -42,6 +43,8 @@ export async function captureBaselineAtResolve(
   const orgId = row.org_id;
   const now = Date.now();
   const capturedAt = new Date().toISOString();
+
+  await assertFinancialEstimatePersistAllowed(admin, orgId);
 
   try {
     if (rule === "failed_payments") {

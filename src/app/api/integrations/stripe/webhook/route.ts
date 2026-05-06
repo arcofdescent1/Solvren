@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 import { validateStripeWebhook } from "@/modules/signals/ingestion/webhook-validators/stripe.validator";
 import { getStripeClientForOrg } from "@/modules/integrations/providers/stripe/stripeClientForOrg";
 import { phase4WebhookIntake } from "@/modules/integrations/webhooks/phase4WebhookIntake";
@@ -24,7 +25,11 @@ export async function POST(req: NextRequest) {
       .eq("org_id", orgId)
       .eq("provider", "stripe")
       .maybeSingle();
-    const revealed = creds ? revealCredentialTokenFields(creds as Record<string, unknown>) as { client_secret?: string } : null;
+    const revealed = creds
+      ? (revealCredentialTokenFields(creds as Record<string, unknown>, systemCredentialReveal(orgId, "stripe", "webhook_verification")) as {
+          client_secret?: string;
+        })
+      : null;
     const perOrg = revealed?.client_secret;
     if (perOrg) webhookSecret = perOrg;
   }

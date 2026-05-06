@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { upsertNormalizedRawEvent } from "../upsertNormalizedRawEvent";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 const NINETY_DAYS_SEC = 90 * 24 * 60 * 60;
 
@@ -91,8 +92,10 @@ export async function ingestStripeForOrg(
     .eq("provider", "stripe")
     .maybeSingle();
 
-  const access = revealCredentialTokenFields(credsRaw as Record<string, unknown>)
-    .access_token as string | undefined;
+  const access = revealCredentialTokenFields(
+    credsRaw as Record<string, unknown>,
+    systemCredentialReveal(orgId, "stripe", "scheduled_sync"),
+  ).access_token as string | undefined;
   if (!access?.trim()) return { ok: false, error: "No Stripe credentials for org" };
 
   const stripe = new Stripe(access.trim(), { apiVersion: "2024-06-20" as Stripe.LatestApiVersion });

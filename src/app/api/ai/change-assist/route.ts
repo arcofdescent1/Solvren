@@ -7,6 +7,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getOpenAI } from "@/lib/openai";
 import { logAiRequest, checkAiDailyLimit } from "@/lib/ai/log-request";
 import { getActiveOrg } from "@/lib/org/activeOrg";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 type Body = { jira_issue_text: string };
 
@@ -35,6 +36,10 @@ export async function POST(req: Request) {
       { status: 429 }
     );
   }
+
+  const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
+  const denied = await guardOrgLlmPrompt(supabase, activeOrgId);
+  if (denied) return denied;
 
   const openai = getOpenAI();
   if (!openai) {
@@ -84,7 +89,6 @@ Respond with ONLY valid JSON: { "change_type": "...", "system": "...", "impact_b
       required_evidence: Array.isArray(parsed.required_evidence) ? parsed.required_evidence : [],
       plain_summary: parsed.plain_summary ?? null,
     };
-    const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
     await logAiRequest(supabase, {
       endpoint,
       inputSummary: text.slice(0, 200),

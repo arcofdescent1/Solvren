@@ -4,6 +4,7 @@
 import mysql from "mysql2/promise";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export async function getMysqlClientForAccount(
   integrationAccountId: string
@@ -36,7 +37,7 @@ export async function getMysqlClientForAccount(
   if (!configRow || !credsRow) return null;
 
   const config = (configRow as { config_json: Record<string, unknown> }).config_json;
-  const creds = revealCredentialTokenFields(credsRow as Record<string, unknown>) as { access_token?: string };
+  const creds = revealCredentialTokenFields(credsRow as Record<string, unknown>, systemCredentialReveal(orgId, "mysql_readonly", "provider_api_call", integrationAccountId)) as { access_token?: string };
   const password = creds.access_token ?? "";
   if (!password) return null;
 

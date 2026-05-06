@@ -6,6 +6,8 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getOpenAI } from "@/lib/openai";
 import { logAiRequest, checkAiDailyLimit } from "@/lib/ai/log-request";
+import { getActiveOrg } from "@/lib/org/activeOrg";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 type Body = {
   page?: string;
@@ -62,6 +64,8 @@ export async function POST(req: Request) {
     );
   }
 
+  const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
+
   const openai = getOpenAI();
   if (!openai) {
     const fallback = ruleFallback(body);
@@ -80,6 +84,9 @@ export async function POST(req: Request) {
   const system = `You are the Revenue Risk Copilot. Given dashboard state and risk events, output ONLY valid JSON: { "summary": "2-4 sentences", "recommended_actions": ["action1","action2"], "alerts": ["alert1"] }. Be concise and actionable.`;
   const start = Date.now();
   try {
+    const denied = await guardOrgLlmPrompt(supabase, activeOrgId);
+    if (denied) return denied;
+
     const resp = await openai.chat.completions.create({ model: "gpt-4o-mini", messages: [{ role: "system", content: system }, { role: "user", content: JSON.stringify(input) }] });
     const latencyMs = Date.now() - start;
     const raw = resp.choices?.[0]?.message?.content ?? "{}";

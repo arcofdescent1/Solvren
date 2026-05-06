@@ -12,6 +12,7 @@
     { "path": "/api/cron/decision/action-performance-stats", "schedule": "*/15 * * * *" },
     { "path": "/api/cron/benchmarks/build-snapshots", "schedule": "0 6 * * *" },
     { "path": "/api/cron/playbook-performance/build-snapshots", "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/timeline/refresh-aggregates", "schedule": "*/5 * * * *" }
+    { "path": "/api/cron/timeline/refresh-aggregates", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/customer-access/expire", "schedule": "*/15 * * * *" }
   ]
 }

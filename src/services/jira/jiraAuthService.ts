@@ -12,6 +12,7 @@ import { JIRA_OAUTH_SCOPE_STRING } from "@/lib/jira/constants";
 import { IntegrationConnectionService } from "@/modules/integrations";
 import { IntegrationHealthService } from "@/modules/integrations";
 import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 const REFRESH_THRESHOLD_MS = 10 * 60 * 1000;
 
@@ -164,7 +165,7 @@ export class JiraAuthService {
 
     if (!cred) return null;
 
-    const revealed = revealCredentialTokenFields(cred as Record<string, unknown>);
+    const revealed = revealCredentialTokenFields(cred as Record<string, unknown>, systemCredentialReveal(orgId, "jira", "oauth_refresh"));
     const accessToken = String((revealed as { access_token?: string }).access_token ?? "");
     const refreshToken = (revealed as { refresh_token?: string | null }).refresh_token ?? null;
     const expiresAt = (revealed as { expires_at?: string | null }).expires_at ?? null;

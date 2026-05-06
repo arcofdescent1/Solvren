@@ -78,7 +78,23 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("Bootstrap ok: internal_employee_accounts set to super_admin for", email);
+  const { error: p4Err } = await admin.from("employee_profiles").upsert(
+    {
+      user_id: userId,
+      email,
+      role: "ADMIN",
+      status: "active",
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (p4Err) {
+    console.error("employee_profiles upsert failed:", p4Err.message);
+    process.exit(1);
+  }
+
+  console.log("Bootstrap ok: internal_employee_accounts + employee_profiles (ADMIN) for", email);
 }
 
 main().catch((e) => {

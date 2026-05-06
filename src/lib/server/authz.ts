@@ -10,7 +10,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Permission } from "@/lib/rbac/permissions";
 import { hasPermissionInOrg } from "@/lib/rbac/can";
 import type { OrgRole } from "@/lib/rbac/roles";
-import { parseOrgRole } from "@/lib/rbac/roles";
+import { isAdminLikeRole, parseOrgRole } from "@/lib/rbac/roles";
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 
 export class AuthzError extends Error {
@@ -114,6 +114,13 @@ export async function requireOrgMembership(orgId: string): Promise<AuthzContext>
   const m = await membershipRow(session.supabase, session.user.id, id);
   if (!m) throw new AuthzError(403, "Forbidden");
   return toAuthzContext(session, id, m.role);
+}
+
+/** Owner or admin only (privacy mode, write-back, expanded financial detail). */
+export function assertOrgOwnerOrAdmin(ctx: AuthzContext): void {
+  if (!isAdminLikeRole(ctx.role)) {
+    throw new AuthzError(403, "Only organization owners and admins can change this setting.");
+  }
 }
 
 export async function requireOrgPermission(orgId: string, permission: Permission): Promise<AuthzContext> {

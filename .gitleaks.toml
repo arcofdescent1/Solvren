@@ -1,0 +1,11 @@
+title = "Solvren Secret Scanning"
+
+[allowlist]
+description = "Allow known safe examples and test fixtures"
+paths = [
+  '''\.env\.example$''',
+  '''README\.md$''',
+  '''\.storybook/.*''',
+  '''__tests__/.*''',
+  '''fixtures/.*''',
+]

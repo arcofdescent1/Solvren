@@ -2,6 +2,7 @@
  * Phase 1 — integration_webhook_events and endpoints (§8.6, §8.7, §20.3).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { insertWebhookEventSecure } from "@/modules/ingestion/ingestion.repository";
 import type { WebhookProcessedStatus } from "../contracts/types";
 
 export type IntegrationWebhookEventRow = {
@@ -18,18 +19,19 @@ export type IntegrationWebhookEventRow = {
   processed_at: string | null;
   processing_error_json: unknown;
   dedupe_key: string | null;
+  sanitized_payload?: Record<string, unknown> | null;
+  payload_audit?: { redacted_count: number; hashed_count: number; dropped_count: number } | null;
+  is_legacy?: boolean;
 };
 
 export async function insertWebhookEvent(
   supabase: SupabaseClient,
   row: Omit<IntegrationWebhookEventRow, "id" | "received_at">
 ): Promise<{ data: IntegrationWebhookEventRow | null; error: Error | null }> {
-  const { data, error } = await supabase
-    .from("integration_webhook_events")
-    .insert(row)
-    .select()
-    .single();
-  return { data: data as IntegrationWebhookEventRow | null, error: error as Error | null };
+  return insertWebhookEventSecure(supabase, row) as Promise<{
+    data: IntegrationWebhookEventRow | null;
+    error: Error | null;
+  }>;
 }
 
 export async function getWebhookEventsByAccountId(

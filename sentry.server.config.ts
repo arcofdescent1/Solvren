@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { env } from "@/lib/env";
+import { redactSecretsForLog } from "@/lib/server/encryption/secret-redaction";
 
 const SENSITIVE_KEY_RE = /(authorization|cookie|token|secret|password|api[_-]?key)/i;
 
@@ -19,7 +20,7 @@ if (env.sentryDsn) {
       if (event.request?.cookies) {
         delete event.request.cookies;
       }
-      return event;
+      return redactSecretsForLog(event) as typeof event;
     },
   });
 }

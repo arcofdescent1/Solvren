@@ -29,6 +29,6 @@ export function buildMapperContext(rawEvent: RawEventRow): MapperContext {
     externalObjectType: rawEvent.external_object_type,
     externalObjectId: rawEvent.external_object_id,
     eventTime: rawEvent.event_time,
-    payload: rawEvent.payload_json as Record<string, unknown>,
+    payload: (rawEvent.sanitized_payload ?? rawEvent.payload_json) as Record<string, unknown>,
   };
 }

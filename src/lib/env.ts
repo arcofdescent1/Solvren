@@ -83,6 +83,11 @@ export const env = {
     return optional(process.env.CRON_SECRET);
   },
 
+  /** Phase 4 — relax break-glass second-approver requirement when true (incident use only). */
+  get solvrenEmergencyMode(): boolean {
+    return optional(process.env.SOLVREN_EMERGENCY_MODE) === "true";
+  },
+
   /** OpenAI (optional). */
   get openaiApiKey(): string | undefined {
     return optional(process.env.OPENAI_API_KEY);

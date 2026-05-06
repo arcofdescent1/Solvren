@@ -20,6 +20,11 @@ const SETTINGS_LINKS = [
     description: "Manage who has access and what they can do.",
   },
   {
+    title: "Security & data protection",
+    href: "/settings/security",
+    description: "Privacy mode, write-back defaults, integration scope, and support access.",
+  },
+  {
     title: "Policies & approvals",
     href: "/settings/policies",
     description: "Configure approval rules, mappings, and governance behavior.",

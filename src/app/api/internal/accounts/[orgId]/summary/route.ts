@@ -5,11 +5,12 @@ import { requireInternalEmployeeApi } from "@/lib/internal/auth";
 import { computeLastActivityAt } from "@/lib/internal/lastActivity";
 import { onboardingPhaseSummaryFromState } from "@/lib/internal/onboardingPhaseSummary";
 import { internalHasPermission } from "@/lib/internal/permissions";
+import { requireEmployeeCustomerAccess } from "@/lib/server/access/customer-access";
 import { planFromString } from "@/services/billing/entitlements";
 
 export const runtime = "nodejs";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ orgId: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ orgId: string }> }) {
   const gate = await requireInternalEmployeeApi();
   if (!gate.ok) return gate.response;
   if (!internalHasPermission(gate.ctx.employeeRole, "internal.accounts.view")) {
@@ -17,6 +18,24 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ org
   }
 
   const { orgId } = await params;
+  try {
+    await requireEmployeeCustomerAccess({
+      admin: gate.ctx.admin,
+      employee: gate.ctx.phase4Profile,
+      orgId,
+      requestedLevel: "metadata",
+      resourceType: "organization",
+      resourceId: orgId,
+      reason: "Internal account overview (metadata)",
+      requestContext: {
+        ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? undefined,
+        userAgent: req.headers.get("user-agent"),
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Employee access denied" }, { status: 403 });
+  }
+
   const org = await assertOrganizationExists(gate.ctx.admin, orgId);
   if (!org) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

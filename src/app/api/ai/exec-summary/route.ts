@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getOpenAI } from "@/lib/openai";
 import { runExecutiveSummaryLLM } from "@/services/ai/runExecutiveSummaryLLM";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 export async function GET(req: Request) {
   const supabase = await createServerSupabaseClient();
@@ -49,6 +50,9 @@ export async function GET(req: Request) {
       { status: 503 }
     );
   }
+
+  const denied = await guardOrgLlmPrompt(supabase, orgId);
+  if (denied) return denied;
 
   try {
     const summary = await runExecutiveSummaryLLM(payload);

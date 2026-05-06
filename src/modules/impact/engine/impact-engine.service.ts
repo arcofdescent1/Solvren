@@ -9,6 +9,7 @@ import { assembleImpactInputs } from "./impact-input-assembler.service";
 import { computeConfidenceScore } from "./confidence-scorer.service";
 import { computeImpactScore } from "./impact-score.service";
 import { getImpactModel } from "../registry/impact-model-registry";
+import { assertFinancialEstimatePersistAllowed } from "@/lib/server/privacy/operational-persist";
 
 export type AssessImpactInput = {
   orgId: string;
@@ -53,6 +54,8 @@ export async function assessImpact(
   };
 
   const result = await model.evaluate(ctx);
+
+  await assertFinancialEstimatePersistAllowed(supabase, input.orgId);
 
   const { score: confidenceScore, explanation: confidenceExplanation } = computeConfidenceScore({
     hasDirectAmount: (result.directRealizedLossAmount ?? 0) > 0 || hasDirectAmountInEvidence(assembled.evidenceBundle),

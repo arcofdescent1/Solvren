@@ -7,13 +7,17 @@ import {
   requireOrgMembership,
 } from "@/lib/server/authz";
 import { assertCanTestCustomSource } from "@/lib/server/intakeAuthz";
-import { decryptSecret } from "@/lib/server/crypto";
+import {
+  decryptAdhocSecretWithAudit,
+  userCredentialReveal,
+} from "@/modules/integrations/secrets/integration-secrets.service";
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const url = new URL(req.url);
     const orgId = parseRequestedOrgId(url.searchParams.get("orgId"));
     const session = await requireOrgMembership(orgId);
+    const reveal = userCredentialReveal(orgId, "custom_source_webhook", session.user.id, "manual_retry");
     assertCanTestCustomSource(session.role);
 
     const { id } = await ctx.params;
@@ -30,7 +34,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
     let secret: string;
     try {
-      secret = decryptSecret((source as { webhook_secret_ciphertext: string }).webhook_secret_ciphertext);
+      secret = decryptAdhocSecretWithAudit(
+        (source as { webhook_secret_ciphertext: string }).webhook_secret_ciphertext,
+        { ...reveal, secretField: "webhook_secret_ciphertext" },
+      )!;
     } catch {
       return NextResponse.json({ error: "Secret not readable (encryption keys?)" }, { status: 500 });
     }

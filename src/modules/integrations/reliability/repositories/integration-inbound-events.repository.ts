@@ -2,6 +2,8 @@
  * Phase 4 — Integration inbound events (durable envelope).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { insertInboundEventSecure } from "@/modules/ingestion/ingestion.repository";
+import type { InsertInboundEventInput } from "../types/inbound-event";
 
 export type IntegrationInboundEventRow = {
   id: string;
@@ -28,54 +30,22 @@ export type IntegrationInboundEventRow = {
   replay_reason: string | null;
   replay_count: number;
   created_at: string;
+  sanitized_payload?: Record<string, unknown> | null;
+  payload_audit?: { redacted_count: number; hashed_count: number; dropped_count: number } | null;
+  is_legacy?: boolean;
 };
 
-export type InboundSourceChannel = "webhook" | "sync" | "backfill" | "warehouse" | "internal" | "reconcile" | "salesforce_cdc";
-
-export type InsertInboundEventInput = {
-  org_id: string;
-  integration_account_id: string;
-  provider: string;
-  source_channel: InboundSourceChannel;
-  initial_status?: "RECEIVED" | "VALIDATED";
-  external_event_id?: string | null;
-  external_object_type?: string | null;
-  external_object_id?: string | null;
-  event_type: string;
-  event_time?: string | null;
-  payload_json: Record<string, unknown>;
-  headers_json?: Record<string, unknown> | null;
-  payload_hash: string;
-  idempotency_key: string;
-};
+export type { InsertInboundEventInput } from "../types/inbound-event";
+export type { InboundSourceChannel } from "../types/inbound-event";
 
 export async function insertInboundEvent(
   supabase: SupabaseClient,
   input: InsertInboundEventInput
 ): Promise<{ data: IntegrationInboundEventRow | null; error: Error | null }> {
-  const row = {
-    org_id: input.org_id,
-    integration_account_id: input.integration_account_id,
-    provider: input.provider,
-    source_channel: input.source_channel,
-    external_event_id: input.external_event_id ?? null,
-    external_object_type: input.external_object_type ?? null,
-    external_object_id: input.external_object_id ?? null,
-    event_type: input.event_type,
-    event_time: input.event_time ?? null,
-    payload_json: input.payload_json,
-    headers_json: input.headers_json ?? null,
-    payload_hash: input.payload_hash,
-    idempotency_key: input.idempotency_key,
-  };
-  const status = input.initial_status ?? "RECEIVED";
-  const { data, error } = await supabase
-    .from("integration_inbound_events")
-    .insert({ ...row, ingest_status: status })
-    .select()
-    .single();
-  if (error) return { data: null, error: error as Error };
-  return { data: data as IntegrationInboundEventRow, error: null };
+  return insertInboundEventSecure(supabase, input) as Promise<{
+    data: IntegrationInboundEventRow | null;
+    error: Error | null;
+  }>;
 }
 
 export async function findInboundEventByIdempotencyKey(

@@ -32,7 +32,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (never commit secrets)
+# env files — canonical template is .env.example only (no .env.sample / .env.ci)
 .env
 .env.local
 .env.development.local
@@ -53,14 +53,13 @@ next-env.d.ts
 *storybook.log
 storybook-static/
 
-# temp exports and archives (exclude from handoff)
-*.zip
-revenueguard.zip
+# handoff archive output (do not commit)
+solvren-safe-archive.zip
 archive.zip
+
+# security CI artifacts (generated; triage .md is committed)
+security-reports/json-payload-storage-inventory.json
 
 # local caches and dumps
 *.sqlite
 *.db
-
-.vercel
-.env*.local

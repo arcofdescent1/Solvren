@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { auditLog } from "@/lib/audit";
-import { decryptSecret } from "@/lib/server/crypto";
+import { decryptAdhocSecretWithAudit } from "@/modules/integrations/secrets/integration-secrets.service";
 import { verifySolvrenWebhookSignature } from "@/lib/customSources/webhookSignature";
 import { allowCustomSourceRequest } from "@/lib/customSources/sourceRateLimit";
 import { mapWebhookPayload } from "@/lib/customSources/mapWebhookPayload";
@@ -46,10 +46,27 @@ export async function POST(
   let activeSecret: string;
   let prevSecret: string | null = null;
   try {
-    activeSecret = decryptSecret(src.webhook_secret_ciphertext);
+    const auditBase = {
+      orgId: src.org_id,
+      provider: "custom_source_webhook",
+      actor: "system" as const,
+      actorId: null as string | null,
+      reason: "webhook_verification" as const,
+    };
+    const activeDecrypted = decryptAdhocSecretWithAudit(src.webhook_secret_ciphertext, {
+      ...auditBase,
+      secretField: "webhook_secret_ciphertext",
+    });
+    if (!activeDecrypted) {
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    }
+    activeSecret = activeDecrypted;
     if (src.webhook_secret_previous_ciphertext) {
       try {
-        prevSecret = decryptSecret(src.webhook_secret_previous_ciphertext);
+        prevSecret = decryptAdhocSecretWithAudit(src.webhook_secret_previous_ciphertext, {
+          ...auditBase,
+          secretField: "webhook_secret_previous_ciphertext",
+        });
       } catch {
         prevSecret = null;
       }

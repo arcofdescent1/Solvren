@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getRegistryRuntime } from "../registry";
 import type { IntegrationProvider } from "../contracts/types";
 import { getAccountById } from "./integrationAccountsRepo";
+import { requireWriteBackAllowed, WriteBackNotAllowedError } from "@/lib/server/writeback/writeback-policy";
 import type {
   ConnectStartInput,
   ConnectStartResult,
@@ -189,6 +190,21 @@ export async function orchestrateExecuteAction(
 ): Promise<ActionExecutionResult> {
   const { data: account } = await getAccountById(ctx.supabase, input.integrationAccountId);
   if (!account) return { success: false, errorCode: "not_found", errorMessage: "Account not found" };
-  const runtime = getRegistryRuntime(account.provider as IntegrationProvider);
+  const provider = account.provider as IntegrationProvider;
+  const fullActionKey = input.actionKey.includes(".") ? input.actionKey : `${provider}.${input.actionKey}`;
+  try {
+    await requireWriteBackAllowed({
+      orgId: input.orgId,
+      provider,
+      actionType: fullActionKey,
+      actorUserId: input.userId ?? null,
+    });
+  } catch (e) {
+    if (e instanceof WriteBackNotAllowedError) {
+      return { success: false, errorCode: "write_back_disabled", errorMessage: e.message };
+    }
+    throw e;
+  }
+  const runtime = getRegistryRuntime(provider);
   return runtime.executeAction(input);
 }

@@ -4,6 +4,7 @@
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export async function getStripeClientForOrg(orgId: string): Promise<Stripe | null> {
   const admin = createAdminClient();
@@ -16,7 +17,7 @@ export async function getStripeClientForOrg(orgId: string): Promise<Stripe | nul
 
   if (!credsRaw) return null;
 
-  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>, systemCredentialReveal(orgId, "stripe")) as {
     access_token?: string;
   };
   const secretKey = creds.access_token;

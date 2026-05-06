@@ -33,6 +33,10 @@ export type RawEventRow = {
   canonical_output_json?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  /** Phase 2 — redacted + normalized payload; prefer for reads when migrating off payload_json. */
+  sanitized_payload?: Record<string, unknown> | null;
+  payload_audit?: { redacted_count: number; hashed_count: number; dropped_count: number } | null;
+  is_legacy?: boolean;
 };
 
 export type SignalDefinitionRow = {

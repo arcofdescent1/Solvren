@@ -1,7 +1,9 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateStructuredObject } from "@/services/ai/generateStructuredObject";
 import { revenueImpactReportJsonSchema, revenueImpactReportSchema } from "./revenueImpactSchema";
 import { fallbackRevenueImpactReport } from "./fallbackRevenueImpactReport";
 import type { BaselineRisk, RevenueImpactInput, RevenueImpactReport } from "./revenueImpactTypes";
+import { assertLlmOperationalPromptAllowed } from "@/lib/server/privacy/operational-persist";
 
 export const REVENUE_IMPACT_PROMPT_VERSION = "revenue-impact-v1";
 const DEFAULT_MODEL = "gpt-4o-mini";
@@ -25,6 +27,8 @@ function buildPrompt(input: RevenueImpactInput, baseline: BaselineRisk): string 
 }
 
 export async function generateRevenueImpactReport(args: {
+  supabase: SupabaseClient;
+  orgId: string;
   input: RevenueImpactInput;
   baseline: BaselineRisk;
   model?: string;
@@ -34,6 +38,7 @@ export async function generateRevenueImpactReport(args: {
   modelName: string | null;
   promptVersion: string;
 }> {
+  await assertLlmOperationalPromptAllowed(args.supabase, args.orgId);
   const model = args.model ?? DEFAULT_MODEL;
   const systemInstruction =
     "You are a revenue governance analyst. Return VALID JSON only. No markdown, no prose outside JSON.";

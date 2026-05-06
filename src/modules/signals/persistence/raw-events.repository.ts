@@ -2,18 +2,14 @@
  * Phase 3 — raw_events repository (§9.1).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { insertRawEventSecure } from "@/modules/ingestion/ingestion.repository";
 import type { RawEventRow } from "../domain/types";
 
 export async function insertRawEvent(
   supabase: SupabaseClient,
   row: Omit<RawEventRow, "id" | "created_at" | "updated_at">
 ): Promise<{ data: RawEventRow | null; error: Error | null }> {
-  const { data, error } = await supabase
-    .from("raw_events")
-    .insert({ ...row, updated_at: new Date().toISOString() })
-    .select()
-    .single();
-  return { data: data as RawEventRow | null, error: error as Error | null };
+  return insertRawEventSecure(supabase, row) as Promise<{ data: RawEventRow | null; error: Error | null }>;
 }
 
 export async function getRawEventById(

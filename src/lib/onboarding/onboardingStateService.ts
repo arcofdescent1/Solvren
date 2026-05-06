@@ -16,7 +16,7 @@ export async function ensureOnboardingStateRow(admin: SupabaseClient, orgId: str
   if (existing) return;
   await admin.from("onboarding_state").insert({
     org_id: orgId,
-    current_step: "CONNECT_INTEGRATION",
+    current_step: "REVIEW_PRIVACY_MODE",
     completed_steps: [],
   });
 }
@@ -62,12 +62,14 @@ async function hasResolvedIssue(admin: SupabaseClient, orgId: string): Promise<b
 }
 
 function nextStepFromFacts(input: {
+  privacyReviewDone: boolean;
   connected: boolean;
   issueCount: number;
   insightsDone: boolean;
   hasAction: boolean;
   hasResolved: boolean;
 }): OnboardingStep {
+  if (!input.privacyReviewDone) return "REVIEW_PRIVACY_MODE";
   if (!input.connected) return "CONNECT_INTEGRATION";
   if (input.issueCount === 0) return "ANALYZING";
   if (!input.insightsDone) return "FIRST_INSIGHTS";
@@ -79,12 +81,13 @@ function nextStepFromFacts(input: {
 export async function recomputeOnboardingState(admin: SupabaseClient, orgId: string): Promise<OnboardingStep> {
   await ensureOnboardingStateRow(admin, orgId);
   const { data: row } = await admin.from("onboarding_state").select("*").eq("org_id", orgId).maybeSingle();
-  if (!row) return "CONNECT_INTEGRATION";
+  if (!row) return "REVIEW_PRIVACY_MODE";
 
   const r = row as {
     current_step: string;
     completed_steps: string[] | null;
     completed_at: string | null;
+    privacy_review_completed_at?: string | null;
   };
   if (r.current_step === "COMPLETE" || r.completed_at) {
     return "COMPLETE";
@@ -93,12 +96,14 @@ export async function recomputeOnboardingState(admin: SupabaseClient, orgId: str
   const completed = Array.from(new Set(r.completed_steps ?? []));
   const insightsDone = completed.includes("FIRST_INSIGHTS");
 
+  const privacyReviewDone = Boolean(r.privacy_review_completed_at);
   const connected = await hasConnectedRevenueIntegration(admin, orgId);
   const issueCount = await countDetectorIssues(admin, orgId);
   const hasAction = await hasQualifyingIssueAction(admin, orgId);
   const hasResolved = await hasResolvedIssue(admin, orgId);
 
   const next = nextStepFromFacts({
+    privacyReviewDone,
     connected,
     issueCount,
     insightsDone,
@@ -125,6 +130,15 @@ export async function recomputeOnboardingState(admin: SupabaseClient, orgId: str
   }
 
   return next;
+}
+
+export async function markPrivacyReviewComplete(admin: SupabaseClient, orgId: string): Promise<OnboardingStep> {
+  await ensureOnboardingStateRow(admin, orgId);
+  await admin
+    .from("onboarding_state")
+    .update({ privacy_review_completed_at: new Date().toISOString() })
+    .eq("org_id", orgId);
+  return recomputeOnboardingState(admin, orgId);
 }
 
 export async function markFirstInsightsComplete(
@@ -168,10 +182,12 @@ export async function getOnboardingState(admin: SupabaseClient, orgId: string) {
         started_at: string;
         completed_at: string | null;
         initial_detection_triggered_at: string | null;
+        privacy_review_completed_at: string | null;
       }
     | null;
 }
 
 export function onboardingBlocksIssueActions(step: string, completedSteps: string[]): boolean {
+  if (step === "REVIEW_PRIVACY_MODE") return true;
   return step === "FIRST_INSIGHTS" && !completedSteps.includes("FIRST_INSIGHTS");
 }

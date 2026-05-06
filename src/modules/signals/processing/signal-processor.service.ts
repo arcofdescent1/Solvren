@@ -13,6 +13,7 @@ import { deriveIdempotencyKey, computePayloadHash } from "../ingestion/idempoten
 import { computeQualityScore } from "./quality-scorer.service";
 import { resolveEntityCandidates } from "./entity-linker.service";
 import type { RawEventRow } from "../domain/types";
+import { assertOperationalIngestPersistAllowed } from "@/lib/server/privacy/operational-persist";
 
 export type ProcessRawEventResult =
   | { ok: true; signalId: string }
@@ -22,6 +23,7 @@ export async function processRawEvent(
   supabase: SupabaseClient,
   rawEvent: RawEventRow
 ): Promise<ProcessRawEventResult> {
+  await assertOperationalIngestPersistAllowed(supabase, rawEvent.org_id);
   const ctx = buildMapperContext(rawEvent);
   const mapper = resolveMapper(ctx);
 

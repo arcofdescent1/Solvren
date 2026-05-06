@@ -1,8 +1,10 @@
 /**
  * Phase 1 — integration credential envelope helpers.
- * Persist ciphertext only; decrypt only in trusted server integration services.
+ * Persist ciphertext only; decrypt only via audited paths (Phase 3).
  */
-import { encryptSecret, decryptSecret } from "@/lib/server/crypto";
+import { encryptSecret } from "@/lib/server/crypto";
+import type { CredentialRevealAudit } from "@/lib/server/encryption/secret-types";
+import { decryptAdhocSecretWithAudit } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export type StoredIntegrationSecret = {
   ciphertext: string;
@@ -18,6 +20,8 @@ export function sealIntegrationSecret(plaintext: string, keyVersion = 1): Stored
   };
 }
 
-export function openIntegrationSecret(stored: StoredIntegrationSecret): string {
-  return decryptSecret(stored.ciphertext);
+export function openIntegrationSecret(stored: StoredIntegrationSecret, audit: CredentialRevealAudit): string {
+  const p = decryptAdhocSecretWithAudit(stored.ciphertext, audit);
+  if (p == null) throw new Error("Missing ciphertext");
+  return p;
 }

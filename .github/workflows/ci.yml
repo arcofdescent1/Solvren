@@ -18,6 +18,35 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
+  security:
+    name: Security baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Plaintext credential guard
+        run: npm run security:credentials
+      - name: Internal/customer import boundaries
+        run: npm run security:boundaries
+      - name: JSON payload inventory
+        run: npm run security:payload-inventory
+      - name: Ingestion DB write boundary
+        run: npm run security:redaction
+      - uses: actions/upload-artifact@v4
+        with:
+          name: json-payload-storage-inventory
+          path: security-reports/json-payload-storage-inventory.json
+
   typecheck:
     name: TypeScript
     runs-on: ubuntu-latest

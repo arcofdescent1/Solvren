@@ -5,6 +5,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
 import { refreshAccessToken, needsRefresh } from "@/services/hubspot/HubSpotAuthService";
 import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
@@ -28,7 +29,7 @@ export async function getHubSpotClientForOrg(orgId: string): Promise<{
 
   if (!account || !credsRaw) return null;
 
-  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>, systemCredentialReveal(orgId, "hubspot")) as {
     access_token?: string;
     refresh_token?: string;
     expires_at?: string | null;

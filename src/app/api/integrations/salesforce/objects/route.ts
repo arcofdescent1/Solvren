@@ -8,6 +8,7 @@ import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@
 import { SalesforceClient } from "@/services/salesforce/SalesforceClient";
 import { env } from "@/lib/env";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { userCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 const RECOMMENDED_OBJECTS = [
   { name: "Opportunity", label: "Opportunity", recommended: true },
@@ -48,7 +49,10 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+  const creds = revealCredentialTokenFields(
+    credsRaw as Record<string, unknown>,
+    userCredentialReveal(ctx.orgId, "salesforce", ctx.user.id, "provider_api_call"),
+  ) as {
     client_id?: string;
     client_secret?: string;
     salesforce_username?: string;

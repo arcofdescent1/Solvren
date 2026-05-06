@@ -9,6 +9,7 @@ import { getOpenAI } from "@/lib/openai";
 import { sortByPriority } from "@/lib/risk/prioritize";
 import { getIntegrationsList } from "@/lib/integrations/list";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 const BRIEFING_TIMEOUT_MS = 2000;
 
@@ -143,6 +144,11 @@ export async function GET() {
   if (!openai) {
     const fallback = fallbackBriefing(topRisk, revenueExposure);
     return NextResponse.json({ ...base, ...fallback });
+  }
+
+  if (activeOrgId) {
+    const denied = await guardOrgLlmPrompt(supabase, activeOrgId);
+    if (denied) return denied;
   }
 
   const input = {

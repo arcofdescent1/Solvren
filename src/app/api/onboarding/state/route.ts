@@ -5,6 +5,7 @@ import {
   recomputeOnboardingState,
   getOnboardingState,
   markFirstInsightsComplete,
+  markPrivacyReviewComplete,
   ensureOnboardingStateRow,
 } from "@/lib/onboarding/onboardingStateService";
 import { runValueEngineBackfillOrg } from "@/lib/value-engine/runValueEngineCron";
@@ -59,6 +60,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
+      orgId,
       step,
       state,
       initialDetectionTriggered: Boolean(state?.initial_detection_triggered_at),
@@ -128,6 +130,12 @@ export async function POST(req: Request) {
       const r = await markFirstInsightsComplete(admin, orgId);
       if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
       return NextResponse.json({ ok: true, step: r.step });
+    }
+
+    if (body.action === "complete_privacy_review") {
+      await requireOrgPermission(orgId, "org.settings.manage");
+      const step = await markPrivacyReviewComplete(admin, orgId);
+      return NextResponse.json({ ok: true, step });
     }
 
     await recomputeOnboardingState(admin, orgId);

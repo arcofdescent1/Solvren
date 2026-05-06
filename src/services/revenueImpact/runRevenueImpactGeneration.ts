@@ -60,6 +60,8 @@ export async function runRevenueImpactGeneration(args: {
 
   const baseline = calculateBaselineRisk(input);
   const ai = await generateRevenueImpactReport({
+    supabase: args.supabase,
+    orgId: args.orgId,
     input,
     baseline,
   });

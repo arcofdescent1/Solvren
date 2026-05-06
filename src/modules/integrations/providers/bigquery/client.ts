@@ -4,6 +4,7 @@
 import { BigQuery } from "@google-cloud/bigquery";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { systemCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export async function getBigQueryClientForAccount(
   integrationAccountId: string
@@ -36,7 +37,7 @@ export async function getBigQueryClientForAccount(
   if (!cred) return null;
 
   const config = (configRow as { config_json: Record<string, unknown> }).config_json;
-  const creds = revealCredentialTokenFields(cred as Record<string, unknown>) as { access_token?: string; client_secret?: string };
+  const creds = revealCredentialTokenFields(cred as Record<string, unknown>, systemCredentialReveal(orgId, "bigquery", "provider_api_call", integrationAccountId)) as { access_token?: string; client_secret?: string };
   const keyJson = creds.access_token ?? creds.client_secret;
   if (!keyJson) return null;
 

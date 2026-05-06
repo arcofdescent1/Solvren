@@ -6,6 +6,8 @@ const ACTIVE_ORG_COOKIE = "rg_active_org";
 
 /**
  * Pathname for layouts + demo read-only (org resolved via active-org cookie; full org in route handlers).
+ * Security note: review auth/session and header-related changes here alongside `next.config.ts` (CSP/HSTS)
+ * so public routes and cookie behavior stay consistent with the hardened surface.
  */
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

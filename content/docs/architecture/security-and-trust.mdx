@@ -25,7 +25,11 @@ Solvren uses Supabase Auth, role-based access control, and audit logging to ensu
 
 - Edit links point to real repo paths
 - No placeholder URLs in customer-facing docs
-- Integration credentials secured per best practices
+
+### Integration credentials (phased)
+
+- **During migration:** Solvren encrypts integration credentials and is actively migrating all credentials to encrypted storage (envelope format with key versioning).
+- **After migration is complete:** Solvren does not persist plaintext credentials. All integration secrets are encrypted using envelope encryption with key versioning.
 
 ---
 

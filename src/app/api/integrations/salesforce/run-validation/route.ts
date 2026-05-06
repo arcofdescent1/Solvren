@@ -5,6 +5,7 @@ import { SalesforceClient } from "@/services/salesforce/SalesforceClient";
 import { auditLog } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { revealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { userCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,7 +41,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Salesforce not connected" }, { status: 400 });
   }
 
-  const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+  const creds = revealCredentialTokenFields(
+    credsRaw as Record<string, unknown>,
+    userCredentialReveal(ctx.orgId, "salesforce", ctx.user.id, "manual_retry"),
+  ) as {
     client_id?: string;
     client_secret?: string;
     salesforce_username?: string;

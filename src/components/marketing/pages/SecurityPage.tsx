@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { FinalCTASection, HeroSection, MarketingShell, SecurityGrid, FeatureShowcaseSection } from "@/components/marketing/MarketingBlocks";
+import { DataBoundaryDiagram } from "@/components/security/DataBoundaryDiagram";
 
 /** When noShell, layout provides PublicShell. */
 export function SecurityPage({ noShell = false }: { noShell?: boolean }) {
@@ -13,6 +15,20 @@ export function SecurityPage({ noShell = false }: { noShell?: boolean }) {
         tertiaryCta={{ href: "/trust", label: "View Trust Center →" }}
       />
       <SecurityGrid />
+      <div className="mx-auto max-w-3xl px-4 pb-10 sm:px-6 lg:px-8">
+        <DataBoundaryDiagram />
+      </div>
+      <p className="mx-auto max-w-7xl px-4 pb-10 text-center text-sm text-slate-400 sm:px-6 lg:px-8">
+        <Link href="/security/baseline" className="font-medium text-cyan-300 underline-offset-4 hover:text-cyan-200 hover:underline">
+          Security baseline
+        </Link>
+        <span aria-hidden className="mx-2 text-slate-600">
+          ·
+        </span>
+        <Link href="/trust" className="font-medium text-cyan-300 underline-offset-4 hover:text-cyan-200 hover:underline">
+          Trust Center
+        </Link>
+      </p>
       <FeatureShowcaseSection
         items={[
           {

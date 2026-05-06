@@ -28,6 +28,7 @@ export default async function PublicLayout({
   const isPublicMarketingContentPath =
     pathname.startsWith("/legal/") ||
     pathname.startsWith("/platform") ||
+    pathname.startsWith("/security") ||
     pathname === "/contact" ||
     pathname === "/about" ||
     pathname === "/careers" ||

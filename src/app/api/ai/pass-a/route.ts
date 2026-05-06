@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getOpenAI } from "@/lib/openai";
 import { PassASchema } from "@/services/ai/passA.schema";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 type Body = { changeEventId: string };
 
@@ -133,6 +134,9 @@ export async function POST(req: Request) {
       { status: 503 }
     );
   }
+
+  const denied = await guardOrgLlmPrompt(supabase, (change as { org_id: string }).org_id);
+  if (denied) return denied;
 
   let resp;
   try {

@@ -9,6 +9,7 @@ import { formatProviderSchema } from "@/lib/integrations/mapping/providerSchemaS
 import { hasProvider } from "@/modules/integrations/registry/providerRegistry";
 import { env } from "@/lib/env";
 import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { userCredentialReveal } from "@/modules/integrations/secrets/integration-secrets.service";
 import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
 import { refreshAccessToken, needsRefresh } from "@/services/hubspot/HubSpotAuthService";
 import { SalesforceClient } from "@/services/salesforce/SalesforceClient";
@@ -55,7 +56,8 @@ export async function GET(
 
       if (!account || !credsRaw) return NextResponse.json({ error: "HubSpot not connected" }, { status: 400 });
 
-      const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+      const hubReveal = userCredentialReveal(ctx.orgId, "hubspot", ctx.user.id, "provider_api_call");
+      const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>, hubReveal) as {
         access_token?: string;
         refresh_token?: string;
         expires_at?: string | null;
@@ -109,7 +111,10 @@ export async function GET(
 
       if (!sfOrg || !credsRaw) return NextResponse.json({ error: "Salesforce not connected" }, { status: 400 });
 
-      const creds = revealCredentialTokenFields(credsRaw as Record<string, unknown>) as {
+      const creds = revealCredentialTokenFields(
+        credsRaw as Record<string, unknown>,
+        userCredentialReveal(ctx.orgId, "salesforce", ctx.user.id, "provider_api_call"),
+      ) as {
         client_id: string;
         client_secret?: string;
         salesforce_username?: string;

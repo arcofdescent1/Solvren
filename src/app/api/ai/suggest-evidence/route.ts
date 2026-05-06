@@ -7,6 +7,7 @@ import {
   REQUIRED_EVIDENCE_BY_BUCKET,
   type RiskBucket,
 } from "@/services/risk/requirements";
+import { guardOrgLlmPrompt } from "@/lib/server/privacy/llm-route-guard";
 
 type Body = { changeEventId: string };
 
@@ -28,7 +29,9 @@ export async function POST(req: Request) {
       { status: 400 }
     );
 
-  const { data: change, error: ceErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, title, change_type, intake"))
+  const { data: change, error: ceErr } = await scopeActiveChangeEvents(
+    supabase.from("change_events").select("id, org_id, title, change_type, intake")
+  )
     .eq("id", body.changeEventId)
     .single();
 
@@ -106,6 +109,9 @@ export async function POST(req: Request) {
       { status: 503 }
     );
   }
+
+  const denied = await guardOrgLlmPrompt(supabase, (change as { org_id: string }).org_id);
+  if (denied) return denied;
 
   const system =
     "You are a change-management reviewer. Suggest what evidence artifacts to attach. Keep suggestions concrete and short. Output ONLY JSON matching schema.";

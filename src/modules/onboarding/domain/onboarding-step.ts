@@ -40,6 +40,13 @@ export const DEFAULT_ONBOARDING_STEPS: Array<{
   required: boolean;
 }> = [
   { stepKey: "confirm_org_profile", stepGroup: "org_setup", displayName: "Confirm org profile", description: "Verify your organization details", required: true },
+  {
+    stepKey: "review_privacy_mode",
+    stepGroup: "org_setup",
+    displayName: "Choose data protection mode",
+    description: "Minimal Data Mode (recommended) or Expanded Insights Mode (optional)",
+    required: true,
+  },
   { stepKey: "invite_team_member", stepGroup: "org_setup", displayName: "Invite team member", description: "Add a colleague to your team", required: false },
   { stepKey: "connect_primary_integration", stepGroup: "integrations", displayName: "Connect primary integration", description: "Connect Stripe, CRM, or another primary integration", required: true },
   { stepKey: "connect_secondary_integration", stepGroup: "integrations", displayName: "Connect secondary integration", description: "Optional: connect additional integrations", required: false },
