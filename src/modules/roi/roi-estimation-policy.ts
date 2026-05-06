@@ -34,7 +34,7 @@ const FORMULA_VERSION = "roi-p5-v1";
 
 export function estimateRevenueAtRisk(input: ROIEstimationInput, privacyMode: PrivacyMode): ROIEstimationOutput {
   const sources = [...input.sources];
-  let valuePerUnit =
+  const valuePerUnit =
     input.estimatedValuePerEvent ??
     input.averageDealSize ??
     (privacyMode === "expanded" ? input.limitedFinancialBandAverage : undefined) ??
