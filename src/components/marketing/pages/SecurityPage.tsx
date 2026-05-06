@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { FinalCTASection, HeroSection, MarketingShell, SecurityGrid, FeatureShowcaseSection } from "@/components/marketing/MarketingBlocks";
+import {
+  FeatureShowcaseSection,
+  FinalCTASection,
+  HeroSection,
+  MarketingShell,
+  SecurityDataHandlingTable,
+  SecurityDataPhilosophySection,
+  SignalsMetadataTrustBlock,
+} from "@/components/marketing/MarketingBlocks";
 import { DataBoundaryDiagram } from "@/components/security/DataBoundaryDiagram";
 
 /** When noShell, layout provides PublicShell. */
@@ -8,13 +16,85 @@ export function SecurityPage({ noShell = false }: { noShell?: boolean }) {
     <>
       <HeroSection
         eyebrow="Security and controls"
-        title="Built to govern sensitive, high-impact changes with restricted visibility and auditability."
-        subtitle="Solvren combines role-based access control, domain permissions, restricted change visibility, evidence enforcement, timelines, and job-backed notifications to support disciplined operational governance."
+        title="Built to minimize data — not collect it"
+        subtitle="Solvren defaults to redaction, envelope encryption for secrets, customer-controlled access, and auditability — so security reviews focus on controls, not on another full copy of your business."
         primaryCta={{ href: "/pricing", label: "Book trust walkthrough" }}
         secondaryCta={{ href: "/for-engineering", label: "See engineering controls" }}
         tertiaryCta={{ href: "/trust", label: "View Trust Center →" }}
+        trustItems={[
+          "AES-256-GCM and envelope encryption for credentials",
+          "Customer-controlled support access with time limits",
+          "Break-glass flows for emergencies",
+        ]}
       />
-      <SecurityGrid />
+      <SignalsMetadataTrustBlock />
+      <SecurityDataPhilosophySection />
+      <SecurityDataHandlingTable />
+      <FeatureShowcaseSection
+        items={[
+          {
+            eyebrow: "Access control",
+            title: "No standing employee access to your tenant data by default.",
+            body: "Customer administrators grant support access when needed. Approvals are time-limited, scoped, and logged — with break-glass paths documented for true emergencies.",
+            bullets: [
+              "No employee access by default",
+              "Customer-controlled support access",
+              "Time-limited approvals",
+              "Full audit logs",
+              "Break-glass for emergencies",
+            ],
+            badge: "Zero standing access",
+            icon: "LockKeyhole",
+          },
+          {
+            eyebrow: "Encryption",
+            title: "Modern cryptography for data at rest and credentials in flight.",
+            body: "Secrets use envelope encryption with key versioning. We design away plaintext credential storage so integrations stay trustworthy.",
+            bullets: [
+              "AES-256-GCM for protected payloads",
+              "Envelope encryption for integration secrets",
+              "Key versioning and rotation paths",
+              "No plaintext secret storage",
+            ],
+            badge: "Cryptographic hygiene",
+            icon: "ShieldCheck",
+            reverse: true,
+          },
+          {
+            eyebrow: "Integration safety",
+            title: "Read-only by default; write-back is an explicit decision.",
+            body: "Scopes are visible in-product. Write paths require explicit enablement so security teams can reason about blast radius before go-live.",
+            bullets: ["Read-only by default", "Explicit write enablement", "Transparent scopes per connector"],
+            badge: "Least privilege",
+            icon: "Eye",
+          },
+          {
+            eyebrow: "Evidence and enforcement",
+            title: "Approval can be blocked when required safeguards are missing.",
+            body: "Critical changes do not advance simply because someone clicked approve. Required evidence stays visible and enforceable until resolved.",
+            bullets: [
+              "Evidence items can be required or recommended",
+              "Server-side enforcement when policy demands it",
+              "Timeline and audit events capture enforcement clearly",
+            ],
+            badge: "Control over convenience",
+            icon: "FileCheck2",
+            reverse: true,
+          },
+          {
+            eyebrow: "Traceability",
+            title: "Every meaningful action has a narrative and a system record.",
+            body: "Timelines, delivery state, and operational queues give teams a credible story of what happened, who acted, and what still needs attention.",
+            bullets: [
+              "Timeline events for changes, approvals, evidence, and comments",
+              "Job and notification state you can diagnose",
+              "Search and queues that respect visibility rules",
+            ],
+            badge: "Auditability without manual assembly",
+            icon: "Activity",
+          },
+        ]}
+      />
       <div className="mx-auto max-w-3xl px-4 pb-10 sm:px-6 lg:px-8">
         <DataBoundaryDiagram />
       </div>
@@ -29,50 +109,9 @@ export function SecurityPage({ noShell = false }: { noShell?: boolean }) {
           Trust Center
         </Link>
       </p>
-      <FeatureShowcaseSection
-        items={[
-          {
-            eyebrow: "Access control",
-            title: "Role-aware by default, domain-aware where it matters, restricted when it has to be.",
-            body: "Owners, admins, reviewers, submitters, and viewers all work from role-specific capabilities, while domain permissions and explicit grants keep finance, security, and legal work visible only to the right people.",
-            bullets: [
-              "RBAC enforced server-side for pages, APIs, search, and queues",
-              "Domain review permissions help control who can see and approve domain-specific work",
-              "Restricted changes support explicit access grants for exceptional cases",
-            ],
-            badge: "RBAC + domain permissions + restricted visibility",
-            icon: "LockKeyhole",
-          },
-          {
-            eyebrow: "Evidence and approvals",
-            title: "Approval can be blocked when required safeguards are missing.",
-            body: "The product is designed so critical changes do not move forward simply because someone clicked approve. Required evidence remains visible and enforceable until resolved.",
-            bullets: [
-              "Evidence items can be required or recommended",
-              "Approval is blocked server-side when required evidence is missing",
-              "Timeline and audit events capture enforcement actions clearly",
-            ],
-            badge: "Control over convenience",
-            icon: "ShieldCheck",
-            reverse: true,
-          },
-          {
-            eyebrow: "Traceability",
-            title: "Every meaningful action has a narrative and a system record.",
-            body: "Change timelines, audit events, delivery state, and operational queues give teams a credible story of what happened, who acted, and what still needs attention.",
-            bullets: [
-              "Timeline events capture changes, approvals, evidence, and comments",
-              "Notification and job state can be diagnosed instead of guessed at",
-              "Search and queues remain visibility-safe even for restricted work",
-            ],
-            badge: "Auditability without manual assembly",
-            icon: "Activity",
-          },
-        ]}
-      />
       <FinalCTASection
         title="Trust matters most when the change is sensitive, cross-functional, and high consequence."
-        body="Solvren is built to make those changes visible to the right people, blocked when safeguards are missing, and auditable over time."
+        body="Solvren is built to keep data minimal, access explicit, and every sensitive action observable."
       />
     </>
   );

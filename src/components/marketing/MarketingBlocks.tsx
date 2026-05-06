@@ -1,5 +1,6 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, BarChart3, CheckCircle2, CircleDollarSign, FileCheck2, Gauge, LockKeyhole, Search, ShieldCheck, Sparkles, TimerReset, Zap, Layers3, BrainCircuit, Bot, Users, Activity, Building2, Workflow, Eye, AlertTriangle, Receipt, Landmark, Cpu } from "lucide-react";
+import { ArrowRight, BadgeCheck, BarChart3, CheckCircle2, CircleDollarSign, FileCheck2, Gauge, LockKeyhole, Search, ShieldCheck, Sparkles, TimerReset, Zap, Layers3, BrainCircuit, Bot, Users, Activity, Building2, Workflow, Eye, AlertTriangle, Receipt, Landmark, Cpu, X } from "lucide-react";
 import {
   CORE_LOOP,
   FINAL_CTA,
@@ -9,6 +10,7 @@ import {
   TRUST_BAR,
   USE_CASES,
   VALUE_PROPS,
+  WORKFLOW_OVERVIEW,
 } from "./landingCopy";
 import { Button } from "@/ui";
 import { PublicShell } from "@/components/layout/PublicShell";
@@ -50,6 +52,226 @@ type Feature = {
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
   return <PublicShell>{children}</PublicShell>;
+}
+
+/** Global trust strip — include on every marketing page (data minimization). */
+export function SignalsMetadataTrustBlock() {
+  const yes = ["Metadata", "System events", "Derived signals"];
+  const no = ["Raw customer data", "Financial systems", "Full payload storage"];
+  return (
+    <section className="border-b border-white/10 bg-cyan-400/[0.07]">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <p className="text-center text-lg font-semibold leading-snug text-white sm:text-xl">
+          Solvren works on signals and metadata — not your source-of-truth data.
+        </p>
+        <p className="mx-auto mt-3 max-w-3xl text-center text-sm text-slate-400">
+          Solvren does not require your source-of-truth data.
+        </p>
+        <div className="mx-auto mt-8 grid max-w-4xl gap-6 sm:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">We operate on</div>
+            <ul className="mt-4 space-y-3 text-sm text-slate-300">
+              {yes.map((label) => (
+                <li key={label} className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" />
+                  <span>{label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Not</div>
+            <ul className="mt-4 space-y-3 text-sm text-slate-300">
+              {no.map((label) => (
+                <li key={label} className="flex items-start gap-3">
+                  <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-300/90" aria-hidden />
+                  <span>{label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function marketingSection(eyebrow: string, title: string, children: ReactNode) {
+  return (
+    <section className="border-t border-white/10 bg-slate-950 py-20 sm:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-[0.26em] text-cyan-200">{eyebrow}</div>
+          <h2 className="mt-4 text-4xl font-black tracking-[-0.03em] text-white sm:text-5xl">{title}</h2>
+        </div>
+        <div className="mt-12">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+/** How it works — top-of-page boundary framing. */
+export function YourSystemsStaySection() {
+  const good = ["System signals", "Derived insights"];
+  const bad = ["Raw payloads"];
+  return marketingSection(
+    "Data boundaries",
+    "Your systems stay your systems",
+    <>
+      <p className="max-w-3xl text-base leading-8 text-slate-300">
+        Solvren does not ingest or replicate your full datasets. We process event-level signals and metadata to identify risk — without requiring access to
+        sensitive financial or customer data.
+      </p>
+      <div className="mt-8 flex flex-wrap gap-3">
+        {bad.map((label) => (
+          <div
+            key={label}
+            className="inline-flex items-center gap-2 rounded-full border border-rose-400/25 bg-rose-400/10 px-4 py-2 text-sm font-medium text-rose-100"
+          >
+            <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            {label}
+          </div>
+        ))}
+        {good.map((label) => (
+          <div
+            key={label}
+            className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-cyan-300" aria-hidden />
+            {label}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Landing — buyer safety framing. */
+export function WhyThisIsSafeSection() {
+  const avoid = ["Raw customer data", "Financial systems", "Full payload storage"];
+  const use = ["Metadata", "System events", "Derived signals"];
+  return marketingSection(
+    "Why this is safe",
+    "Built to minimize what leaves your perimeter",
+    <>
+      <p className="max-w-3xl text-base leading-8 text-slate-300">
+        Solvren does not require bulk exports, warehouse replication, or full-fidelity copies of your CRM or ledger. We focus on the smallest set of signals
+        needed to detect revenue-impacting operational risk.
+      </p>
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h3 className="text-lg font-bold text-white">Solvren does not require</h3>
+          <ul className="mt-4 space-y-3 text-sm text-slate-300">
+            {avoid.map((label) => (
+              <li key={label} className="flex items-start gap-3">
+                <X className="mt-0.5 h-4 w-4 shrink-0 text-rose-300/90" aria-hidden />
+                <span>{label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h3 className="text-lg font-bold text-white">Instead, it uses</h3>
+          <ul className="mt-4 space-y-3 text-sm text-slate-300">
+            {use.map((label) => (
+              <li key={label} className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
+                <span>{label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** Security page — philosophy blurb below hero. */
+export function SecurityDataPhilosophySection() {
+  return marketingSection(
+    "Data philosophy",
+    "Built to minimize data — not collect it",
+    <p className="max-w-3xl text-base leading-8 text-slate-300">
+      Solvren is designed to operate without requiring sensitive data. We minimize what we ingest, store, and process by default.
+    </p>
+  );
+}
+
+/** Pricing — enterprise assurance bullets. */
+export function PricingEnterpriseSection() {
+  const bullets = [
+    "Customer-controlled access",
+    "Audit logs",
+    "Encryption",
+    "Data minimization",
+    "Write-back controls",
+  ];
+  return marketingSection(
+    "Enterprise",
+    "Governance that matches how you buy software",
+    <>
+      <p className="max-w-3xl text-base leading-8 text-slate-300">
+        Larger deployments get the controls security and procurement teams expect — without expanding your data footprint.
+      </p>
+      <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {bullets.map((b) => (
+          <li key={b} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/** Security page — data handling summary table. */
+export function SecurityDataHandlingTable() {
+  const rows: [string, string][] = [
+    ["PII", "Hashed / redacted"],
+    ["Financial", "Minimized"],
+    ["Payloads", "Not stored"],
+    ["Credentials", "Encrypted"],
+  ];
+  return marketingSection(
+    "Data handling",
+    "What happens to each class of data",
+    <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
+      <div className="grid grid-cols-2 border-b border-white/10 bg-white/5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+        <div className="px-5 py-4">Data type</div>
+        <div className="px-5 py-4">Handling</div>
+      </div>
+      {rows.map(([kind, handling]) => (
+        <div key={kind} className="grid grid-cols-2 border-t border-white/10 text-sm text-slate-200">
+          <div className="px-5 py-4 font-medium text-white">{kind}</div>
+          <div className="px-5 py-4 text-slate-300">{handling}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Pricing — plan vs. data access expectation. */
+export function PricingDataAccessTable() {
+  const rows: [string, string][] = [
+    ["Starter", "Signals only"],
+    ["Growth", "Expanded insights"],
+    ["Enterprise", "Full control + governance"],
+  ];
+  return (
+    <div className="mt-12 overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
+      <div className="grid grid-cols-2 border-b border-white/10 bg-white/5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+        <div className="px-5 py-4">Plan</div>
+        <div className="px-5 py-4">Data access</div>
+      </div>
+      {rows.map(([plan, access]) => (
+        <div key={plan} className="grid grid-cols-2 border-t border-white/10 text-sm text-slate-200">
+          <div className="px-5 py-4 font-medium text-white">{plan}</div>
+          <div className="px-5 py-4 text-slate-300">{access}</div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function HeroSection({
@@ -318,10 +540,10 @@ export function ProblemSection() {
   return (
     <SectionFrame eyebrow="Why Solvren" title="Revenue-impacting issues hide in your systems until it is too late.">
       <p className="max-w-4xl text-base leading-8 text-slate-300">
-        Disconnected systems, broken billing logic, CRM drift, failed payments, and bad operational changes quietly cost companies money every day. Most teams do not find these issues until revenue is already lost.
+        Disconnected systems, broken billing logic, CRM drift, failed payments, and risky operational changes quietly cost companies money every day. Most teams do not see the pattern until revenue or reporting is already hurt.
       </p>
       <p className="mt-4 max-w-4xl text-base leading-8 text-slate-300">
-        Solvren is the first platform built to detect those issues early, fix them safely, and prove the financial value recovered.
+        Solvren detects those issues from operational signals and metadata — fixes them with auditable automation — and proves value with estimates you can explain, without asking you to replicate your source-of-truth data.
       </p>
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
         {columns.map((column) => (
@@ -347,17 +569,17 @@ export function ValuePillarsSection() {
     {
       icon: "Search",
       title: "Detect and quantify",
-      body: "Continuously monitor Stripe, HubSpot, Salesforce, and more to identify revenue-impacting issues. Score each by financial impact and confidence so you prioritize what matters most.",
+      body: "Listen for operational signals across Stripe, HubSpot, Salesforce, and more — without ingesting full customer or financial datasets. Score issues with estimated impact and surfaced confidence.",
     },
     {
       icon: "Zap",
       title: "Act and verify",
-      body: "Run playbooks to fix issues automatically or with approval. Idempotent execution, retries, and built-in verification ensure every action actually worked.",
+      body: "Run playbooks to fix issues automatically or with approval. Read-only by default; write-back when you enable it. Idempotent execution, retries, and verification keep actions observable.",
     },
     {
       icon: "BarChart3",
       title: "Prove ROI",
-      body: "Track recovered revenue and avoided loss with a clear value dashboard. Share executive-ready ROI, playbook performance, and time-to-value insights.",
+      body: "Track estimated recovered value and avoided loss with assumptions spelled out. Share executive-ready views of playbook performance and time-to-value.",
     },
   ];
 
@@ -391,7 +613,7 @@ export function WorkflowOverviewSection() {
   }));
 
   return (
-    <SectionFrame eyebrow="How It Works" title="Get value in less than a day">
+    <SectionFrame eyebrow={WORKFLOW_OVERVIEW.eyebrow} title={WORKFLOW_OVERVIEW.title}>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((item) => {
           const Icon = iconMap[item.icon];
@@ -464,19 +686,19 @@ export function AudienceCardsSection() {
     {
       href: "/for-executives",
       title: "For Executives",
-      body: "See revenue at risk, recovered value, avoided loss, and ROI in one place.",
+      body: "Estimated revenue at risk, trends, and ROI from resolved issues — grounded in operational signals, not data warehouse copies.",
       icon: "BarChart3",
     },
     {
       href: "/for-engineering",
       title: "For Engineering & Platform Teams",
-      body: "Safely automate fixes with retries, idempotency, approvals, and full audit history.",
+      body: "Integrate through APIs and webhooks with redaction-by-default pipelines, explicit scopes, and auditable automation.",
       icon: "Cpu",
     },
     {
       href: "/for-finance",
       title: "For Finance & RevOps",
-      body: "Stop failed payments, refund leakage, and reconciliation issues before they impact reporting and revenue.",
+      body: "Govern pricing and billing changes with estimation basis and confidence visible — without mandating GL access to get started.",
       icon: "Landmark",
     },
   ] as const;
@@ -581,6 +803,7 @@ export function FinalCTASection({
 
 export function ComparisonBand() {
   const rows = [
+    ["Operates on signals & metadata (not full data replication)", "No", "No", "No", "Yes"],
     ["Detects revenue-impacting issues automatically", "Partial", "No", "Partial", "Yes"],
     ["Quantifies financial impact", "No", "No", "No", "Yes"],
     ["Safely automates corrective actions", "No", "No", "No", "Yes"],
@@ -588,7 +811,7 @@ export function ComparisonBand() {
     ["Tracks recovered revenue and proves ROI", "No", "No", "No", "Yes"],
   ];
   return (
-    <SectionFrame eyebrow="Differentiation" title="Most tools help you see problems. Solvren helps you fix them.">
+    <SectionFrame eyebrow="Differentiation" title="Most tools need your data. Solvren needs your signals.">
       <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
         <div className="grid grid-cols-5 border-b border-white/10 bg-white/5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
           <div className="px-5 py-4">Capability</div>
@@ -655,40 +878,51 @@ export function SecurityGrid() {
 export function PricingCards() {
   const tiers = [
     {
-      name: "Beta design partner",
+      name: "Starter",
       price: "Custom",
-      badge: "Best fit now",
-      body: "For teams ready to pilot high-risk pricing, billing, and revenue-change workflows with guided implementation support.",
+      badge: "Pilot-ready",
+      body: "Start in Safe Mode with signals-first onboarding — ideal for teams proving value on pricing, billing, and revenue-change governance without expanding data scope.",
       bullets: [
-        "Revenue Impact Reports and Coordination Autopilot",
-        "Admin setup for roles, mappings, and domains",
-        "Hands-on beta onboarding",
+        "Signals-first detection and quantification",
+        "Revenue Impact Reports with explicit estimation basis",
+        "Read-oriented integrations with minimal permissions",
       ],
     },
     {
       name: "Growth",
       price: "Contact sales",
-      badge: "Upcoming",
-      body: "For cross-functional revenue and engineering teams who want full governance visibility across multiple domains and systems.",
+      badge: "Scale",
+      body: "For cross-functional teams that need expanded operational insight while still defaulting to data minimization and auditable controls.",
       bullets: [
-        "Advanced dashboards and queue workflows",
-        "Restricted visibility and domain permissions",
-        "Executive reporting and operational controls",
+        "Expanded insights where you opt in",
+        "Advanced dashboards, queues, and domain permissions",
+        "Executive reporting with confidence and assumptions surfaced",
+      ],
+    },
+    {
+      name: "Enterprise",
+      price: "Contact sales",
+      badge: "Full control",
+      body: "For organizations that need procurement-grade governance: customer-controlled access, encryption assurances, and explicit write-back policies.",
+      bullets: [
+        "Customer-controlled support access and break-glass",
+        "Audit logs and encryption posture reviews",
+        "Write-back and scope controls per integration",
       ],
     },
   ];
 
   return (
     <SectionFrame eyebrow="Pricing" title="Early access is focused on high-value pilots, not self-serve commodity seats.">
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {tiers.map((tier) => (
           <div key={tier.name} className="rounded-[32px] border border-white/10 bg-white/5 p-8">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <div>
                 <div className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-200">{tier.badge}</div>
                 <h3 className="mt-3 text-3xl font-black tracking-tight text-white">{tier.name}</h3>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <div className="text-3xl font-black tracking-tight text-white">{tier.price}</div>
                 <div className="text-sm text-slate-400">per organization</div>
               </div>
@@ -704,11 +938,18 @@ export function PricingCards() {
             </div>
             <div className="mt-8">
               <Link href="/login">
-                <Button size="lg" className="w-full bg-white text-slate-950">Talk to us about beta access</Button>
+                <Button size="lg" className="w-full bg-white text-slate-950">Talk to us about access</Button>
               </Link>
             </div>
           </div>
         ))}
+      </div>
+      <div className="mt-12">
+        <h3 className="text-lg font-bold text-white">Plan and data access</h3>
+        <p className="mt-2 max-w-3xl text-sm text-slate-400">
+          Higher tiers add optional depth — not a mandate to copy your warehouse into ours.
+        </p>
+        <PricingDataAccessTable />
       </div>
     </SectionFrame>
   );

@@ -1,4 +1,12 @@
-import { FeatureShowcaseSection, FinalCTASection, HeroSection, MarketingShell, MetricsStrip, ComparisonBand } from "@/components/marketing/MarketingBlocks";
+import {
+  ComparisonBand,
+  FeatureShowcaseSection,
+  FinalCTASection,
+  HeroSection,
+  MarketingShell,
+  MetricsStrip,
+  SignalsMetadataTrustBlock,
+} from "@/components/marketing/MarketingBlocks";
 
 /** When noShell, layout provides PublicShell. */
 export function ExecutivesPage({ noShell = false }: { noShell?: boolean }) {
@@ -6,47 +14,79 @@ export function ExecutivesPage({ noShell = false }: { noShell?: boolean }) {
     <>
       <HeroSection
         eyebrow="For executives"
-        title="Reduce the financial risk of operational system changes before they hit customers or reporting."
-        subtitle="Solvren gives finance, operations, and technology leaders visibility into risky changes, blocked safeguards, and overdue approvals across the revenue stack."
+        title="Know where revenue is at risk — without exposing your data"
+        subtitle="Solvren gives leaders visibility into risky operational changes, blocked safeguards, and overdue approvals — using system signals and metadata, not copies of your financial systems."
         primaryCta={{ href: "/pricing", label: "Book executive walkthrough" }}
         secondaryCta={{ href: "/how-it-works", label: "See the workflow" }}
+        trustItems={[
+          "Estimated revenue at risk — with confidence and assumptions",
+          "Trends and top risks without warehouse replication",
+          "Auditable path from signal to decision",
+        ]}
       />
+      <SignalsMetadataTrustBlock />
       <MetricsStrip />
       <FeatureShowcaseSection
         items={[
           {
             eyebrow: "Executive visibility",
-            title: "See the changes that matter most — before they become incidents.",
-            body: "The executive dashboard surfaces what is in review, blocked by missing evidence, overdue, restricted, or carrying elevated financial risk so leaders can focus attention where it matters most.",
+            title: "Risk, revenue exposure, and operational safety in one place.",
+            body: "The executive dashboard surfaces what is in review, blocked by missing evidence, overdue, restricted, or carrying elevated estimated financial risk — so attention goes to the decisions that matter.",
             bullets: [
-              "High-risk changes are visible while they are still actionable",
-              "Blocked and overdue work stops hiding inside operational tools",
-              "Leaders get one view of exposure across pricing, billing, and revenue systems",
+              "Estimated revenue at risk",
+              "Trends over time",
+              "Top operational risks",
+              "ROI from resolved issues",
             ],
             badge: "Operational control center",
             icon: "BarChart3",
           },
           {
+            eyebrow: "Trust",
+            title: "Solvren does NOT require financial system access, customer-level data, or data warehouse replication.",
+            body: "Instead, it uses system signals, event patterns, and derived estimates — so you get decision support without expanding your sensitive data footprint.",
+            bullets: [
+              "System signals — not bulk CRM or billing exports",
+              "Event patterns across integrations you connect",
+              "Derived estimates with explicit estimation basis",
+            ],
+            badge: "Minimal data footprint",
+            icon: "ShieldCheck",
+            reverse: true,
+          },
+          {
             eyebrow: "Revenue risk intelligence",
-            title: "Understand not just that a change exists — but why it deserves attention.",
-            body: "Revenue Impact Reports summarize likely failure modes, business exposure, and the safeguards that reduce risk most, so approval conversations happen with complete context.",
+            title: "Estimated revenue at risk based on failure rates and operational patterns.",
+            body: "Revenue Impact Reports summarize likely failure modes, estimated exposure, and safeguards that reduce risk most — using operational context, not unaudited claims about your books.",
             bullets: [
               "Translate technical changes into business risk language",
-              "Explain why a billing or pricing change is risky before release",
-              "Give executives a defensible view of change exposure and readiness",
+              "Confidence levels and assumptions included by design",
+              "A defensible view of exposure before release",
             ],
             badge: "Decision support before release",
             icon: "CircleDollarSign",
+          },
+          {
+            eyebrow: "Differentiation",
+            title: "Most tools require your data. Solvren requires your signals.",
+            body: "That difference is what keeps procurement and security reviews moving — you are not being asked to replicate your source of truth into another vendor silo.",
+            bullets: [
+              "Metadata and events instead of full datasets",
+              "Read-only integrations to start",
+              "Optional depth when you explicitly opt in",
+            ],
+            badge: "Why teams choose Solvren",
+            icon: "Eye",
             reverse: true,
           },
           {
             eyebrow: "Coordination that scales",
             title: "Replace coordination by memory with a system of record.",
-            body: "Solvren makes cross-functional governance repeatable. The system recommends who should review, what evidence is required, and which gaps still exist instead of relying on spreadsheets and Slack memory.",
+            body: "Solvren makes cross-functional governance repeatable: who should review, what evidence is required, and which gaps remain — without routing sensitive exports through chat.",
             bullets: [
-              "Reduce manual coordination overhead for every high-impact change",
-              "Make governance expectations visible to every participant",
-              "Capture institutional knowledge that survives team turnover",
+              "Less manual coordination for every high-impact change",
+              "Governance expectations visible to every participant",
+              "Institutional knowledge that survives team turnover",
             ],
             badge: "Operational leverage",
             icon: "Bot",
@@ -54,22 +94,22 @@ export function ExecutivesPage({ noShell = false }: { noShell?: boolean }) {
           {
             eyebrow: "Auditability",
             title: "Every approval, safeguard, and exception has a traceable story.",
-            body: "With timelines, evidence enforcement, restricted visibility, and role-based access controls, leaders gain a clean narrative for how risky changes were handled — and where process is breaking down.",
+            body: "Timelines, evidence enforcement, restricted visibility, and role-based access controls give leaders a clean narrative for how risky changes were handled.",
             bullets: [
               "Chronological timeline for every change",
               "Restricted changes stay restricted without losing accountability",
-              "Evidence requirements and approval actions remain auditable over time",
+              "Evidence requirements and approvals remain auditable over time",
             ],
             badge: "Governance with accountability",
-            icon: "ShieldCheck",
+            icon: "FileCheck2",
             reverse: true,
           },
         ]}
       />
       <ComparisonBand />
       <FinalCTASection
-        title="This is what executive control over revenue change risk looks like."
-        body="Solvren helps leaders reduce operational risk, shorten coordination cycles, and create visibility into the changes that can affect billing, pricing, and revenue reporting most."
+        title="Executive control over revenue change risk — without a data warehouse science project."
+        body="Solvren helps leaders reduce operational risk and shorten coordination cycles using signals and metadata aligned to how your systems already behave."
       />
     </>
   );

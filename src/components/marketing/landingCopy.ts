@@ -4,9 +4,9 @@
  */
 
 export const HERO = {
-  headline: "Stop Revenue Leaks Before They Cost You Thousands",
+  headline: "Detect revenue risk — without exposing your data",
   subheadline:
-    "Solvren monitors Stripe, HubSpot, Salesforce, and your other critical systems to detect revenue-impacting issues, quantify the risk, safely fix the problem, and prove the value recovered.",
+    "Solvren works on system signals, metadata, and events — not your source-of-truth data. We detect revenue-impacting operational issues, estimate exposure with clear assumptions, and help you resolve them with auditable controls.",
   primaryCta: {
     label: "Get Started",
     href: "/signup",
@@ -19,29 +19,35 @@ export const HERO = {
 
 export const TRUST_BAR = {
   items: [
-    "Works with Stripe, HubSpot, Salesforce, and more",
-    "Enterprise-grade security",
-    "Safe automation with full audit trail",
+    "Signals and metadata — not warehouse-scale replication",
+    "Redaction and minimization by default",
+    "Read-only integrations; optional write-back with audit",
   ],
 };
 
+/** Section title for `WorkflowOverviewSection` (shared across pages that embed it). */
+export const WORKFLOW_OVERVIEW = {
+  eyebrow: "How it works",
+  title: "From connection to governed insight — without owning your data",
+};
+
 export const CORE_LOOP = {
-  title: "A closed-loop system for protecting and growing revenue",
+  title: "A closed-loop system for protecting revenue — with minimal data surface area",
   steps: [
     {
       title: "Detect",
       description:
-        "Continuously monitor your systems to identify revenue-impacting issues across payments, CRM, and operations.",
+        "Listen to operational signals from payments, CRM, and integrations — event patterns and metadata, not full customer or financial exports.",
     },
     {
       title: "Quantify",
       description:
-        "Understand the real impact of each issue so you can prioritize what matters most.",
+        "Estimate impact with explicit assumptions and confidence — so teams prioritize what matters without needing ledger-level detail.",
     },
     {
       title: "Act",
       description:
-        "Execute corrective actions automatically or with approval using reliable, idempotent playbooks.",
+        "Execute corrective actions automatically or with approval using reliable, idempotent playbooks (read-only by default; write-back when you enable it).",
     },
     {
       title: "Verify",
@@ -51,7 +57,7 @@ export const CORE_LOOP = {
     {
       title: "Prove",
       description:
-        "Track recovered revenue and avoided loss with a clear, measurable ROI.",
+        "Track estimated recovered value and avoided loss with assumptions surfaced for finance and executives.",
     },
   ],
 };
@@ -60,17 +66,17 @@ export const VALUE_PROPS = [
   {
     title: "Detect Revenue-Impacting Issues",
     description:
-      "Automatically identify failed payments, CRM drift, refund leakage, and reconciliation risk before revenue is lost.",
+      "Surface failed payments, CRM drift, refund leakage, and reconciliation risk from operational signals — before revenue is lost.",
   },
   {
-    title: "Prioritize by Financial Impact",
+    title: "Prioritize by Estimated Impact",
     description:
-      "Quantify each issue with a risk score and likely financial impact so your team focuses on what matters most.",
+      "Score issues using failure rates, operational patterns, and configured assumptions — with confidence surfaced, not hidden.",
   },
   {
     title: "Fix Issues Safely",
     description:
-      "Run approved playbooks with retries, idempotency, and safeguards that reduce operational risk.",
+      "Run approved playbooks with retries, idempotency, and safeguards. Read-only by default; write-back only when you turn it on.",
   },
   {
     title: "Verify Every Resolution",
@@ -78,42 +84,42 @@ export const VALUE_PROPS = [
       "Confirm fixes worked with validation and reconciliation before closing the issue.",
   },
   {
-    title: "Prove Recovered Value",
+    title: "Prove Value to Leadership",
     description:
-      "Show leadership recovered revenue, avoided loss, and ROI with executive-ready reporting.",
+      "Share executive-ready reporting on estimated recovered value and avoided loss — with the estimation basis spelled out.",
   },
 ];
 
 export const HOW_IT_WORKS = [
   {
     step: "1",
-    title: "Connect your systems",
+    title: "Connect integrations",
     description:
-      "Connect Stripe, HubSpot, Salesforce, or your existing systems.",
+      "Use read-oriented connectors with minimal permissions. No requirement to replicate full datasets or open your warehouse.",
   },
   {
     step: "2",
-    title: "Detect issues automatically",
+    title: "Listen for operational signals",
     description:
-      "Solvren automatically detects revenue-impacting issues.",
+      "Solvren processes event-level signals and metadata — status changes, failures, and integration patterns — not full customer records.",
   },
   {
     step: "3",
-    title: "Review impact and playbook",
+    title: "Review impact and safeguards",
     description:
-      "Review the impact score and recommended playbook.",
+      "Review estimated impact, confidence, assumptions, and the recommended playbook before anything sensitive moves forward.",
   },
   {
     step: "4",
     title: "Approve or automate",
     description:
-      "Approve the action or allow Solvren to fix it automatically.",
+      "Approve the action or allow Solvren to run playbooks automatically. Write-back stays off unless you enable it.",
   },
   {
     step: "5",
-    title: "Track value",
+    title: "Track estimated value",
     description:
-      "Track the revenue recovered and the issues prevented.",
+      "Track estimated recovered value and prevented loss with clear provenance — not unaudited revenue claims.",
   },
 ];
 
@@ -148,7 +154,7 @@ export const USE_CASES = [
 export const INTEGRATIONS = {
   title: "Connect the systems you already use",
   description:
-    "Solvren integrates with your core systems to detect issues and take action where it matters.",
+    "Solvren listens through integrations for operational signals — without requiring bulk exports or a copy of your source-of-truth data.",
   items: [
     "Stripe",
     "HubSpot",
@@ -169,21 +175,21 @@ export const SAFE_AUTOMATION = {
 };
 
 export const ROI_SECTION = {
-  title: "See measurable value from day one",
+  title: "Estimated impact you can explain in a finance review",
   description:
-    "Track recovered revenue and avoided loss with real-time visibility into performance and ROI.",
+    "Estimated revenue at risk based on failure rates, operational patterns, and assumptions you control — with confidence levels surfaced.",
   highlights: [
-    "Recovered revenue tracking",
-    "Avoided loss estimation",
-    "Playbook performance metrics",
-    "Time-to-value insights",
+    "Estimated revenue at risk",
+    "Trends over time",
+    "Top operational risks",
+    "ROI from resolved issues",
   ],
 };
 
 export const FINAL_CTA = {
   headline: "Stop revenue leaks before they become expensive problems.",
   subheadline:
-    "Connect your systems, detect your first issue, and prove value in minutes.",
+    "Connect with minimal data scope, detect your first issue from signals, and prove value with clear estimation basis.",
   primaryCta: {
     label: "Get Started",
     href: "/signup",
@@ -196,5 +202,5 @@ export const FINAL_CTA = {
 
 export const FOOTER = {
   tagline:
-    "Solvren is a revenue protection platform that detects issues, automates resolution, and proves ROI.",
+    "Solvren is a revenue protection platform that works on signals and metadata — not your source-of-truth data.",
 };

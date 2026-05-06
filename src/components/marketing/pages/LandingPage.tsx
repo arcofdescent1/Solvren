@@ -9,10 +9,12 @@ import {
   MarketingShell,
   MetricsStrip,
   ProblemSection,
+  SignalsMetadataTrustBlock,
   UseCasesSection,
   V1ValueCardsSection,
   V1FlowDiagramSection,
   ValuePillarsSection,
+  WhyThisIsSafeSection,
   WorkflowOverviewSection,
 } from "@/components/marketing/MarketingBlocks";
 import { HERO, SAFE_AUTOMATION } from "@/components/marketing/landingCopy";
@@ -28,6 +30,8 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
         primaryCta={HERO.primaryCta}
         secondaryCta={HERO.secondaryCta}
       />
+      <SignalsMetadataTrustBlock />
+      <WhyThisIsSafeSection />
       <V1ValueCardsSection />
       <V1FlowDiagramSection />
       <LogoStrip />
@@ -40,19 +44,19 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
         items={[
           {
             eyebrow: "Detect & quantify",
-            title: "Surface revenue-impacting issues across your stack.",
-            body: "Connect Stripe, HubSpot, Salesforce, and more. Detector packs continuously identify failed payments, refund leakage, CRM drift, and reconciliation gaps—with impact scores so you prioritize what matters.",
+            title: "Surface revenue-impacting issues from operational signals.",
+            body: "Connect Stripe, HubSpot, Salesforce, and more with connectors scoped for events and metadata. Detector packs surface failed payments, refund leakage, CRM drift, and reconciliation gaps — with impact estimates and confidence, not unaudited revenue claims.",
             bullets: [
-              "Multi-system signal ingestion from payments, CRM, and operations",
-              "Financial impact and confidence scoring for every issue",
-              "Detector packs for failed payments, refund leakage, data integrity",
+              "Multi-system signals from payments, CRM, and operations",
+              "Estimated impact with explicit assumptions",
+              "Detector packs tuned for failure modes, not bulk data dumps",
             ],
             badge: "Detection and quantification",
             icon: "Search",
           },
           {
             eyebrow: "Act & verify",
-            title: "Run playbooks to fix issues—safely and reliably.",
+            title: "Run playbooks to fix issues — safely and reliably.",
             body: "Execute corrective actions automatically or with approval. Built-in retries, idempotency, and verification ensure every action actually worked before marking an issue resolved.",
             bullets: SAFE_AUTOMATION.points,
             badge: "Playbooks and verification",
@@ -60,13 +64,13 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
             reverse: true,
           },
           {
-            eyebrow: "Prove ROI",
-            title: "Track recovered revenue and avoided loss in real time.",
-            body: "Measure value with a clear dashboard: recovered revenue, avoided loss, playbook performance, and time-to-value. Share executive-ready ROI with stakeholders.",
+            eyebrow: "Prove value",
+            title: "Track estimated recovered value and avoided loss.",
+            body: "Measure value with a clear dashboard: estimated recovered revenue, avoided loss, playbook performance, and time-to-value. Share executive-ready views with the estimation basis on the page.",
             bullets: [
-              "Recovered revenue and avoided loss tracking",
+              "Estimated recovered revenue and avoided loss",
               "Playbook performance and success rates",
-              "Executive dashboards with benchmarks and insights",
+              "Executive dashboards with confidence and assumptions",
             ],
             badge: "Value and ROI",
             icon: "BarChart3",

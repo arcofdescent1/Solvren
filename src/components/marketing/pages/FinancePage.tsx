@@ -1,4 +1,11 @@
-import { ComparisonBand, FeatureShowcaseSection, FinalCTASection, HeroSection, MarketingShell } from "@/components/marketing/MarketingBlocks";
+import {
+  ComparisonBand,
+  FeatureShowcaseSection,
+  FinalCTASection,
+  HeroSection,
+  MarketingShell,
+  SignalsMetadataTrustBlock,
+} from "@/components/marketing/MarketingBlocks";
 
 /** When noShell, layout provides PublicShell. */
 export function FinancePage({ noShell = false }: { noShell?: boolean }) {
@@ -6,61 +13,88 @@ export function FinancePage({ noShell = false }: { noShell?: boolean }) {
     <>
       <HeroSection
         eyebrow="For finance and RevOps"
-        title="Put governance around the changes that can affect pricing, billing, and revenue reporting."
-        subtitle="Solvren gives finance systems, RevOps, and billing leaders a structured way to review risky operational changes before they create invoice errors, reporting drift, or customer-facing billing issues."
+        title="Understand financial impact — without exposing financial data"
+        subtitle="Solvren estimates financial risk from operational behavior — failure rates, integration health, and change patterns — not from unrestricted access to your accounting systems."
         primaryCta={{ href: "/pricing", label: "Request finance demo" }}
         secondaryCta={{ href: "/for-executives", label: "See executive value" }}
+        trustItems={[
+          "No mandate for accounting system credentials",
+          "Estimates with confidence and stated assumptions",
+          "Audit trail from signal to approval",
+        ]}
       />
+      <SignalsMetadataTrustBlock />
       <FeatureShowcaseSection
         items={[
           {
-            eyebrow: "Pricing and billing governance",
-            title: "Review high-risk changes before they become customer-facing billing problems.",
-            body: "From pricing logic updates to subscription lifecycle changes, Solvren ensures the right stakeholders, evidence, and safeguards are visible before release.",
+            eyebrow: "Core idea",
+            title: "Operational behavior → estimated financial risk.",
+            body: "Solvren connects what engineering and RevOps are changing to the operational signals that precede invoice errors, reporting drift, and customer-facing billing issues — so finance can intervene before close surprises.",
             bullets: [
-              "Flag pricing and billing changes that deserve finance attention",
-              "Require revenue validation, rollback plans, and test scenarios",
-              "Keep billing owners and finance reviewers in the same workflow",
+              "Failure-rate and drift signals from connected systems",
+              "Estimated exposure using patterns, not ledger dumps",
+              "Clear handoff between operational and finance language",
             ],
-            badge: "Designed for revenue-critical changes",
+            badge: "Finance-readable framing",
             icon: "Receipt",
           },
           {
-            eyebrow: "Revenue risk visibility",
-            title: "Turn technical changes into language finance leaders can act on.",
-            body: "Revenue Impact Reports summarize likely failure modes, potential exposure, and why a change matters — without making finance reconstruct the technical details from tickets and chat threads.",
+            eyebrow: "What we don't need",
+            title: "We do not require accounting access, transaction-level data, or financial statements.",
+            body: "If you choose expanded modes later, you control what depth is shared. The default path is designed for procurement and internal audit conversations.",
             bullets: [
-              "Explain likely invoice, pricing, and rev-rec failure modes",
-              "Clarify why a change is low, medium, or high risk",
-              "Show the safeguards that reduce exposure most",
+              "No accounting system access required to start",
+              "No transaction-level data requirement",
+              "No financial statement ingestion",
             ],
-            badge: "Finance-readable risk analysis",
-            icon: "CircleDollarSign",
+            badge: "Scope you can defend",
+            icon: "Landmark",
             reverse: true,
           },
           {
-            eyebrow: "Cross-functional coordination",
-            title: "Stop chasing engineering, billing owners, and approvers manually.",
-            body: "Coordination Autopilot uses approval mappings and system ownership to recommend who should review and what evidence is needed, reducing the coordination burden on RevOps and finance systems teams.",
+            eyebrow: "Model",
+            title: "Failure rate × deal velocity × estimated value",
+            body: "Directional estimates combine how often failures occur, how many revenue-touching events are in flight, and conservative value assumptions you can tune — so numbers come with a story, not false precision.",
             bullets: [
-              "Suggested finance reviewers and billing owners appear automatically",
-              "Missing coverage is surfaced before submission",
-              "Reviewers can approve with one complete operating record",
+              "Transparent formula with versioned methodology",
+              "Assumptions visible next to the estimate",
+              "Confidence levels instead of fake decimals",
             ],
-            badge: "Less coordination drag",
+            badge: "Estimation basis",
+            icon: "CircleDollarSign",
+          },
+          {
+            eyebrow: "Confidence model",
+            title: "Each insight includes confidence, assumptions, and estimation basis.",
+            body: "Finance teams should never wonder where a number came from. Solvren surfaces what was observed, what was inferred, and how conservative the model is being.",
+            bullets: ["Confidence level on each insight", "Assumptions used", "Estimation basis and provenance"],
+            badge: "Board-ready honesty",
+            icon: "FileCheck2",
+            reverse: true,
+          },
+          {
+            eyebrow: "Governance",
+            title: "Review high-risk changes before they become billing or rev-rec incidents.",
+            body: "Pricing logic, subscription lifecycle, and revenue-recognition-adjacent changes stay in a workflow with evidence, approvers, and timelines — aligned to how you already manage risk.",
+            bullets: [
+              "Flag changes that deserve finance attention",
+              "Require validation artifacts where your policy demands them",
+              "Keep billing owners and finance reviewers in one system of record",
+            ],
+            badge: "Designed for revenue-critical changes",
             icon: "Users",
           },
           {
-            eyebrow: "Controls and traceability",
+            eyebrow: "Traceability",
             title: "Create the audit trail your team wishes already existed.",
-            body: "Evidence, approvals, timelines, and restricted visibility work together to make revenue-change handling more defensible over time.",
+            body: "Evidence, approvals, timelines, and restricted visibility work together so revenue-change handling stays defensible.",
             bullets: [
               "See exactly who reviewed what and when",
-              "Keep sensitive pricing and finance changes restricted where needed",
-              "Use timelines and search to investigate issues faster later",
+              "Restrict sensitive pricing work without losing accountability",
+              "Investigate faster later with search and timelines",
             ],
-            badge: "Stronger operational accountability",
-            icon: "FileCheck2",
+            badge: "Operational accountability",
+            icon: "Activity",
             reverse: true,
           },
         ]}
@@ -68,7 +102,7 @@ export function FinancePage({ noShell = false }: { noShell?: boolean }) {
       <ComparisonBand />
       <FinalCTASection
         title="Finance teams should not find out about revenue-impacting change risk after release."
-        body="Solvren gives finance and RevOps teams a practical control layer for pricing, billing, and revenue changes — before the customer or the close process pays the price."
+        body="Solvren gives finance and RevOps a practical control layer — grounded in operational signals and explicit estimates, not in copying your GL."
       />
     </>
   );
