@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity -- Async RSC: wall time for SLA filters is intentional per request. */
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Card, CardBody, Stack, Button } from "@/ui";
 
@@ -33,6 +33,7 @@ export function Phase5OnboardingWizard() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollStart = useRef<number>(0);
   const analyzeTriggerSent = useRef(false);
+  const [analyzingSlow, setAnalyzingSlow] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/onboarding/state");
@@ -61,12 +62,21 @@ export function Phase5OnboardingWizard() {
   }, []);
 
   useEffect(() => {
-    void load();
+    startTransition(() => {
+      void load();
+    });
   }, [load]);
 
   useEffect(() => {
-    if (step !== "ANALYZING") return;
+    if (step !== "ANALYZING") {
+      startTransition(() => setAnalyzingSlow(false));
+      return;
+    }
+    startTransition(() => setAnalyzingSlow(false));
     pollStart.current = Date.now();
+    const slowTimer = window.setTimeout(() => {
+      startTransition(() => setAnalyzingSlow(true));
+    }, 60_000);
     pollRef.current = setInterval(() => {
       if (Date.now() - pollStart.current > 60_000) {
         if (pollRef.current) clearInterval(pollRef.current);
@@ -75,6 +85,7 @@ export function Phase5OnboardingWizard() {
       void load();
     }, 3000);
     return () => {
+      window.clearTimeout(slowTimer);
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [step, load]);
@@ -154,7 +165,7 @@ export function Phase5OnboardingWizard() {
           <CardBody>
             <p className="font-semibold">Analyzing your data…</p>
             <p className="mt-2 text-sm text-[var(--text-muted)]">
-              {Date.now() - pollStart.current > 60_000
+              {analyzingSlow
                 ? "Still analyzing your data…"
                 : "This usually takes a moment. Checking every few seconds."}
             </p>

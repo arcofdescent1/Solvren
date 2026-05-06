@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity -- Async RSC: wall time for SLA window queries is per request. */
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";

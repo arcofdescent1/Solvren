@@ -4,10 +4,6 @@ type RawEv = { event_type: string; occurred_at: string; payload_json: Record<str
 
 const MS_30D = 30 * 24 * 60 * 60 * 1000;
 
-function inWindow(iso: string, since: string) {
-  return iso >= since;
-}
-
 /** Refund sum / charge paid sum over 30d, plus raw counts. */
 export async function measureStripeRefundRate(
   supabase: SupabaseClient,

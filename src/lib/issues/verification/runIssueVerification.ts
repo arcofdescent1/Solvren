@@ -124,7 +124,7 @@ export async function runIssueVerification(
   let finalOutcome = outcome;
   let actualRoi: number | null = null;
   let roiConf: "low" | "medium" | "high" = "medium";
-  let roiType: "recovered_revenue" | "prevented_loss" | "efficiency_gain" = "recovered_revenue";
+  const roiType: "recovered_revenue" | "prevented_loss" | "efficiency_gain" = "recovered_revenue";
   let explanation = "";
 
   if (finalOutcome === "passed") {
