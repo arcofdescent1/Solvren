@@ -57,12 +57,21 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const fwd = req.headers.get("x-forwarded-for");
+  const ip = fwd?.split(",")[0]?.trim() ?? null;
+
   const result = await persistExecutiveDecision(supabase, {
     orgId: change.org_id as string,
     changeId: id,
     userId: userRes.user.id,
     decision,
     comment,
+    audit: {
+      channel: "web",
+      tokenId: null,
+      ip,
+      userAgent: req.headers.get("user-agent"),
+    },
   });
 
   if (!result.ok) {

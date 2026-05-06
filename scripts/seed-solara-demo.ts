@@ -332,6 +332,14 @@ async function main() {
     if (error) console.warn(`  Member upsert ${addr}:`, error.message);
   }
 
+  {
+    const { error: execRoleErr } = await admin.from("organization_member_roles").upsert(
+      { org_id: orgId, user_id: ryanId, role_key: "CEO" },
+      { onConflict: "org_id,user_id,role_key" }
+    );
+    if (execRoleErr) console.warn("  organization_member_roles CEO:", execRoleErr.message);
+  }
+
   await admin.from("organization_settings").upsert(
     {
       org_id: orgId,

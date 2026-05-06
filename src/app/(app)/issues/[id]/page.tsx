@@ -11,6 +11,7 @@ import { getAccountsByOrg } from "@/modules/integrations/core/integrationAccount
 import { Card, CardBody } from "@/ui";
 import {
   IssueDetailHeader,
+  IssueDetailNextAction,
   IssueSourcePanel,
   IssueLinksPanel,
   IssueEvidencePanel,
@@ -181,6 +182,7 @@ export default async function IssueDetailPage({
     <div className="flex flex-col gap-6">
       <Phase3IssueReviewedTracker issueId={issueId} />
       <IssueDetailHeader issue={issue} />
+      <IssueDetailNextAction issue={issue as typeof issue & { approval_state?: string | null }} />
       <div className="grid gap-4 md:grid-cols-2">
         <IssueOwnerPanel issue={issue} />
         <IssueLifecyclePanel issueId={issueId} />

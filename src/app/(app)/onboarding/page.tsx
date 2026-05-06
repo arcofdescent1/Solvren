@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
 import { PageHeader } from "@/ui";
-import { GuidedOnboardingWizard } from "@/components/onboarding";
+import { Phase5OnboardingWizard } from "@/components/onboarding/Phase5OnboardingWizard";
 
 export default async function OnboardingPage() {
   const supabase = await createServerSupabaseClient();
@@ -24,7 +24,7 @@ export default async function OnboardingPage() {
         description="Complete setup to reach your first value"
       />
       <Suspense fallback={<p className="text-sm text-[color:var(--rg-text-muted)]">Loading…</p>}>
-        <GuidedOnboardingWizard />
+        <Phase5OnboardingWizard />
       </Suspense>
     </div>
   );

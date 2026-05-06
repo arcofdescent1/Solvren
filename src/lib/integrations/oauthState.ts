@@ -6,11 +6,17 @@
 import crypto from "crypto";
 import { env } from "@/lib/env";
 
-export type OAuthStatePayload = { orgId: string; userId: string; iat: number; returnTo?: string };
+export type OAuthStatePayload = {
+  orgId: string;
+  userId: string;
+  iat: number;
+  returnTo?: string;
+  sfEnvironment?: "production" | "sandbox";
+};
 
 const STATE_TTL_MS = 10 * 60 * 1000;
 
-function getSecret(provider: "jira" | "hubspot"): string {
+function getSecret(provider: "jira" | "hubspot" | "salesforce"): string {
   if (provider === "jira") {
     const s = env.jiraStateSecret;
     if (!s) throw new Error("Missing JIRA_STATE_SECRET (or ATLASSIAN_STATE_SECRET or SLACK_STATE_SECRET)");
@@ -21,12 +27,18 @@ function getSecret(provider: "jira" | "hubspot"): string {
     if (!s) throw new Error("Missing HUBSPOT_STATE_SECRET (or SLACK_STATE_SECRET)");
     return s;
   }
+  if (provider === "salesforce") {
+    const fromEnv = process.env.SALESFORCE_OAUTH_STATE_SECRET;
+    const s = fromEnv?.trim() || env.hubspotStateSecret;
+    if (!s) throw new Error("Missing SALESFORCE_OAUTH_STATE_SECRET or HUBSPOT_STATE_SECRET");
+    return s;
+  }
   throw new Error(`Unknown provider: ${provider}`);
 }
 
 export function signOAuthState(
-  provider: "jira" | "hubspot",
-  input: { orgId: string; userId: string; returnTo?: string }
+  provider: "jira" | "hubspot" | "salesforce",
+  input: { orgId: string; userId: string; returnTo?: string; sfEnvironment?: "production" | "sandbox" }
 ): string {
   const payload: OAuthStatePayload = { ...input, iat: Date.now() };
   const raw = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -36,7 +48,7 @@ export function signOAuthState(
 }
 
 export function verifyOAuthState(
-  provider: "jira" | "hubspot",
+  provider: "jira" | "hubspot" | "salesforce",
   state: string
 ): OAuthStatePayload {
   const [raw, sig] = state.split(".");

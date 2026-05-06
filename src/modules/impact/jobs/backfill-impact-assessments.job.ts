@@ -13,7 +13,7 @@ export async function backfillImpactAssessments(
     .from("issues")
     .select("id, org_id, source_type, source_ref")
     .eq("org_id", orgId)
-    .in("status", ["open", "triaged", "assigned", "in_progress"])
+    .in("status", ["open", "triaged", "detected", "acknowledged", "assigned", "in_progress", "reopened"])
     .limit(limit * 2);
 
   const { data: existingSummaries } = await supabase

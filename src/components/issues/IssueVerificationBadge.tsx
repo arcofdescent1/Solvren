@@ -2,13 +2,14 @@
 
 import { cn } from "@/lib/cn";
 
-export type VerificationStatus = "pending" | "passed" | "failed" | "not_required";
+export type VerificationStatus = "pending" | "passed" | "failed" | "not_required" | "inconclusive";
 
 const VERIFICATION_STYLES: Record<VerificationStatus, string> = {
   pending: "bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300",
   passed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
   failed: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200",
   not_required: "bg-slate-100 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400",
+  inconclusive: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
 };
 
 export function IssueVerificationBadge({

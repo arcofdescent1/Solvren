@@ -26,6 +26,8 @@ function baseView(over: Partial<ExecutiveChangeView> = {}): ExecutiveChangeView 
     hasApprovalConflict: false,
     approvalConflictMessage: null,
     executiveOverlay: "NONE",
+    executiveBlocked: false,
+    executiveSnoozeUntil: null,
     technicalDetails: { signals: [], policyViolations: [], incidents: [], notes: [] },
     slackPrimaryConcern: { primary: "", moreCount: 0 },
     revenueEscalationThresholdUsd: 100_000,
@@ -35,18 +37,22 @@ function baseView(over: Partial<ExecutiveChangeView> = {}): ExecutiveChangeView 
 }
 
 describe("validateExecutiveDecisionPayload", () => {
-  it("requires comment for DELAY", () => {
-    expect(validateExecutiveDecisionPayload("DELAY", "")).toBeTruthy();
-    expect(validateExecutiveDecisionPayload("DELAY", "  ")).toBeTruthy();
+  it("allows empty comment for DELAY", () => {
+    expect(validateExecutiveDecisionPayload("DELAY", "")).toBeNull();
     expect(validateExecutiveDecisionPayload("DELAY", "wait")).toBeNull();
   });
   it("allows empty comment for APPROVE", () => {
     expect(validateExecutiveDecisionPayload("APPROVE", "")).toBeNull();
   });
+  it("requires comment for DENY and REQUEST_INFO", () => {
+    expect(validateExecutiveDecisionPayload("DENY", "")).toBeTruthy();
+    expect(validateExecutiveDecisionPayload("DENY", "no")).toBeNull();
+    expect(validateExecutiveDecisionPayload("REQUEST_INFO", "")).toBeTruthy();
+  });
 });
 
 describe("validateExecutiveApprove", () => {
-  it("blocks when readiness BLOCKED", () => {
+  it("does not block on readiness or recommendation (overlay is directional)", () => {
     const v = baseView({
       readiness: [
         {
@@ -56,14 +62,8 @@ describe("validateExecutiveApprove", () => {
           updatedAt: null,
         },
       ],
+      recommendation: "ESCALATE",
     });
-    const g = validateExecutiveApprove(v);
-    expect(g).not.toBeNull();
-    expect(g?.reasons.some((r) => r.includes("BLOCKED"))).toBe(true);
-  });
-
-  it("blocks when recommendation is ESCALATE", () => {
-    const g = validateExecutiveApprove(baseView({ recommendation: "ESCALATE" }));
-    expect(g?.reasons.some((r) => r.includes("ESCALATE"))).toBe(true);
+    expect(validateExecutiveApprove(v)).toBeNull();
   });
 });

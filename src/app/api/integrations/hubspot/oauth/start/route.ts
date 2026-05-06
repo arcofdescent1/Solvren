@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
     const clientId = env.hubspotClientId;
     if (!clientId) return NextResponse.json({ error: "hubspot_not_configured" }, { status: 500 });
 
-    const redirectUri = env.hubspotRedirectUri ?? `${env.appUrl}/api/integrations/hubspot/oauth/callback`;
+    const redirectUri =
+      env.hubspotRedirectUri ?? `${env.appUrl}/api/integrations/hubspot/callback`;
     const state = signHubSpotState({ orgId: ctx.orgId, userId: ctx.user.id });
 
     const url = new URL(env.hubspotOAuthAuthorizeUrl);

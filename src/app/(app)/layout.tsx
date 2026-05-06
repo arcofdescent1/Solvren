@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { authStateFromUser } from "@/lib/auth";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { shouldRedirectToGuidedOnboarding } from "@/lib/onboarding/guidedPhase1Gate";
-import { shouldRedirectToPhase2Activation } from "@/lib/onboarding/phase2Gate";
+import { shouldRedirectToPhase5Onboarding } from "@/lib/onboarding/phase5Gate";
 import { AppShell } from "@/ui/layout/app-shell";
 
 export const runtime = "nodejs";
@@ -35,25 +34,16 @@ export default async function AppLayout({
   const { activeOrgId } = await getActiveOrg(supabase, data.user!.id);
   if (activeOrgId) {
     const pathname = (await headers()).get("x-pathname") ?? "";
-    const { data: orgFlags } = await supabase
-      .from("organizations")
-      .select("is_demo")
-      .eq("id", activeOrgId)
-      .maybeSingle();
-    const isDemoWorkspace = Boolean((orgFlags as { is_demo?: boolean } | null)?.is_demo);
-    if (
-      !isDemoWorkspace &&
-      pathname &&
-      (await shouldRedirectToGuidedOnboarding(supabase, activeOrgId, pathname))
-    ) {
+    const [{ data: orgFlags }, { data: demoCfg }] = await Promise.all([
+      supabase.from("organizations").select("is_demo").eq("id", activeOrgId).maybeSingle(),
+      supabase.from("org_demo_config").select("is_demo_org").eq("org_id", activeOrgId).maybeSingle(),
+    ]);
+    const isDemoWorkspace = Boolean(
+      (orgFlags as { is_demo?: boolean } | null)?.is_demo ||
+        (demoCfg as { is_demo_org?: boolean } | null)?.is_demo_org
+    );
+    if (!isDemoWorkspace && pathname && (await shouldRedirectToPhase5Onboarding(supabase, activeOrgId, pathname))) {
       redirect("/onboarding");
-    }
-    if (
-      !isDemoWorkspace &&
-      pathname &&
-      (await shouldRedirectToPhase2Activation(supabase, activeOrgId, pathname))
-    ) {
-      redirect("/onboarding/activation");
     }
   }
 

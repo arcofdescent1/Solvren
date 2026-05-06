@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Issue } from "@/modules/issues";
+import { IssueRowNextAction } from "./IssueRowNextAction";
 import { IssueSeverityBadge } from "./IssueSeverityBadge";
 import { IssueSourceBadge } from "./IssueSourceBadge";
 import { IssueStatusBadge } from "./IssueStatusBadge";
@@ -28,6 +29,7 @@ export function IssuesTable({ issues }: { issues: Issue[] }) {
             <th className="text-left py-2 pr-4 font-medium">Priority</th>
             <th className="text-left py-2 pr-4 font-medium">Status</th>
             <th className="text-left py-2 pr-4 font-medium">Verification</th>
+            <th className="text-left py-2 pr-4 font-medium">Next step</th>
           </tr>
         </thead>
         <tbody>
@@ -59,6 +61,9 @@ export function IssuesTable({ issues }: { issues: Issue[] }) {
               </td>
               <td className="py-2 pr-4">
                 <IssueVerificationBadge status={i.verification_status} />
+              </td>
+              <td className="py-2 pr-4 align-top">
+                <IssueRowNextAction issue={i as Issue & { approval_state?: string | null }} />
               </td>
             </tr>
           ))}

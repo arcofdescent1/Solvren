@@ -19,7 +19,7 @@ function recLabel(r: ExecutiveChangeView["recommendation"]): string {
   }
 }
 
-/** Compact executive DM card (≤6 visible content lines in section). */
+/** Executive DM: overlay decisions only (no domain approval buttons). */
 export function buildExecutiveDmSlackBlocks(args: {
   view: ExecutiveChangeView;
   overviewUrl: string;
@@ -48,6 +48,15 @@ export function buildExecutiveDmSlackBlocks(args: {
 
   return [
     {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: "_This is an executive decision. Domain approvals (Finance, Billing, etc.) are still required before release._",
+        },
+      ],
+    },
+    {
       type: "section",
       text: {
         type: "mrkdwn",
@@ -65,19 +74,43 @@ export function buildExecutiveDmSlackBlocks(args: {
         {
           type: "button",
           style: "primary",
-          text: { type: "plain_text", text: "Approve" },
-          action_id: "executive_dm_approve",
+          text: { type: "plain_text", text: "Approve (exec)" },
+          action_id: "executive_overlay_approve",
           value: meta,
         },
         {
           type: "button",
-          text: { type: "plain_text", text: "Delay" },
-          action_id: "executive_dm_delay",
+          style: "danger",
+          text: { type: "plain_text", text: "Deny (exec)" },
+          action_id: "executive_overlay_deny",
           value: meta,
         },
         {
           type: "button",
-          text: { type: "plain_text", text: "View overview" },
+          text: { type: "plain_text", text: "Request info" },
+          action_id: "executive_overlay_request_info",
+          value: meta,
+        },
+      ],
+    },
+    {
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Delay 24h" },
+          action_id: "executive_overlay_delay",
+          value: meta,
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Escalate" },
+          action_id: "executive_overlay_escalate",
+          value: meta,
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "View details" },
           url: overviewUrl,
         },
       ],

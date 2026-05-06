@@ -4,13 +4,16 @@
 import type { IssueStatus } from "./index";
 
 const TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
-  open: ["triaged", "assigned", "dismissed"],
-  triaged: ["assigned", "open", "dismissed"],
+  open: ["triaged", "assigned", "dismissed", "detected", "acknowledged"],
+  triaged: ["assigned", "open", "dismissed", "acknowledged"],
+  detected: ["acknowledged", "assigned", "dismissed"],
+  acknowledged: ["assigned", "dismissed", "in_progress"],
   assigned: ["in_progress", "open", "triaged", "dismissed"],
-  in_progress: ["resolved", "open", "dismissed"],
-  resolved: ["verified", "open"],
-  verified: ["open"],
-  dismissed: [],
+  in_progress: ["resolved", "open", "dismissed", "triaged"],
+  resolved: ["verified", "open", "reopened"],
+  verified: ["open", "reopened"],
+  dismissed: ["reopened", "open"],
+  reopened: ["acknowledged", "assigned", "dismissed", "detected", "in_progress"],
 };
 
 export function canTransition(from: IssueStatus, to: IssueStatus): boolean {

@@ -9,6 +9,8 @@ export { IssueStatusTabs } from "./IssueStatusTabs";
 export { getStatusTabFromParam, getStatusesForTab } from "./issueStatusTabs.model";
 export { IssuesTable } from "./IssuesTable";
 export { IssueDetailHeader } from "./IssueDetailHeader";
+export { IssueDetailNextAction } from "./IssueDetailNextAction";
+export { NextActionBanner } from "./NextActionBanner";
 export { IssueImpactCard } from "./IssueImpactCard";
 export { IssueSourcePanel } from "./IssueSourcePanel";
 export { IssueLinksPanel } from "./IssueLinksPanel";

@@ -113,3 +113,45 @@ export async function getAccessTokenJwt(
   tokenCache.set(key, { accessToken: token, instanceUrl, expiresAt });
   return { accessToken: token, instanceUrl, idUrl };
 }
+
+/** OAuth web-server refresh_token grant (Phase 1 value engine). */
+export async function refreshAccessTokenWithRefreshToken(params: {
+  environment: "production" | "sandbox";
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}): Promise<TokenResult & { refresh_token?: string }> {
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    client_id: params.clientId,
+    client_secret: params.clientSecret,
+    refresh_token: params.refreshToken,
+  });
+
+  const res = await fetch(getTokenUrl(params.environment), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  const data = (await res.json()) as {
+    access_token?: string;
+    instance_url?: string;
+    refresh_token?: string;
+    id?: string;
+    expires_in?: number;
+    error?: string;
+    error_description?: string;
+  };
+
+  if (!res.ok) throw new Error(data.error_description ?? data.error ?? `Refresh failed: ${res.status}`);
+  const token = data.access_token;
+  const instanceUrl = data.instance_url;
+  if (!token || !instanceUrl) throw new Error("Missing access_token or instance_url from refresh");
+  return {
+    accessToken: token,
+    instanceUrl,
+    idUrl: data.id,
+    refresh_token: data.refresh_token,
+  };
+}

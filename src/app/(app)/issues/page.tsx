@@ -10,6 +10,7 @@ import { IssuesFilters, IssuesSavedViews, IssueStatusTabs, IssuesTable } from "@
 import { getStatusTabFromParam, getStatusesForTab } from "@/components/issues/issueStatusTabs.model";
 import { PAGE_COPY } from "@/config/pageCopy";
 import { PageHelpDrawer } from "@/components/help";
+import { OPEN_ISSUE_QUEUE_STATUSES } from "@/lib/issues/issuePhase2Types";
 
 export default async function IssuesPage({
   searchParams,
@@ -55,8 +56,9 @@ export default async function IssuesPage({
   const statusSet = new Set(statusesForTab);
   const issues = statusSet.size > 0 ? allIssues.filter((i) => statusSet.has(i.status)) : allIssues;
 
+  const openTabStatuses = new Set<string>(OPEN_ISSUE_QUEUE_STATUSES);
   const tabCounts = {
-    open: allIssues.filter((i) => ["open", "triaged", "assigned", "in_progress"].includes(i.status)).length,
+    open: allIssues.filter((i) => openTabStatuses.has(i.status)).length,
     assigned: allIssues.filter((i) => ["assigned", "in_progress"].includes(i.status)).length,
     pending_verification: allIssues.filter((i) => i.status === "resolved").length,
     verified: allIssues.filter((i) => i.status === "verified").length,

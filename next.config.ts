@@ -59,17 +59,22 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/dashboard", destination: "/home", permanent: false },
-      { source: "/executive", destination: "/insights", permanent: false },
+      // Phase 5 — canonical nav (dashboard / home → action queue)
+      { source: "/dashboard", destination: "/action-queue", permanent: false },
+      { source: "/home", destination: "/dashboard", permanent: false },
+      { source: "/signals", destination: "/issues", permanent: false },
+      { source: "/value", destination: "/roi", permanent: false },
       { source: "/org/settings", destination: "/settings", permanent: false },
       { source: "/admin", destination: "/admin/jobs", permanent: true },
-      // Gap 1: demote Reviews, Signals from primary nav
+      // Gap 1: demote Reviews
       { source: "/reviews", destination: "/changes?view=in_review", permanent: false },
-      { source: "/signals", destination: "/insights/risk-drivers", permanent: false },
       // Gap 2: Ops moved to Settings → System diagnostics
       { source: "/ops", destination: "/settings/system/diagnostics", permanent: false },
       // Gap 3: integration marketplace at /settings/integrations
       { source: "/settings/integrations", destination: "/org/settings/integrations", permanent: false },
+      { source: "/getting-started", destination: "/onboarding", permanent: false },
+      { source: "/setup", destination: "/onboarding", permanent: false },
+      { source: "/intro", destination: "/onboarding", permanent: false },
     ];
   },
 };

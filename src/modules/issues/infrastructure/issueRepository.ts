@@ -73,11 +73,7 @@ export async function selectIssues(
   supabase: SupabaseClient,
   params: IssueListParams
 ): Promise<{ data: IssueRow[]; error: Error | null }> {
-  let q = supabase
-    .from("issues")
-    .select("*")
-    .eq("org_id", params.org_id)
-    .order("opened_at", { ascending: false });
+  let q = supabase.from("issues").select("*").eq("org_id", params.org_id);
   if (params.status != null) {
     const arr = Array.isArray(params.status) ? params.status : [params.status];
     if (arr.length) q = q.in("status", arr);
@@ -100,6 +96,24 @@ export async function selectIssues(
     if (arr.length) q = q.in("verification_status", arr);
   }
   if (params.owner_user_id != null) q = q.eq("owner_user_id", params.owner_user_id);
+  if (params.priority_band != null && params.priority_band.trim() !== "") {
+    q = q.eq("priority_band", params.priority_band.trim());
+  }
+  if (params.include_suppressed !== true) {
+    const nowIso = new Date().toISOString();
+    q = q.or(`suppressed_until.is.null,suppressed_until.lte.${nowIso}`);
+  }
+
+  const sort = params.sort ?? "priority";
+  if (sort === "opened_at") {
+    q = q.order("opened_at", { ascending: false });
+  } else {
+    q = q
+      .order("priority_score", { ascending: false })
+      .order("sla_due_at", { ascending: true, nullsFirst: false })
+      .order("revenue_impact_cents", { ascending: false });
+  }
+
   const limit = Math.min(params.limit ?? 50, 100);
   const offset = params.offset ?? 0;
   q = q.range(offset, offset + limit - 1);

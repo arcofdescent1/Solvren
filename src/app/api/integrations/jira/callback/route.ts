@@ -6,6 +6,7 @@ import { verifyJiraState } from "@/lib/jira/state";
 import { env } from "@/lib/env";
 import { JiraAuthService } from "@/services/jira/jiraAuthService";
 import { linkJiraIntegrationAccount } from "@/modules/integrations/providers/jira/accountLink";
+import { logIntegrationConnected } from "@/lib/telemetry/logIntegrationConnected";
 
 export async function GET(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -113,6 +114,13 @@ export async function GET(req: NextRequest) {
     entityType: "integration",
     entityId: "jira",
     metadata: { cloudId: resource.id, siteName: resource.name, siteUrl },
+  });
+
+  logIntegrationConnected(admin, {
+    orgId: state.orgId,
+    userId: state.userId,
+    provider: "jira",
+    metadata: { cloudId: resource.id, siteName: resource.name },
   });
 
   const base = new URL(req.url);

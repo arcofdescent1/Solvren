@@ -84,7 +84,9 @@ export function isMateriallyWorsened(prev: MaterialSnapshotV1 | null, next: Mate
 
   const overlayWorse =
     (prev.executiveOverlay === "NONE" || prev.executiveOverlay === "APPROVED") &&
-    (next.executiveOverlay === "DELAYED" || next.executiveOverlay === "REQUESTED_INFO");
+    (next.executiveOverlay === "DELAYED" ||
+      next.executiveOverlay === "REQUESTED_INFO" ||
+      next.executiveOverlay === "DENIED");
   if (overlayWorse) return true;
 
   return false;

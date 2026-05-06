@@ -19,12 +19,15 @@ export type IssueSeverity = "low" | "medium" | "high" | "critical";
 export type IssueStatus =
   | "open"
   | "triaged"
+  | "detected"
+  | "acknowledged"
   | "assigned"
   | "in_progress"
   | "resolved"
   | "verified"
-  | "dismissed";
-export type VerificationStatus = "pending" | "passed" | "failed" | "not_required";
+  | "dismissed"
+  | "reopened";
+export type VerificationStatus = "pending" | "passed" | "failed" | "not_required" | "inconclusive";
 export type IssueSourceType =
   | "change"
   | "detector"
@@ -98,4 +101,9 @@ export type IssueListParams = {
   owner_user_id?: string | null;
   limit?: number;
   offset?: number;
+  /** Phase 3 — default `priority` (priority_score ↓, sla_due_at ↑, revenue ↓). */
+  sort?: "priority" | "opened_at";
+  /** When false (default), hide issues with active suppression (suppressed_until > now). */
+  include_suppressed?: boolean;
+  priority_band?: string;
 };

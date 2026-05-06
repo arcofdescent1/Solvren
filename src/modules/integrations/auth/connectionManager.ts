@@ -18,6 +18,7 @@ import {
   getAuthSessionByStateToken,
   updateAuthSession,
 } from "../core/integrationAuthSessionsRepo";
+import { logIntegrationConnected } from "@/lib/telemetry/logIntegrationConnected";
 
 const SESSION_TTL_MINUTES = 15;
 
@@ -200,6 +201,13 @@ export async function handleCallback(
       }
     }
   }
+
+  logIntegrationConnected(supabase, {
+    orgId: session.org_id,
+    userId: session.initiated_by_user_id ?? null,
+    provider: String(params.provider),
+    metadata: accountId ? { integration_account_id: accountId } : undefined,
+  });
 
   await updateAuthSession(supabase, session.id, { status: "completed" });
   return {

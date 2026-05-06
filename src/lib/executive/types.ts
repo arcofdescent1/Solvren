@@ -24,9 +24,15 @@ export type ReadinessRow = {
   updatedAt: string | null;
 };
 
-export type ExecutiveDecisionApi = "APPROVE" | "DELAY" | "ESCALATE" | "REQUEST_INFO";
+export type ExecutiveDecisionApi = "APPROVE" | "DENY" | "DELAY" | "ESCALATE" | "REQUEST_INFO";
 
-export type ExecutiveDecisionState = "NONE" | "APPROVED" | "DELAYED" | "ESCALATED" | "REQUESTED_INFO";
+export type ExecutiveDecisionState =
+  | "NONE"
+  | "APPROVED"
+  | "DENIED"
+  | "DELAYED"
+  | "ESCALATED"
+  | "REQUESTED_INFO";
 
 export type SignoffSummary = {
   approved: string[];
@@ -57,6 +63,9 @@ export type ExecutiveChangeView = {
   hasApprovalConflict: boolean;
   approvalConflictMessage: string | null;
   executiveOverlay: ExecutiveDecisionState;
+  /** Persisted overlay flags (release still gated by domain approvals). */
+  executiveBlocked: boolean;
+  executiveSnoozeUntil: string | null;
   technicalDetails: {
     signals: Array<{ key: string; detail?: string }>;
     policyViolations: Array<Record<string, unknown>>;

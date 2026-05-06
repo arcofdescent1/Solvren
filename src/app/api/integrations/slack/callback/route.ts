@@ -6,6 +6,7 @@ import { verifySlackState } from "@/lib/slack/state";
 import { env } from "@/lib/env";
 import { sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 import { linkSlackIntegrationAccount } from "@/modules/integrations/providers/slack/accountLink";
+import { logIntegrationConnected } from "@/lib/telemetry/logIntegrationConnected";
 
 async function slackOAuthAccess(code: string, redirectUri: string) {
   const body = new URLSearchParams();
@@ -215,6 +216,13 @@ export async function GET(req: NextRequest) {
     entityType: "integration",
     entityId: "slack",
     metadata: { teamId, teamName, defaultChannel: channel },
+  });
+
+  logIntegrationConnected(admin, {
+    orgId: state.orgId,
+    userId: state.userId,
+    provider: "slack",
+    metadata: { teamId, teamName },
   });
 
   return NextResponse.redirect(

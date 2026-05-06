@@ -12,6 +12,7 @@ export function deriveExecutiveOverlayState(decisions: DecisionRow[]): Executive
   );
   const last = sorted[0]!.decision;
   if (last === "APPROVE") return "APPROVED";
+  if (last === "DENY") return "DENIED";
   if (last === "DELAY") return "DELAYED";
   if (last === "ESCALATE") return "ESCALATED";
   if (last === "REQUEST_INFO") return "REQUESTED_INFO";

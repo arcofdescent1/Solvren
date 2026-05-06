@@ -3,11 +3,15 @@
  * GET: status; POST: save credentials.
  */
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authzErrorResponse, parseRequestedOrgId, requireOrgPermission } from "@/lib/server/authz";
 import { sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 import { getAccountByOrgAndProvider, insertIntegrationAccount, updateIntegrationAccount } from "@/modules/integrations/core/integrationAccountsRepo";
+import { validateRestrictedStripeKey } from "@/lib/value-engine/stripe/validateRestrictedKey";
+import { recordFirstIntegrationConnected } from "@/lib/value-engine/metrics";
+import { runValueEngineBackfillOrg } from "@/lib/value-engine/runValueEngineCron";
+import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
+import { logIntegrationConnected } from "@/lib/telemetry/logIntegrationConnected";
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,16 +55,9 @@ export async function POST(req: NextRequest) {
     const ctx = await requireOrgPermission(parseRequestedOrgId(orgIdRaw), "integrations.manage");
     if (!body.secretKey?.trim()) return NextResponse.json({ error: "secretKey required" }, { status: 400 });
 
-    const stripe = new Stripe(body.secretKey.trim(), {
-      apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
-    });
-    try {
-      await stripe.accounts.retrieve();
-    } catch (e) {
-      return NextResponse.json(
-        { error: e instanceof Error ? e.message : "Invalid API key" },
-        { status: 400 }
-      );
+    const validated = await validateRestrictedStripeKey(body.secretKey.trim());
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.error }, { status: 400 });
     }
 
     const admin = createAdminClient();
@@ -124,6 +121,20 @@ export async function POST(req: NextRequest) {
         secrets_ref: null,
         metadata_json: {},
       });
+    }
+
+    await recordFirstIntegrationConnected(admin, ctx.orgId);
+    logIntegrationConnected(admin, { orgId: ctx.orgId, userId: ctx.user.id, provider: "stripe" });
+    try {
+      await retryWithBackoff(
+        async () => {
+          const r = await runValueEngineBackfillOrg(admin, ctx.orgId);
+          if (!r.ok) throw new Error(r.errors.join("; ") || "value_engine_backfill_failed");
+        },
+        RETRY_PRESETS.integrationSync
+      );
+    } catch {
+      /* backfill is best-effort; connection already persisted */
     }
 
     return NextResponse.json({ ok: true });

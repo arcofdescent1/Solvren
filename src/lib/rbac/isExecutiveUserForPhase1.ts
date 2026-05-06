@@ -6,6 +6,7 @@ const EXECUTIVE_ROLE_KEYS = new Set([
   "CEO",
   "COO",
   "CRO",
+  "VP",
   "VP_TECH",
   "DEPARTMENT_LEADER",
 ]);

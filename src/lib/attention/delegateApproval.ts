@@ -55,7 +55,10 @@ export function delegateApproval(ctx: AttentionContext): DelegationDecision {
   const revenueOk =
     v.revenueAtRisk == null ||
     v.revenueAtRisk < ctx.settings.executiveRevenueThresholdUsd;
-  const overlayOk = v.executiveOverlay !== "DELAYED" && v.executiveOverlay !== "REQUESTED_INFO";
+  const overlayOk =
+    v.executiveOverlay !== "DELAYED" &&
+    v.executiveOverlay !== "REQUESTED_INFO" &&
+    v.executiveOverlay !== "DENIED";
 
   if (!lowMed || !noEscalate || !noConflict || blocked > 0 || !revenueOk || !overlayOk) {
     return {

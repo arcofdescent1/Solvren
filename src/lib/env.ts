@@ -95,6 +95,11 @@ export const env = {
     return Number.isFinite(n) && n > 0 ? n : undefined;
   },
 
+  /** Pepper for hashing one-time executive email action tokens (optional; email CTAs skipped if unset). */
+  get externalActionTokenSecret(): string | undefined {
+    return optional(process.env.EXTERNAL_ACTION_TOKEN_SECRET);
+  },
+
   /** Resend / email (optional). */
   get resendApiKey(): string | undefined {
     return optional(process.env.RESEND_API_KEY);
@@ -290,6 +295,17 @@ export const env = {
   get salesforceDefaultCompositeLimit(): number {
     const v = optional(process.env.SALESFORCE_DEFAULT_COMPOSITE_LIMIT);
     return v ? parseInt(v, 10) : 25;
+  },
+
+  /** Salesforce Connected App (OAuth web flow — Phase 1 value engine). Optional; uses JWT/CC path when unset. */
+  get salesforceConnectedAppClientId(): string | undefined {
+    return optional(process.env.SALESFORCE_CONNECTED_APP_CLIENT_ID ?? process.env.SALESFORCE_CLIENT_ID);
+  },
+  get salesforceConnectedAppClientSecret(): string | undefined {
+    return optional(process.env.SALESFORCE_CONNECTED_APP_CLIENT_SECRET ?? process.env.SALESFORCE_CLIENT_SECRET);
+  },
+  get salesforceOAuthRedirectUri(): string | undefined {
+    return optional(process.env.SALESFORCE_OAUTH_REDIRECT_URI);
   },
 
   /** HubSpot integration (optional). */

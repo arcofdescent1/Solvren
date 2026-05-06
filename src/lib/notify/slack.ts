@@ -1,27 +1,34 @@
+import { RETRY_PRESETS, retryWithBackoff } from "@/lib/retry/retryWithBackoff";
+
 export async function slackPostMessage(params: {
   botToken: string;
   channel: string;
   text: string;
   blocks?: Record<string, unknown>[];
 }) {
-  const res = await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${params.botToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      channel: params.channel,
-      text: params.text,
-      blocks: params.blocks,
-      unfurl_links: false,
-      unfurl_media: false,
-    }),
-  });
+  return retryWithBackoff(
+    async () => {
+      const res = await fetch("https://slack.com/api/chat.postMessage", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${params.botToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channel: params.channel,
+          text: params.text,
+          blocks: params.blocks,
+          unfurl_links: false,
+          unfurl_media: false,
+        }),
+      });
 
-  const json = (await res.json()) as { ok?: boolean; error?: string };
-  if (!json?.ok) {
-    throw new Error(json?.error ?? "slack_post_failed");
-  }
-  return json;
+      const json = (await res.json()) as { ok?: boolean; error?: string };
+      if (!json?.ok) {
+        throw new Error(json?.error ?? "slack_post_failed");
+      }
+      return json;
+    },
+    { retries: RETRY_PRESETS.slackOrEmail.retries, backoffMs: RETRY_PRESETS.slackOrEmail.backoffMs }
+  );
 }

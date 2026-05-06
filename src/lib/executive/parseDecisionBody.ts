@@ -1,6 +1,6 @@
 import type { ExecutiveDecisionApi } from "./types";
 
-const ALLOWED: ExecutiveDecisionApi[] = ["APPROVE", "DELAY", "ESCALATE", "REQUEST_INFO"];
+const ALLOWED: ExecutiveDecisionApi[] = ["APPROVE", "DENY", "DELAY", "ESCALATE", "REQUEST_INFO"];
 
 export function parseExecutiveDecisionBody(raw: unknown): {
   decision: ExecutiveDecisionApi;

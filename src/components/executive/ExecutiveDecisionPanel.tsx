@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/ui/primitives/dialog";
 import type { ExecutiveChangeView, ExecutiveDecisionApi } from "@/lib/executive/types";
+import { useIsDemoOrg } from "@/lib/hooks/useIsDemoOrg";
 
 function recLabel(r: ExecutiveChangeView["recommendation"]): string {
   switch (r) {
@@ -42,6 +43,14 @@ export function ExecutiveDecisionPanel({
   const [comment, setComment] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [demoToast, setDemoToast] = React.useState<string | null>(null);
+  const { isDemo, loading: demoLoading } = useIsDemoOrg();
+
+  React.useEffect(() => {
+    if (!demoToast) return;
+    const t = window.setTimeout(() => setDemoToast(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [demoToast]);
 
   const missingSupport =
     view.readiness.find((r) => r.category === "Support")?.status === "PENDING";
@@ -55,6 +64,12 @@ export function ExecutiveDecisionPanel({
 
   async function submit() {
     if (!pending) return;
+    if (isDemo) {
+      setDemoToast("Simulated action recorded (demo mode)");
+      setOpen(false);
+      setSubmitting(false);
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -87,18 +102,28 @@ export function ExecutiveDecisionPanel({
   const confirmTitle =
     pending === "APPROVE"
       ? "Confirm executive approval"
-      : pending === "DELAY"
-        ? "Delay this change"
-        : pending === "ESCALATE"
-          ? "Escalate"
-          : "Request more information";
+      : pending === "DENY"
+        ? "Executive block (deny)"
+        : pending === "DELAY"
+          ? "Delay this change"
+          : pending === "ESCALATE"
+            ? "Escalate"
+            : "Request more information";
 
   return (
     <section className="space-y-3" data-testid="executive-decision-panel">
       <h2 className="text-xl font-bold text-[var(--text)]">Executive actions</h2>
+      {demoToast ? (
+        <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
+          {demoToast}
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <Button type="button" onClick={() => openFor("APPROVE")}>
           Approve
+        </Button>
+        <Button type="button" variant="destructive" onClick={() => openFor("DENY")}>
+          Deny
         </Button>
         <Button type="button" variant="outline" onClick={() => openFor("DELAY")}>
           Delay
@@ -119,7 +144,8 @@ export function ExecutiveDecisionPanel({
           <DialogBody className="space-y-3">
             {pending === "APPROVE" ? (
               <p className="text-sm text-[var(--text-muted)]">
-                You are recording executive approval to proceed. This does not replace domain approvals.
+                You are recording directional executive approval. Release remains blocked until domain approvals and
+                evidence are complete.
                 <br />
                 <span className="font-medium text-[var(--text)]">Recommendation:</span> {recLabel(view.recommendation)}
                 {missingSupport ? (
@@ -129,6 +155,14 @@ export function ExecutiveDecisionPanel({
                   </>
                 ) : null}
               </p>
+            ) : pending === "DENY" ? (
+              <p className="text-sm text-[var(--text-muted)]">
+                This sets an executive block on the change. Domain approval rows are not modified. A reason is required.
+              </p>
+            ) : pending === "DELAY" ? (
+              <p className="text-sm text-[var(--text-muted)]">
+                Snoozes executive reminders for 24 hours. Domain approvals are not paused. Comment is optional.
+              </p>
             ) : (
               <p className="text-sm text-[var(--text-muted)]">Add a short note for the record (required).</p>
             )}
@@ -136,7 +170,9 @@ export function ExecutiveDecisionPanel({
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder={pending === "APPROVE" ? "Optional context" : "Required comment"}
+                placeholder={
+                  pending === "APPROVE" || pending === "DELAY" ? "Optional context" : "Required comment"
+                }
                 rows={3}
               />
             ) : null}
@@ -146,8 +182,12 @@ export function ExecutiveDecisionPanel({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" disabled={submitting} onClick={() => void submit()}>
-              {submitting ? "Saving…" : "Confirm"}
+            <Button
+              type="button"
+              disabled={submitting || demoLoading}
+              onClick={() => void submit()}
+            >
+              {submitting ? "Saving…" : demoLoading ? "…" : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

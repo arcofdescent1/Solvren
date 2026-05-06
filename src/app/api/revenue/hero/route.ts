@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     .from("issues")
     .select("*", { count: "exact", head: true })
     .eq("org_id", orgId)
-    .in("status", ["open", "triaged", "assigned", "in_progress"])
+    .in("status", ["open", "triaged", "detected", "acknowledged", "assigned", "in_progress", "reopened"])
     .in("severity", ["high", "critical"]);
 
   const activeHighValueIssueCount = count ?? 0;

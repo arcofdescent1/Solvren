@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Card, CardBody, Badge } from "@/ui";
 import SlackConfigForm from "./SlackConfigForm";
+import { useIsDemoOrg } from "@/lib/hooks/useIsDemoOrg";
 
 type SlackConfig = {
   enabled?: boolean;
@@ -32,6 +33,7 @@ export default function SlackIntegrationCard({
   lastSuccessAt: _lastSuccessAt,
   healthStatus: _healthStatus,
 }: Props) {
+  const { isDemo, loading: demoLoading } = useIsDemoOrg();
   const [connecting, setConnecting] = useState(false);
   const [testing, setTesting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -46,6 +48,11 @@ export default function SlackIntegrationCard({
 
   async function handleConnect() {
     if (!isAdmin) return;
+    if (demoLoading) return;
+    if (isDemo) {
+      setMsg("Simulated action recorded (demo mode)");
+      return;
+    }
     setConnecting(true);
     setMsg(null);
     try {
@@ -70,6 +77,11 @@ export default function SlackIntegrationCard({
   }
 
   async function handleTest() {
+    if (demoLoading) return;
+    if (isDemo) {
+      setMsg("Simulated action recorded (demo mode)");
+      return;
+    }
     setTesting(true);
     setMsg(null);
     try {
@@ -91,6 +103,11 @@ export default function SlackIntegrationCard({
   }
 
   async function handleRetryFailures() {
+    if (demoLoading) return;
+    if (isDemo) {
+      setMsg("Simulated action recorded (demo mode)");
+      return;
+    }
     setRetrying(true);
     setMsg(null);
     try {
@@ -115,7 +132,13 @@ export default function SlackIntegrationCard({
   }
 
   async function handleDisconnect() {
-    if (!isAdmin || !confirm("Disconnect Slack?")) return;
+    if (!isAdmin) return;
+    if (demoLoading) return;
+    if (isDemo) {
+      setMsg("Simulated action recorded (demo mode)");
+      return;
+    }
+    if (!confirm("Disconnect Slack?")) return;
     setDisconnecting(true);
     setMsg(null);
     try {
@@ -150,11 +173,25 @@ export default function SlackIntegrationCard({
             Connect Slack to receive approval requests, risk alerts, and act on approvals from Slack.
           </p>
           {isAdmin && (
-            <Button onClick={handleConnect} disabled={connecting} className="bg-[#4A154B] hover:bg-[#611f69] text-white">
-              {connecting ? "Connecting…" : "Connect Slack"}
+            <Button
+              onClick={handleConnect}
+              disabled={connecting || demoLoading}
+              className="bg-[#4A154B] hover:bg-[#611f69] text-white"
+            >
+              {connecting ? "Connecting…" : demoLoading ? "…" : "Connect Slack"}
             </Button>
           )}
-          {msg && <p className="text-sm text-red-600">{msg}</p>}
+          {msg && (
+            <p
+              className={
+                msg.startsWith("Simulated")
+                  ? "text-sm text-emerald-700 dark:text-emerald-400"
+                  : "text-sm text-red-600"
+              }
+            >
+              {msg}
+            </p>
+          )}
         </CardBody>
       </Card>
     );
@@ -177,7 +214,17 @@ export default function SlackIntegrationCard({
               )}
             </>
           )}
-          {msg && <p className="text-sm text-red-600">{msg}</p>}
+          {msg && (
+            <p
+              className={
+                msg.startsWith("Simulated")
+                  ? "text-sm text-emerald-700 dark:text-emerald-400"
+                  : "text-sm text-red-600"
+              }
+            >
+              {msg}
+            </p>
+          )}
         </CardBody>
       </Card>
     );
@@ -194,12 +241,32 @@ export default function SlackIntegrationCard({
         {isAdmin && (
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>{showForm ? "Hide config" : "Edit config"}</Button>
-            <Button variant="outline" size="sm" onClick={handleTest} disabled={testing}>{testing ? "Testing…" : "Test connection"}</Button>
-            <Button variant="outline" size="sm" onClick={handleRetryFailures} disabled={retrying}>Retry failures</Button>
-            <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={disconnecting} className="text-red-600">Disconnect</Button>
+            <Button variant="outline" size="sm" onClick={handleTest} disabled={testing || demoLoading}>
+              {testing ? "Testing…" : demoLoading ? "…" : "Test connection"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleRetryFailures} disabled={retrying || demoLoading}>
+              {retrying ? "…" : "Retry failures"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={disconnecting || demoLoading} className="text-red-600">
+              Disconnect
+            </Button>
           </div>
         )}
-        {msg && <p className="text-sm text-red-600">{msg}</p>}
+        {msg && (
+          <p
+            className={
+              msg.startsWith("Simulated") ||
+              msg === "Connection successful" ||
+              /Queued \d+ for retry/.test(msg) ||
+              msg === "Disconnected" ||
+              msg === "No pending failures"
+                ? "text-sm text-emerald-700 dark:text-emerald-400"
+                : "text-sm text-red-600"
+            }
+          >
+            {msg}
+          </p>
+        )}
         {showForm && (
           <SlackConfigForm orgId={orgId} initialConfig={config} onSaved={() => { setShowForm(false); window.location.reload(); }} onCancel={() => setShowForm(false)} />
         )}

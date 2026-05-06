@@ -18,7 +18,47 @@ import { nextTomorrowMorningNineAm } from "@/lib/slack/deferReminderAt";
 import { addTimelineEvent } from "@/services/timeline/addTimelineEvent";
 import { fetchMitigationsForSignals } from "@/services/risk/mitigationsDb";
 import { persistExecutiveDecision } from "@/lib/executive/persistExecutiveDecision";
+import type { ExecutiveDecisionApi } from "@/lib/executive/types";
+import { validateExecutiveDecisionPayload } from "@/lib/executive/executiveDecisionGuards";
 import { isExecutiveUserForPhase1 } from "@/lib/rbac/isExecutiveUserForPhase1";
+import { buildExecutiveDecisionSlackModal } from "@/lib/server/slack/executiveDecisionModal";
+import { executeIssueWorkflowAction } from "@/lib/issues/executeIssueWorkflowAction";
+import {
+  parseIssueSlackButtonValue,
+  slackActionIdToIssueAction,
+} from "@/lib/issues/issueWorkflowSlack";
+import type { IssueWorkflowSlackJobPayload } from "@/lib/slack/approvalActions";
+
+const EXEC_DECISION_IDS: ExecutiveDecisionApi[] = [
+  "APPROVE",
+  "DENY",
+  "DELAY",
+  "ESCALATE",
+  "REQUEST_INFO",
+];
+
+function mapExecutiveSlackActionToDecision(actionId: string): ExecutiveDecisionApi | null {
+  switch (actionId) {
+    case "executive_dm_approve":
+    case "executive_overlay_approve":
+      return "APPROVE";
+    case "executive_dm_delay":
+    case "executive_overlay_delay":
+      return "DELAY";
+    case "executive_overlay_deny":
+      return "DENY";
+    case "executive_overlay_request_info":
+      return "REQUEST_INFO";
+    case "executive_overlay_escalate":
+      return "ESCALATE";
+    default:
+      return null;
+  }
+}
+
+function isExecutiveOverlayActionId(actionId: string): boolean {
+  return mapExecutiveSlackActionToDecision(actionId) != null;
+}
 
 type SlackInteractivePayload = {
   type?: string;
@@ -258,6 +298,65 @@ export async function POST(req: Request) {
       return NextResponse.json({
         response_action: "errors",
         errors: { comment: msg },
+      });
+    }
+  }
+
+  // ——— View submission: assign issue owner (Phase 2, modal opened synchronously) ———
+  if (
+    payload.type === "view_submission" &&
+    payload.view?.callback_id === "issue_assign_modal"
+  ) {
+    try {
+      const rawMeta = (payload.view as { private_metadata?: string } | undefined)?.private_metadata;
+      const meta = rawMeta ? (JSON.parse(rawMeta) as { orgId?: string; issueId?: string }) : {};
+      if (!meta.orgId || !meta.issueId) throw new Error("Missing issue context");
+      if (!slackUserId) throw new Error("Missing user");
+
+      const view = payload.view as Parameters<typeof pickModalValue>[0];
+      const email = pickModalValue(view, "owner_email")?.trim() || "";
+      if (!email) throw new Error("Owner email is required");
+      const name = pickModalValue(view, "owner_name")?.trim() || null;
+
+      const admin = createAdminClient();
+      const { data: installIs } = await admin
+        .from("slack_installations")
+        .select("bot_token")
+        .eq("org_id", meta.orgId)
+        .eq("status", "ACTIVE")
+        .maybeSingle();
+      const actorId = await resolveSlackToSolvrenUserId({
+        admin,
+        orgId: meta.orgId,
+        slackTeamId: teamId,
+        slackUserId: slackUserId!,
+        botToken: (installIs?.bot_token as string | undefined) ?? null,
+      });
+      if (!actorId) throw new Error(SLACK_NOT_LINKED_EPHEMERAL);
+
+      const authUser = await admin.auth.admin.getUserById(actorId);
+      const actorEmail = authUser.data?.user?.email ?? null;
+
+      const r = await executeIssueWorkflowAction(admin, {
+        issueId: meta.issueId,
+        actorUserId: actorId,
+        actorEmail,
+        actorDisplayName: null,
+        source: "slack",
+        action: "assign",
+        payload: { ownerEmail: email, ownerDisplayName: name },
+      });
+      if (!r.ok) throw new Error(r.error);
+
+      return new Response(
+        JSON.stringify({ response_action: "clear" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Assign failed";
+      return NextResponse.json({
+        response_action: "errors",
+        errors: { owner_email: msg },
       });
     }
   }
@@ -537,6 +636,19 @@ export async function POST(req: Request) {
       const comment =
         pickModalValue(payload.view as Parameters<typeof pickModalValue>[0], "comment")?.trim() || "";
 
+      const decisionRaw = meta.decision;
+      if (typeof decisionRaw !== "string" || !EXEC_DECISION_IDS.includes(decisionRaw as ExecutiveDecisionApi)) {
+        throw new Error("Invalid executive decision");
+      }
+      const decision = decisionRaw as ExecutiveDecisionApi;
+      const payloadErr = validateExecutiveDecisionPayload(decision, comment || null);
+      if (payloadErr) {
+        return NextResponse.json({
+          response_action: "errors",
+          errors: { comment: payloadErr },
+        });
+      }
+
       const admin = createAdminClient();
       const { data: installExec } = await admin
         .from("slack_installations")
@@ -563,13 +675,13 @@ export async function POST(req: Request) {
       const execOk = await isExecutiveUserForPhase1(admin, userId, meta.orgId);
       if (!execOk) throw new Error("Not authorized for executive actions");
 
-      const decision = meta.decision === "DELAY" ? "DELAY" : "APPROVE";
       const result = await persistExecutiveDecision(admin, {
         orgId: meta.orgId,
         changeId: meta.changeId,
         userId,
         decision,
         comment: comment || null,
+        audit: { channel: "slack", tokenId: null, ip: null, userAgent: null },
       });
 
       if (!result.ok) {
@@ -921,7 +1033,134 @@ export async function POST(req: Request) {
     });
   }
 
-  if (action.action_id === "executive_dm_approve" || action.action_id === "executive_dm_delay") {
+  // Phase 2 — issue workflow: open assign modal (must use trigger_id in main thread)
+  if (action.action_id === "issue_assign_open") {
+    const triggerId = payload.trigger_id;
+    if (!triggerId || !slackUserId) {
+      return NextResponse.json({ response_type: "ephemeral", text: "Missing trigger for modal." });
+    }
+    const metaIs = parseIssueSlackButtonValue(action.value);
+    if (!metaIs) {
+      return NextResponse.json({ response_type: "ephemeral", text: "Invalid issue context." });
+    }
+    const adminIs = createAdminClient();
+    const { data: installIs } = await adminIs
+      .from("slack_installations")
+      .select("bot_token")
+      .eq("org_id", metaIs.orgId)
+      .eq("status", "ACTIVE")
+      .maybeSingle();
+    if (!installIs?.bot_token) {
+      return NextResponse.json({ response_type: "ephemeral", text: "Slack is not connected for this organization." });
+    }
+    await slackApi(installIs.bot_token, "views.open", {
+      trigger_id: triggerId,
+      view: {
+        type: "modal",
+        callback_id: "issue_assign_modal",
+        private_metadata: JSON.stringify({ orgId: metaIs.orgId, issueId: metaIs.issueId }),
+        title: { type: "plain_text", text: "Assign owner" },
+        submit: { type: "plain_text", text: "Assign" },
+        close: { type: "plain_text", text: "Cancel" },
+        blocks: [
+          {
+            type: "input",
+            block_id: "owner_email",
+            label: { type: "plain_text", text: "Owner email" },
+            element: {
+              type: "plain_text_input",
+              action_id: "value",
+              placeholder: { type: "plain_text", text: "colleague@company.com" },
+            },
+          },
+          {
+            type: "input",
+            block_id: "owner_name",
+            optional: true,
+            label: { type: "plain_text", text: "Display name" },
+            element: { type: "plain_text_input", action_id: "value" },
+          },
+        ],
+      },
+    });
+    return new Response(null, { status: 200 });
+  }
+
+  // Phase 2 — issue workflow buttons (fast ack + slack_interactive_jobs worker)
+  if (action.action_id.startsWith("issue_")) {
+    const subAction = slackActionIdToIssueAction(action.action_id);
+    if (!subAction) {
+      return NextResponse.json({ response_type: "ephemeral", text: "Unknown issue action." });
+    }
+    if (!channelId || !messageTs) {
+      return NextResponse.json(
+        { response_type: "ephemeral", text: "Missing channel or message context." },
+        { status: 400 }
+      );
+    }
+    const ctxIw = parseIssueSlackButtonValue(action.value);
+    if (!ctxIw) {
+      return NextResponse.json({ response_type: "ephemeral", text: "Invalid issue context." });
+    }
+    const adminIw = createAdminClient();
+    const dedupeKeyIw = `issue_slack:${teamId}:${slackUserId}:${channelId}:${messageTs}:${action.action_id}`;
+    const { error: dedupeErrIw } = await adminIw.from("slack_action_events").insert({
+      org_id: ctxIw.orgId,
+      dedupe_key: dedupeKeyIw,
+      slack_team_id: teamId,
+      slack_user_id: slackUserId,
+      action_id: action.action_id,
+      channel_id: channelId,
+      message_ts: messageTs,
+      payload: payload as unknown as Record<string, unknown>,
+    });
+
+    if (
+      dedupeErrIw &&
+      /duplicate key value violates unique constraint/i.test(dedupeErrIw.message)
+    ) {
+      return NextResponse.json({
+        response_type: "ephemeral",
+        text: "Already processed.",
+      });
+    }
+    if (dedupeErrIw) {
+      return NextResponse.json({
+        response_type: "ephemeral",
+        text: "Unable to process action. Try again.",
+      });
+    }
+
+    const jobPayloadIw: IssueWorkflowSlackJobPayload = {
+      kind: "issue_workflow",
+      subAction,
+      orgId: ctxIw.orgId,
+      issueId: ctxIw.issueId,
+      slackUserId: slackUserId!,
+      teamId,
+      channelId,
+      messageTs,
+    };
+    const jobDedupeIw = `${dedupeKeyIw}:job`;
+    try {
+      const { inserted } = await enqueueSlackInteractiveJob(adminIw, {
+        dedupeKey: jobDedupeIw,
+        orgId: ctxIw.orgId,
+        payload: jobPayloadIw,
+      });
+      if (!inserted) return new Response(null, { status: 200 });
+    } catch {
+      await adminIw.from("slack_action_events").delete().eq("dedupe_key", dedupeKeyIw);
+      return NextResponse.json({
+        response_type: "ephemeral",
+        text: "Unable to queue action. Try again.",
+      });
+    }
+    return new Response(null, { status: 200 });
+  }
+
+  const execDecisionOpen = mapExecutiveSlackActionToDecision(action.action_id);
+  if (execDecisionOpen) {
     const triggerId = payload.trigger_id;
     if (!triggerId) return NextResponse.json({ ok: true });
     let meta: { orgId?: string; changeId?: string };
@@ -948,43 +1187,16 @@ export async function POST(req: Request) {
       .maybeSingle();
     if (!install?.bot_token) return NextResponse.json({ ok: true });
 
-    const isApprove = action.action_id === "executive_dm_approve";
+    const viewPayload = buildExecutiveDecisionSlackModal({
+      meta: {
+        orgId: meta.orgId,
+        changeId: meta.changeId,
+        decision: execDecisionOpen,
+      },
+    });
     await slackApi(install.bot_token, "views.open", {
       trigger_id: triggerId,
-      view: {
-        type: "modal",
-        callback_id: "executive_decision_modal",
-        private_metadata: JSON.stringify({
-          orgId: meta.orgId,
-          changeId: meta.changeId,
-          decision: isApprove ? "APPROVE" : "DELAY",
-        }),
-        title: { type: "plain_text", text: isApprove ? "Confirm approval" : "Delay change" },
-        submit: { type: "plain_text", text: "Submit" },
-        close: { type: "plain_text", text: "Cancel" },
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: isApprove
-                ? "*Executive approval*\nRecords your sign-off to proceed from a leadership perspective. Domain approvals still apply."
-                : "*Delay*\nShare a short reason (required).",
-            },
-          },
-          {
-            type: "input",
-            block_id: "comment",
-            optional: isApprove,
-            label: { type: "plain_text", text: isApprove ? "Optional note" : "Reason" },
-            element: {
-              type: "plain_text_input",
-              action_id: "value",
-              multiline: true,
-            },
-          },
-        ],
-      },
+      view: viewPayload,
     });
     return new Response(null, { status: 200 });
   }
@@ -1170,12 +1382,7 @@ export async function POST(req: Request) {
       : parseApprovalActionValue(action.value ?? undefined);
   const approvalId = parsedVal?.approval_id ?? "";
 
-  if (
-    !approvalId &&
-    action.action_id !== "approval_overflow" &&
-    action.action_id !== "executive_dm_approve" &&
-    action.action_id !== "executive_dm_delay"
-  ) {
+  if (!approvalId && action.action_id !== "approval_overflow" && !isExecutiveOverlayActionId(action.action_id)) {
     return NextResponse.json(
       { error: "Missing approval_id in action value" },
       { status: 400 }

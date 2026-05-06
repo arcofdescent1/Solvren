@@ -1,175 +1,138 @@
-/**
- * Phase 10 + Gap 5 + Guided Phase 1 — GET /api/onboarding/state (tracker + guided layers).
- */
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getActiveOrg } from "@/lib/org/activeOrg";
-import { getOrgOnboardingState } from "@/modules/onboarding/repositories/org-onboarding-states.repository";
-import { listOrgOnboardingSteps } from "@/modules/onboarding/repositories/org-onboarding-steps.repository";
-import { listOrgOnboardingMilestones } from "@/modules/onboarding/repositories/org-onboarding-milestones.repository";
-import { evaluateAndUpdateOnboarding } from "@/modules/onboarding/services/onboarding-tracker.service";
-import { getScanRunById } from "@/modules/onboarding/repositories/org-onboarding-scan-runs.repository";
-import { tryProcessBaselineScanRun } from "@/modules/onboarding/services/onboarding-baseline-scan.service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  bootstrapGuidedPhase1IfNeeded,
-  businessContextComplete,
-  computeGuidedPercentComplete,
-  computeGuidedSetupFlags,
-  computeMaxAllowedGuidedStepIndex,
-  resolveGuidedStepForRender,
-  syncGuidedProgressToCanonicalSteps,
-} from "@/modules/onboarding/services/guided-phase1-state.service";
-import { GUIDED_STEP_ORDER } from "@/modules/onboarding/domain/guided-phase1";
-import type { OrgOnboardingStateRow } from "@/modules/onboarding/repositories/org-onboarding-states.repository";
+  recomputeOnboardingState,
+  getOnboardingState,
+  markFirstInsightsComplete,
+  ensureOnboardingStateRow,
+} from "@/lib/onboarding/onboardingStateService";
+import { runValueEngineBackfillOrg } from "@/lib/value-engine/runValueEngineCron";
+import { authzErrorResponse, requireOrgPermission } from "@/lib/server/authz";
+import { logProductEventAsync } from "@/lib/telemetry/productEvents";
+import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
 
-function parseStringArray(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((x): x is string => typeof x === "string");
+async function activeOrgId(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>, userId: string) {
+  const { data: m } = await supabase
+    .from("organization_members")
+    .select("org_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  return m?.org_id as string | undefined;
 }
 
-export async function GET(req: NextRequest) {
-  const supabase = await createServerSupabaseClient();
-  const { data: userRes } = await supabase.auth.getUser();
-  if (!userRes?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET() {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const orgId = await activeOrgId(supabase, u.user.id);
+    if (!orgId) return NextResponse.json({ error: "No org" }, { status: 400 });
+
+    const admin = createAdminClient();
+    const step = await recomputeOnboardingState(admin, orgId);
+    const state = await getOnboardingState(admin, orgId);
+
+    const { count: integ } = await admin
+      .from("integration_connections")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .eq("status", "connected")
+      .in("provider", ["stripe", "hubspot", "salesforce"]);
+
+    const nowIso = new Date().toISOString();
+    const { data: topIssues } = await admin
+      .from("issues")
+      .select("id, title, revenue_impact_cents, priority_score, currency")
+      .eq("org_id", orgId)
+      .eq("source_type", "detector")
+      .or(`suppressed_until.is.null,suppressed_until.lte.${nowIso}`)
+      .order("priority_score", { ascending: false })
+      .limit(3);
+
+    const sum = (topIssues ?? []).reduce(
+      (a, r) => a + Number((r as { revenue_impact_cents?: number }).revenue_impact_cents ?? 0),
+      0
+    );
+
+    return NextResponse.json({
+      ok: true,
+      step,
+      state,
+      initialDetectionTriggered: Boolean(state?.initial_detection_triggered_at),
+      connectedCount: integ ?? 0,
+      topIssues: topIssues ?? [],
+      projectedRevenueAtRiskCents: sum,
+    });
+  } catch (e) {
+    return authzErrorResponse(e);
   }
+}
 
-  const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
-  if (!activeOrgId) {
-    return NextResponse.json({ error: "No active org" }, { status: 400 });
-  }
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as { action?: string };
+    const supabase = await createServerSupabaseClient();
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const orgId = await activeOrgId(supabase, u.user.id);
+    if (!orgId) return NextResponse.json({ error: "No org" }, { status: 400 });
 
-  const { progress } = await evaluateAndUpdateOnboarding(supabase, activeOrgId);
+    await requireOrgPermission(orgId, "issues.view");
 
-  let { data: state } = await getOrgOnboardingState(supabase, activeOrgId);
-  await bootstrapGuidedPhase1IfNeeded(supabase, activeOrgId, state);
-  ({ data: state } = await getOrgOnboardingState(supabase, activeOrgId));
+    const admin = createAdminClient();
 
-  const flags = await computeGuidedSetupFlags(supabase, activeOrgId, state);
-  if (state?.latest_baseline_scan_id) {
-    const { data: scanRow } = await getScanRunById(supabase, state.latest_baseline_scan_id, activeOrgId);
-    if (scanRow?.status === "QUEUED" || scanRow?.status === "RUNNING") {
-      await tryProcessBaselineScanRun(state.latest_baseline_scan_id, activeOrgId);
-      ({ data: state } = await getOrgOnboardingState(supabase, activeOrgId));
+    if (body.action === "trigger_detection") {
+      await ensureOnboardingStateRow(admin, orgId);
+      const { data: os } = await admin.from("onboarding_state").select("*").eq("org_id", orgId).maybeSingle();
+      const triggered = (os as { initial_detection_triggered_at?: string | null } | null)
+        ?.initial_detection_triggered_at;
+      if (triggered) {
+        await recomputeOnboardingState(admin, orgId);
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+      try {
+        await retryWithBackoff(
+          async () => {
+            const r = await runValueEngineBackfillOrg(admin, orgId);
+            if (!r.ok) throw new Error(r.errors.join("; ") || "value_engine_backfill_failed");
+          },
+          RETRY_PRESETS.integrationSync
+        );
+      } catch {
+        return NextResponse.json({ ok: false, error: "value_engine_backfill_failed" }, { status: 502 });
+      }
+      await admin
+        .from("onboarding_state")
+        .update({ initial_detection_triggered_at: new Date().toISOString() })
+        .eq("org_id", orgId);
+      logProductEventAsync(admin, {
+        event: "integration_sync",
+        orgId,
+        userId: u.user.id,
+        metadata: {},
+      });
+      logProductEventAsync(admin, {
+        event: "detection_run",
+        orgId,
+        userId: u.user.id,
+        metadata: {},
+      });
+      await recomputeOnboardingState(admin, orgId);
+      return NextResponse.json({ ok: true });
     }
-  }
 
-  await syncGuidedProgressToCanonicalSteps(supabase, activeOrgId, state);
-  ({ data: state } = await getOrgOnboardingState(supabase, activeOrgId));
-
-  const { data: steps } = await listOrgOnboardingSteps(supabase, activeOrgId);
-  const { data: milestones } = await listOrgOnboardingMilestones(supabase, activeOrgId);
-
-  const { data: orgRow } = await supabase.from("organizations").select("id, name").eq("id", activeOrgId).maybeSingle();
-
-  const maxIdx = computeMaxAllowedGuidedStepIndex({
-    row: state,
-    guidedStatus: state?.guided_phase1_status,
-    hasQualifyingIntegration: flags.hasQualifyingIntegration,
-    useCasesChosen: flags.useCasesChosen,
-    scanTerminal: flags.scanTerminal,
-  });
-
-  const queryStep = req.nextUrl.searchParams.get("step");
-  const effectiveStep = resolveGuidedStepForRender({
-    row: state,
-    guidedStatus: state?.guided_phase1_status,
-    maxIndex: maxIdx,
-    queryStep,
-  });
-
-  const guidedPercentComplete = computeGuidedPercentComplete({
-    row: state,
-    hasQualifyingIntegration: flags.hasQualifyingIntegration,
-    useCasesChosen: flags.useCasesChosen,
-    scanTerminal: flags.scanTerminal,
-    resultsViewed: !!state?.results_screen_viewed_at,
-    guidedStatus: state?.guided_phase1_status,
-  });
-
-  const baselineScan =
-    state?.latest_baseline_scan_id && flags.latestScanStatus
-      ? {
-          id: state.latest_baseline_scan_id,
-          status: flags.latestScanStatus,
-          issueCount: null as number | null,
-          estimatedRevenueAtRisk: null as number | null,
-          findings: null as Record<string, unknown> | null,
-        }
-      : null;
-
-  if (state?.latest_baseline_scan_id) {
-    const { data: scan } = await getScanRunById(supabase, state.latest_baseline_scan_id, activeOrgId);
-    if (scan && baselineScan) {
-      baselineScan.status = scan.status;
-      baselineScan.issueCount = scan.issue_count;
-      baselineScan.estimatedRevenueAtRisk =
-        scan.estimated_revenue_at_risk != null ? Number(scan.estimated_revenue_at_risk) : null;
-      baselineScan.findings = (scan.findings as Record<string, unknown> | null) ?? null;
+    if (body.action === "advance_insights") {
+      const r = await markFirstInsightsComplete(admin, orgId);
+      if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 });
+      return NextResponse.json({ ok: true, step: r.step });
     }
+
+    await recomputeOnboardingState(admin, orgId);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return authzErrorResponse(e);
   }
-
-  const tracker = {
-    onboardingState: state?.onboarding_state ?? "NOT_STARTED",
-    onboardingStage: progress.stage,
-    percentComplete: progress.percentComplete,
-    firstValueReached: state?.first_value_reached ?? false,
-    firstValueAt: state?.first_value_at ?? null,
-    activatedAt: state?.activated_at ?? null,
-    currentStepKey: state?.current_step_key ?? null,
-    integrationsConnected: progress.integrationsConnected,
-    firstSignalReceived: progress.firstSignalReceived,
-    firstIssueDetected: progress.firstIssueDetected,
-    firstActionExecuted: progress.firstActionExecuted,
-    firstValueVerified: progress.firstValueVerified,
-  };
-
-  const guided = {
-    flowVersion: state?.guided_flow_version ?? null,
-    status: state?.guided_phase1_status ?? null,
-    currentStepKey: state?.guided_current_step_key ?? null,
-    effectiveStepKey: effectiveStep,
-    maxAllowedStepKey: GUIDED_STEP_ORDER[maxIdx] ?? "welcome",
-    guidedPercentComplete,
-    companySize: state?.company_size ?? null,
-    industry: state?.industry ?? null,
-    primaryGoal: state?.primary_goal ?? null,
-    selectedUseCases: parseStringArray(state?.selected_use_cases),
-    latestBaselineScanId: state?.latest_baseline_scan_id ?? null,
-    firstInsightSummary: state?.first_insight_summary ?? null,
-    resultsScreenViewedAt: state?.results_screen_viewed_at ?? null,
-    businessContextComplete: businessContextComplete(state ?? ({} as OrgOnboardingStateRow)),
-    hasQualifyingCrmOrPayment: flags.hasQualifyingIntegration,
-    baselineScan,
-  };
-
-  return NextResponse.json({
-    tracker,
-    guided,
-    organization: orgRow ? { id: String((orgRow as { id: string }).id), name: (orgRow as { name?: string | null }).name ?? "" } : { id: activeOrgId, name: "" },
-    onboardingState: tracker.onboardingState,
-    firstValueReached: tracker.firstValueReached,
-    currentStepKey: tracker.currentStepKey,
-    integrationsConnected: tracker.integrationsConnected,
-    firstSignalReceived: tracker.firstSignalReceived,
-    firstIssueDetected: tracker.firstIssueDetected,
-    firstActionExecuted: tracker.firstActionExecuted,
-    firstValueVerified: tracker.firstValueVerified,
-    stage: tracker.onboardingStage,
-    percentComplete: tracker.percentComplete,
-    guidedPercentComplete,
-    steps:
-      steps?.map((s) => ({
-        stepKey: s.stepKey,
-        stepStatus: s.stepStatus,
-        required: s.required,
-        displayName: s.displayName,
-        stepGroup: s.stepGroup,
-      })) ?? [],
-    milestones:
-      milestones?.map((m) => ({
-        milestoneKey: m.milestoneKey,
-        reached: m.reached,
-      })) ?? [],
-  });
 }

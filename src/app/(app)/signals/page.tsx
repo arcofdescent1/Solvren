@@ -75,6 +75,12 @@ export default async function SignalsLeaderboardPage() {
         right={
           <Stack direction="row" gap={3}>
             <Link
+              href="/executive"
+              className="text-sm font-semibold text-[var(--primary)] hover:underline"
+            >
+              First-value issues (Executive) →
+            </Link>
+            <Link
               href="/reviews"
               className="text-sm font-semibold text-[var(--primary)] hover:underline"
             >

@@ -9,6 +9,7 @@ import { auditLog } from "@/lib/audit";
 import { IntegrationHealthService } from "@/modules/integrations";
 import { syncInstallation, syncRepositories } from "@/services/github/GitHubInstallationService";
 import { linkGitHubIntegrationAccount } from "@/modules/integrations/providers/github/accountLink";
+import { logIntegrationConnected } from "@/lib/telemetry/logIntegrationConnected";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -92,6 +93,13 @@ export async function GET(req: NextRequest) {
       entityType: "integration",
       entityId: "github",
       metadata: { installationId, accountLogin, accountType, setupAction },
+    });
+
+    logIntegrationConnected(admin, {
+      orgId,
+      userId: actorId,
+      provider: "github",
+      metadata: { installationId, accountLogin, accountType },
     });
 
     return NextResponse.redirect(successUrl(orgId));

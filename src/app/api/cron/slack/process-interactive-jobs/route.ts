@@ -10,6 +10,7 @@ import {
   processSlackApprovalInteractiveJob,
   type SlackInteractiveJobPayload,
 } from "@/lib/slack/approvalActions";
+import { processIssueWorkflowSlackJob } from "@/lib/issues/issueWorkflowSlack";
 
 const MAX_BATCH = 25;
 
@@ -43,7 +44,11 @@ export async function POST(req: Request) {
 
     try {
       const payload = row.payload_json as SlackInteractiveJobPayload;
-      await processSlackApprovalInteractiveJob(admin, payload);
+      if (payload.kind === "issue_workflow") {
+        await processIssueWorkflowSlackJob(admin, payload);
+      } else {
+        await processSlackApprovalInteractiveJob(admin, payload);
+      }
       await admin
         .from("slack_interactive_jobs")
         .update({

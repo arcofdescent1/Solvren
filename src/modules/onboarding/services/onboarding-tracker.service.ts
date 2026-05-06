@@ -1,5 +1,7 @@
 /**
  * Gap 5 — Onboarding tracker. Evaluates org state and updates granular progress.
+ *
+ * @deprecated Use `/onboarding` and `onboarding_state` (Phase 5). Legacy progress stages remain for older UI paths only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getOrgOnboardingState } from "../repositories/org-onboarding-states.repository";

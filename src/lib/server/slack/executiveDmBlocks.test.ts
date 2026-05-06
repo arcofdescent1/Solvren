@@ -27,6 +27,8 @@ const mockView = (): ExecutiveChangeView => ({
   hasApprovalConflict: false,
   approvalConflictMessage: null,
   executiveOverlay: "NONE",
+  executiveBlocked: false,
+  executiveSnoozeUntil: null,
   technicalDetails: { signals: [], policyViolations: [], incidents: [], notes: [] },
   slackPrimaryConcern: { primary: "Support still pending", moreCount: 0 },
   revenueEscalationThresholdUsd: 100_000,
@@ -34,16 +36,18 @@ const mockView = (): ExecutiveChangeView => ({
 });
 
 describe("buildExecutiveDmSlackBlocks", () => {
-  it("includes overview URL and executive action ids", () => {
+  it("includes overview URL and executive overlay action ids", () => {
     const blocks = buildExecutiveDmSlackBlocks({
       view: mockView(),
       overviewUrl: "https://example.com/executive/changes/abc",
       orgId: "o1",
     });
-    const actions = blocks.find((b) => b.type === "actions") as {
+    const actionBlocks = blocks.filter((b) => b.type === "actions") as Array<{
       elements?: Array<{ action_id?: string; url?: string }>;
-    };
-    expect(actions?.elements?.some((e) => e.action_id === "executive_dm_approve")).toBe(true);
-    expect(actions?.elements?.some((e) => e.url?.includes("/executive/changes/abc"))).toBe(true);
+    }>;
+    const elements = actionBlocks.flatMap((b) => b.elements ?? []);
+    expect(elements.some((e) => e.action_id === "executive_overlay_approve")).toBe(true);
+    expect(elements.some((e) => e.action_id === "executive_overlay_deny")).toBe(true);
+    expect(elements.some((e) => e.url?.includes("/executive/changes/abc"))).toBe(true);
   });
 });

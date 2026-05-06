@@ -23,6 +23,8 @@ import { buildPhase5PredictionSlackBlocks } from "@/services/slack/blockBuilders
 import { slackApi } from "@/lib/server/slack/slackApi";
 import { insertAttentionDeliveryLog } from "@/lib/attention/notificationDeliveryLog";
 import type { AttentionRoutingResult } from "@/lib/attention/types";
+import { logProductEventAsync } from "@/lib/telemetry/productEvents";
+import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
 
 const MAX_BATCH = 50;
 const MAX_ATTEMPTS = 8;
@@ -47,7 +49,9 @@ type Db = Awaited<ReturnType<typeof createAdminClient>>;
 async function getOrgSettings(db: Db, orgId: string) {
   const { data, error } = await db
     .from("organization_settings")
-    .select("slack_webhook_url, slack_enabled, email_enabled, notification_emails")
+    .select(
+      "slack_webhook_url, slack_enabled, email_enabled, notification_emails, executive_action_emails_enabled"
+    )
     .eq("org_id", orgId)
     .maybeSingle();
 
@@ -81,15 +85,20 @@ async function sendSlack(
   ctaUrl: string
 ) {
   const text = `*${title}*\n${body}\n<${absoluteUrl(ctaUrl)}|${ctaLabel}>`;
-  const resp = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
-  });
-  if (!resp.ok) {
-    const t = await resp.text().catch(() => "");
-    throw new Error(`Slack send failed: ${resp.status} ${t}`.slice(0, 500));
-  }
+  await retryWithBackoff(
+    async () => {
+      const resp = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!resp.ok) {
+        const t = await resp.text().catch(() => "");
+        throw new Error(`Slack send failed: ${resp.status} ${t}`.slice(0, 500));
+      }
+    },
+    { retries: RETRY_PRESETS.slackOrEmail.retries, backoffMs: RETRY_PRESETS.slackOrEmail.backoffMs }
+  );
 }
 
 async function sendEmail(
@@ -111,14 +120,19 @@ async function sendEmail(
     </div>
   `;
 
-  const { error } = await resend.emails.send({
-    from,
-    to,
-    subject,
-    html,
-    text: `${body}\n\n${ctaLabel}: ${absoluteUrl(ctaUrl)}`,
-  });
-  if (error) throw new Error(error.message);
+  await retryWithBackoff(
+    async () => {
+      const { error } = await resend!.emails.send({
+        from,
+        to,
+        subject,
+        html,
+        text: `${body}\n\n${ctaLabel}: ${absoluteUrl(ctaUrl)}`,
+      });
+      if (error) throw new Error(error.message);
+    },
+    { retries: RETRY_PRESETS.slackOrEmail.retries, backoffMs: RETRY_PRESETS.slackOrEmail.backoffMs }
+  );
 }
 
 export async function POST(req: Request) {
@@ -126,6 +140,18 @@ export async function POST(req: Request) {
   if (unauthorized) return unauthorized;
 
   const admin = createAdminClient();
+
+  function recordNotificationSent(
+    orgId: string,
+    meta: { outbox_id: string; template_key?: string | null; channel?: string | null }
+  ) {
+    if (!orgId) return;
+    logProductEventAsync(admin, {
+      event: "notification_sent",
+      orgId,
+      metadata: meta,
+    });
+  }
 
   const { data: rows, error } = await admin
     .from("notification_outbox")
@@ -193,10 +219,12 @@ export async function POST(req: Request) {
   }
 
   async function markBlocked(
-    outboxId: string,
+    row: { id: string; org_id: string | null | undefined },
     reason: string,
     attemptCount: number
   ) {
+    const outboxId = String(row.id);
+    const orgId = String(row.org_id ?? "");
     await admin
       .from("notification_outbox")
       .update({
@@ -206,6 +234,13 @@ export async function POST(req: Request) {
         available_at: new Date().toISOString(),
       })
       .eq("id", outboxId);
+    if (orgId) {
+      logProductEventAsync(admin, {
+        event: "notification_failed",
+        orgId,
+        metadata: { outbox_id: outboxId, reason: reason.slice(0, 500) },
+      });
+    }
   }
 
   for (const row of rows) {
@@ -264,6 +299,11 @@ export async function POST(req: Request) {
 
         if (sentErr) throw new Error(sentErr.message);
 
+        recordNotificationSent(String(row.org_id ?? ""), {
+          outbox_id: String(row.id),
+          channel: row.channel,
+          template_key: row.template_key,
+        });
         processed += 1;
         continue;
       }
@@ -275,7 +315,7 @@ export async function POST(req: Request) {
       if (row.channel === "SLACK") {
         if (!canUseSlack(planFromString(plan_key), status)) {
           await markBlocked(
-            String(row.id),
+            row,
             "blocked_plan_not_entitled_for_slack",
             Number(row.attempt_count ?? 0)
           );
@@ -284,7 +324,7 @@ export async function POST(req: Request) {
         }
         if (!settings.slack_enabled) {
           await markBlocked(
-            String(row.id),
+            row,
             "blocked_slack_disabled_in_settings",
             Number(row.attempt_count ?? 0)
           );
@@ -332,11 +372,16 @@ export async function POST(req: Request) {
                 delivered_count: 1,
               })
               .eq("id", row.id);
+            recordNotificationSent(orgId, {
+              outbox_id: String(row.id),
+              channel: row.channel,
+              template_key: row.template_key,
+            });
             processed += 1;
           } catch (e) {
             const msg = e instanceof Error ? e.message : "deliverSlack failed";
             await markBlocked(
-              String(row.id),
+              row,
               msg,
               Number(row.attempt_count ?? 0)
             );
@@ -348,7 +393,7 @@ export async function POST(req: Request) {
         if (install?.bot_token && row.template_key === "executive_summary") {
           const summaryChannel = (p.channelId ?? install?.default_channel_id) as string | null;
           if (!summaryChannel) {
-            await markBlocked(String(row.id), "executive_summary_missing_slack_channel", Number(row.attempt_count ?? 0));
+            await markBlocked(row, "executive_summary_missing_slack_channel", Number(row.attempt_count ?? 0));
             processed += 1;
             continue;
           }
@@ -391,6 +436,11 @@ export async function POST(req: Request) {
             })
             .eq("id", row.id);
           if (sentExec) throw new Error(sentExec.message);
+          recordNotificationSent(orgId, {
+            outbox_id: String(row.id),
+            channel: row.channel,
+            template_key: row.template_key,
+          });
           processed += 1;
           continue;
         }
@@ -403,13 +453,13 @@ export async function POST(req: Request) {
           const changeIdDm = (p.changeEventId ?? row.change_event_id) as string;
           const slackUserId = String((p as { slackUserId?: string }).slackUserId ?? "");
           if (!slackUserId) {
-            await markBlocked(String(row.id), "executive_dm_missing_slack_user", Number(row.attempt_count ?? 0));
+            await markBlocked(row, "executive_dm_missing_slack_user", Number(row.attempt_count ?? 0));
             processed += 1;
             continue;
           }
           const execView = await buildExecutiveChangeView(admin, changeIdDm);
           if (!execView) {
-            await markBlocked(String(row.id), "executive_dm_change_not_found", Number(row.attempt_count ?? 0));
+            await markBlocked(row, "executive_dm_change_not_found", Number(row.attempt_count ?? 0));
             processed += 1;
             continue;
           }
@@ -418,7 +468,7 @@ export async function POST(req: Request) {
           })) as { channel?: { id?: string } };
           const dmChannel = open.channel?.id;
           if (!dmChannel) {
-            await markBlocked(String(row.id), "executive_dm_open_failed", Number(row.attempt_count ?? 0));
+            await markBlocked(row, "executive_dm_open_failed", Number(row.attempt_count ?? 0));
             processed += 1;
             continue;
           }
@@ -499,6 +549,11 @@ export async function POST(req: Request) {
               delivered_count: 1,
             })
             .eq("id", row.id);
+          recordNotificationSent(orgId, {
+            outbox_id: String(row.id),
+            channel: row.channel,
+            template_key: row.template_key,
+          });
           processed += 1;
           continue;
         }
@@ -507,7 +562,7 @@ export async function POST(req: Request) {
           const slackUserIdDigest = String((p as { slackUserId?: string }).slackUserId ?? "");
           const digestText = String((p as { text?: string }).text ?? "Solvren attention digest");
           if (!slackUserIdDigest) {
-            await markBlocked(String(row.id), "attention_digest_missing_slack_user", Number(row.attempt_count ?? 0));
+            await markBlocked(row, "attention_digest_missing_slack_user", Number(row.attempt_count ?? 0));
             processed += 1;
             continue;
           }
@@ -516,7 +571,7 @@ export async function POST(req: Request) {
           })) as { channel?: { id?: string } };
           const dmCh = openDigest.channel?.id;
           if (!dmCh) {
-            await markBlocked(String(row.id), "attention_digest_open_failed", Number(row.attempt_count ?? 0));
+            await markBlocked(row, "attention_digest_open_failed", Number(row.attempt_count ?? 0));
             processed += 1;
             continue;
           }
@@ -540,6 +595,11 @@ export async function POST(req: Request) {
               delivered_count: 1,
             })
             .eq("id", row.id);
+          recordNotificationSent(orgId, {
+            outbox_id: String(row.id),
+            channel: row.channel,
+            template_key: row.template_key,
+          });
           processed += 1;
           continue;
         }
@@ -619,6 +679,11 @@ export async function POST(req: Request) {
               })
               .eq("id", row.id);
             if (sentErr) throw new Error(sentErr.message);
+            recordNotificationSent(orgId, {
+              outbox_id: String(row.id),
+              channel: row.channel,
+              template_key: row.template_key,
+            });
             processed += 1;
             continue;
           }
@@ -671,6 +736,11 @@ export async function POST(req: Request) {
               })
               .eq("id", row.id);
             if (sentErr) throw new Error(sentErr.message);
+            recordNotificationSent(orgId, {
+              outbox_id: String(row.id),
+              channel: row.channel,
+              template_key: row.template_key,
+            });
             processed += 1;
             continue;
           }
@@ -739,6 +809,11 @@ export async function POST(req: Request) {
               .from("notification_outbox")
               .update({ status: "SENT", sent_at: new Date().toISOString(), last_error: null, delivered_count: 1 })
               .eq("id", row.id);
+            recordNotificationSent(orgId, {
+              outbox_id: String(row.id),
+              channel: row.channel,
+              template_key: row.template_key,
+            });
             processed += 1;
             continue;
           }
@@ -863,6 +938,11 @@ export async function POST(req: Request) {
             })
             .eq("id", row.id);
           if (sentErr) throw new Error(sentErr.message);
+          recordNotificationSent(orgId, {
+            outbox_id: String(row.id),
+            channel: row.channel,
+            template_key: row.template_key,
+          });
           processed += 1;
           continue;
         } else {
@@ -879,7 +959,7 @@ export async function POST(req: Request) {
       } else if (row.channel === "EMAIL") {
         if (!settings.email_enabled) {
           await markBlocked(
-            String(row.id),
+            row,
             "blocked_email_disabled_in_settings",
             Number(row.attempt_count ?? 0)
           );
@@ -892,7 +972,7 @@ export async function POST(req: Request) {
         if (digest) {
           if (!canUseWeeklyDigest(planFromString(plan_key), status)) {
             await markBlocked(
-              String(row.id),
+              row,
               "blocked_plan_not_entitled_for_weekly_digest",
               Number(row.attempt_count ?? 0)
             );
@@ -902,7 +982,7 @@ export async function POST(req: Request) {
         } else {
           if (!ALLOW_NON_DIGEST_EMAIL_ON_FREE && plan_key === "FREE") {
             await markBlocked(
-              String(row.id),
+              row,
               "blocked_plan_not_entitled_for_email_alerts",
               Number(row.attempt_count ?? 0)
             );
@@ -952,6 +1032,11 @@ export async function POST(req: Request) {
 
       if (sentErr) throw new Error(sentErr.message);
 
+      recordNotificationSent(String(row.org_id ?? ""), {
+        outbox_id: String(row.id),
+        channel: row.channel,
+        template_key: row.template_key,
+      });
       processed += 1;
     } catch (e) {
       const attempts = Number(row.attempt_count ?? 0) + 1;

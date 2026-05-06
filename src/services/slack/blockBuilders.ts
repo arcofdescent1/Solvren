@@ -62,6 +62,15 @@ export function buildApprovalRequestedBlocks(args: {
       text: { type: "plain_text", text: "Approval requested" },
     },
     {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: "_Domain approval (operational sign-off). Executive overlay sign-off, if required, is separate and may arrive by DM or email._",
+        },
+      ],
+    },
+    {
       type: "section",
       text: {
         type: "mrkdwn",
@@ -335,4 +344,39 @@ export function buildPhase5PredictionSlackBlocks(args: {
     },
     { type: "actions", elements },
   ];
+}
+
+/** Slack interactive buttons → POST `/api/integrations/slack/actions` (Phase 2 issue workflow). */
+export function buildIssueWorkflowActionsBlock(args: { orgId: string; issueId: string }) {
+  const value = JSON.stringify({ orgId: args.orgId, issueId: args.issueId });
+  return {
+    type: "actions",
+    elements: [
+      {
+        type: "button",
+        text: { type: "plain_text", text: "Acknowledge" },
+        action_id: "issue_acknowledge",
+        value,
+      },
+      {
+        type: "button",
+        text: { type: "plain_text", text: "In progress" },
+        action_id: "issue_mark_in_progress",
+        value,
+      },
+      {
+        type: "button",
+        text: { type: "plain_text", text: "Assign…" },
+        action_id: "issue_assign_open",
+        value,
+      },
+      {
+        type: "button",
+        text: { type: "plain_text", text: "Dismiss" },
+        style: "danger",
+        action_id: "issue_dismiss",
+        value,
+      },
+    ],
+  };
 }

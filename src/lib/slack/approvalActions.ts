@@ -8,6 +8,7 @@ import {
   buildThreadUpdateText,
 } from "@/services/slack/blockBuilders";
 import { enqueueSlack } from "@/services/notifications/enqueueSlack";
+import type { IssueWorkflowActionType } from "@/lib/issues/executeIssueWorkflowAction";
 
 export type SlackApprovalActionValue = {
   approval_id: string;
@@ -54,7 +55,7 @@ export function buildApprovalActionButtonValue(args: {
   });
 }
 
-export type SlackInteractiveJobPayload = {
+export type SlackApprovalJobPayload = {
   kind: "approval_approve" | "approval_reject";
   orgId: string;
   approvalId: string;
@@ -66,6 +67,20 @@ export type SlackInteractiveJobPayload = {
   outboxId?: string;
   comment?: string | null;
 };
+
+/** Slack interactive POST ack → worker (Phase 2 issue buttons). */
+export type IssueWorkflowSlackJobPayload = {
+  kind: "issue_workflow";
+  subAction: IssueWorkflowActionType;
+  orgId: string;
+  issueId: string;
+  slackUserId: string;
+  teamId: string;
+  channelId: string;
+  messageTs: string;
+};
+
+export type SlackInteractiveJobPayload = SlackApprovalJobPayload | IssueWorkflowSlackJobPayload;
 
 function absoluteUrl(path: string) {
   return path.startsWith("http") ? path : `${env.appUrl}${path}`;
@@ -107,7 +122,7 @@ export async function enqueueSlackInteractiveJob(
  */
 export async function processSlackApprovalInteractiveJob(
   admin: SupabaseClient,
-  payload: SlackInteractiveJobPayload
+  payload: SlackApprovalJobPayload
 ): Promise<{ ok: boolean; userMessage: string }> {
   const {
     orgId,

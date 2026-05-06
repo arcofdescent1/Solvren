@@ -32,6 +32,8 @@ function mockView(): ExecutiveChangeView {
     hasApprovalConflict: true,
     approvalConflictMessage: "Finance rejected while Engineering approved.",
     executiveOverlay: "NONE",
+    executiveBlocked: false,
+    executiveSnoozeUntil: null,
     technicalDetails: {
       signals: [{ key: "failed_payment_spike" }],
       policyViolations: [],

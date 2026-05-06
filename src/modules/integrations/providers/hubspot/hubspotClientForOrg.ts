@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { revealCredentialTokenFields, sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
 import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
 import { refreshAccessToken, needsRefresh } from "@/services/hubspot/HubSpotAuthService";
+import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
 
 export async function getHubSpotClientForOrg(orgId: string): Promise<{
   client: HubSpotClient;
@@ -45,7 +46,7 @@ export async function getHubSpotClientForOrg(orgId: string): Promise<{
     const expiresAt = creds.expires_at ?? null;
     if (!token || !refresh) return null;
     if (needsRefresh(expiresAt)) {
-      const refreshed = await refreshAccessToken(refresh);
+      const refreshed = await retryWithBackoff(() => refreshAccessToken(refresh), RETRY_PRESETS.oauthRefresh);
       accessToken = refreshed.accessToken;
       await admin
         .from("integration_credentials")

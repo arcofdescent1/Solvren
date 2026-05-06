@@ -22,7 +22,12 @@ export type CanonicalPermission =
   | "admin.simulations.manage"
   | "policy.manage"
   | "domains.manage"
-  | "identity.view";
+  | "identity.view"
+  | "issues.view"
+  | "issues.act"
+  | "issues.assign"
+  | "issues.dismiss"
+  | "issues.approve";
 
 /** Phase 0 spec aliases — normalize via normalizePermission() before role lookup. */
 export type PermissionAlias =
@@ -72,6 +77,11 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
     "policy.manage",
     "domains.manage",
     "identity.view",
+    "issues.view",
+    "issues.act",
+    "issues.assign",
+    "issues.dismiss",
+    "issues.approve",
   ]),
   ADMIN: new Set<CanonicalPermission>([
     "dashboard.view",
@@ -95,6 +105,11 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
     "policy.manage",
     "domains.manage",
     "identity.view",
+    "issues.view",
+    "issues.act",
+    "issues.assign",
+    "issues.dismiss",
+    "issues.approve",
   ]),
   REVIEWER: new Set<CanonicalPermission>([
     "dashboard.view",
@@ -106,6 +121,11 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
     "org.settings.view",
     "integrations.view",
     "identity.view",
+    "issues.view",
+    "issues.act",
+    "issues.assign",
+    "issues.dismiss",
+    "issues.approve",
   ]),
   SUBMITTER: new Set<CanonicalPermission>([
     "dashboard.view",
@@ -118,6 +138,8 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
     "queue.view",
     "org.settings.view",
     "integrations.view",
+    "issues.view",
+    "issues.act",
   ]),
   VIEWER: new Set<CanonicalPermission>([
     "dashboard.view",
@@ -125,6 +147,7 @@ const ROLE_PERMISSIONS: Record<OrgRole, Set<CanonicalPermission>> = {
     "queue.view",
     "org.settings.view",
     "integrations.view",
+    "issues.view",
   ]),
 };
 

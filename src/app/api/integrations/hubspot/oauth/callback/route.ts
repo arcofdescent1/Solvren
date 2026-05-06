@@ -10,6 +10,10 @@ import { auditLog } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { HubSpotClient } from "@/services/hubspot/HubSpotClient";
 import { sealCredentialTokenFields } from "@/lib/server/integrationTokenFields";
+import { recordFirstIntegrationConnected } from "@/lib/value-engine/metrics";
+import { runValueEngineBackfillOrg } from "@/lib/value-engine/runValueEngineCron";
+import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
+import { logIntegrationConnected } from "@/lib/telemetry/logIntegrationConnected";
 
 async function exchangeCode(code: string, redirectUri: string) {
   const body = new URLSearchParams({
@@ -49,7 +53,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/org/settings/integrations/hubspot?hubspot=error&msg=invalid_state", base));
   }
 
-  const redirectUri = env.hubspotRedirectUri ?? `${base}/api/integrations/hubspot/oauth/callback`;
+  const redirectUri = env.hubspotRedirectUri ?? `${base}/api/integrations/hubspot/callback`;
 
   let tokens: { access_token: string; refresh_token?: string; expires_in?: number };
   try {
@@ -115,6 +119,20 @@ export async function GET(req: NextRequest) {
     entityId: "hubspot",
     metadata: { hubId: portalId },
   });
+
+  await recordFirstIntegrationConnected(admin, state.orgId);
+  logIntegrationConnected(admin, { orgId: state.orgId, userId: state.userId, provider: "hubspot" });
+  try {
+    await retryWithBackoff(
+      async () => {
+        const r = await runValueEngineBackfillOrg(admin, state.orgId);
+        if (!r.ok) throw new Error(r.errors.join("; ") || "value_engine_backfill_failed");
+      },
+      RETRY_PRESETS.integrationSync
+    );
+  } catch {
+    /* best-effort backfill */
+  }
 
   return NextResponse.redirect(new URL(`/org/settings/integrations/hubspot?orgId=${state.orgId}&hubspot=connected`, base));
 }

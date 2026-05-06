@@ -58,7 +58,7 @@ export async function buildExecutiveChangeView(
     supabase
       .from("change_events")
       .select(
-        "id, org_id, title, status, domain, due_at, revenue_at_risk, revenue_surface, estimated_mrr_affected, percent_customer_base_affected, customers_affected_count"
+        "id, org_id, title, status, domain, due_at, revenue_at_risk, revenue_surface, estimated_mrr_affected, percent_customer_base_affected, customers_affected_count, executive_blocked, executive_snooze_until"
       )
   )
     .eq("id", changeId)
@@ -205,6 +205,9 @@ export async function buildExecutiveChangeView(
   const systems = systemsFromSurface((change as { revenue_surface?: string | null }).revenue_surface);
 
   const overlay = deriveExecutiveOverlayState((execDecisions ?? []) as DecisionRow[]);
+  const executiveBlocked = !!(change as { executive_blocked?: boolean }).executive_blocked;
+  const executiveSnoozeUntil =
+    (change as { executive_snooze_until?: string | null }).executive_snooze_until ?? null;
 
   const viewBase: ExecutiveChangeView = {
     id: changeId,
@@ -229,6 +232,8 @@ export async function buildExecutiveChangeView(
     hasApprovalConflict,
     approvalConflictMessage,
     executiveOverlay: overlay,
+    executiveBlocked,
+    executiveSnoozeUntil,
     technicalDetails: {
       signals: (signals ?? []).map((s: { signal_key?: string }) => ({
         key: String(s.signal_key ?? "signal"),

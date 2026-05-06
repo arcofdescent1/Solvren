@@ -26,6 +26,8 @@ function baseView(over: Partial<ExecutiveChangeView>): ExecutiveChangeView {
     hasApprovalConflict: false,
     approvalConflictMessage: null,
     executiveOverlay: "NONE",
+    executiveBlocked: false,
+    executiveSnoozeUntil: null,
     technicalDetails: { signals: [], policyViolations: [], incidents: [], notes: [] },
     slackPrimaryConcern: { primary: "", moreCount: 0 },
     revenueEscalationThresholdUsd: 100_000,

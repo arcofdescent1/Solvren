@@ -105,6 +105,18 @@ export function renderTemplate(
       cta_url: `/executive/changes/${ceId}`,
     };
   }
+  if (template_key === "executive_external_action") {
+    const path = String(payload?.executiveActionPath ?? "");
+    if (!path || !path.startsWith("/external-actions/")) return null;
+    const changeTitle = String(payload?.changeTitle ?? "Change");
+    return {
+      title: "Executive decision needed",
+      body: `One-time secure link for executive sign-off on “${changeTitle.slice(0, 120)}”. Domain approvals may still be required before release. This link expires and works once.`,
+      severity: "WARNING",
+      cta_label: "Open decision page",
+      cta_url: path,
+    };
+  }
   if (template_key === "predicted_risk_early_warning") {
     const changeEventId = String(payload?.changeEventId ?? "");
     if (!changeEventId) return null;
@@ -156,6 +168,41 @@ export function renderTemplate(
       severity: "INFO",
       cta_label: "Open executive summary",
       cta_url: "/executive?from=email_summary",
+    };
+  }
+  if (template_key === "issue_verified") {
+    const title = String(payload?.title ?? "Issue");
+    const outcome = String(payload?.outcome ?? "");
+    return {
+      title: "Issue verification",
+      body: `“${title}” — outcome: ${outcome || "recorded"}.`,
+      severity: "INFO",
+      cta_label: "View issues",
+      cta_url: "/action-queue",
+    };
+  }
+  if (template_key === "roi_generated") {
+    const title = String(payload?.title ?? "Issue");
+    const c = Number(payload?.actualRoiCents ?? 0) || 0;
+    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(
+      c / 100
+    );
+    return {
+      title: "ROI recorded",
+      body: `“${title}” — recovered / realized impact ≈ ${money} (${String(payload?.confidence ?? "medium")} confidence).`,
+      severity: "INFO",
+      cta_label: "Value delivered",
+      cta_url: "/roi",
+    };
+  }
+  if (template_key === "regression_detected") {
+    const title = String(payload?.title ?? "Issue");
+    return {
+      title: "Regression detected",
+      body: `A previously verified issue reappeared: “${title}”.`,
+      severity: "WARNING",
+      cta_label: "View issues",
+      cta_url: "/action-queue",
     };
   }
   if (template_key === "high_risk_change_detected") {

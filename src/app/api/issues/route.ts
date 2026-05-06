@@ -11,6 +11,7 @@ import {
   type IssueStatus,
   type VerificationStatus,
 } from "@/modules/issues";
+import { deriveConfidenceBand } from "@/lib/issues/issueIntelligenceScoring";
 
 async function getOrgId(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
   const { data: userRes } = await supabase.auth.getUser();
@@ -40,6 +41,10 @@ export async function GET(req: Request) {
   const severity = searchParams.get("severity");
   const domain_key = searchParams.get("domain_key");
   const verification_status = searchParams.get("verification_status");
+  const sortParam = searchParams.get("sort");
+  const sort = sortParam === "opened_at" ? "opened_at" : "priority";
+  const include_suppressed = searchParams.get("include_suppressed") === "true";
+  const priority_band = searchParams.get("priority_band");
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10) || 50, 100);
   const offset = parseInt(searchParams.get("offset") ?? "0", 10) || 0;
 
@@ -50,6 +55,9 @@ export async function GET(req: Request) {
     ...(severity && { severity: severity as "low" | "medium" | "high" | "critical" }),
     ...(domain_key && { domain_key }),
     ...(verification_status && { verification_status: verification_status as VerificationStatus }),
+    sort,
+    include_suppressed,
+    ...(priority_band && { priority_band }),
     limit,
     offset,
   });
@@ -57,8 +65,18 @@ export async function GET(req: Request) {
   if (result.error)
     return NextResponse.json({ error: result.error }, { status: 500 });
 
+  const issues = (result.issues ?? []).map((row) => {
+    const r = row as Record<string, unknown>;
+    const cs = Number(r.confidence_score ?? 50);
+    return {
+      ...r,
+      confidenceBand: deriveConfidenceBand(Number.isFinite(cs) ? cs : 50),
+    };
+  });
+
   return NextResponse.json({
-    issues: result.issues,
+    issues,
+    sort,
     timestamps: { openedAt: null, updatedAt: null },
   });
 }

@@ -1,6 +1,9 @@
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireOnboardingComplete } from "@/lib/onboarding/onboardingApiGuards";
+import { getCachedExecutivePhase5 } from "@/lib/executive/executivePhase5Cache";
 
 type RiskBucket = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
@@ -39,6 +42,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "no_org_membership" }, { status: 400 });
   }
   const orgId = membership.org_id;
+
+  try {
+    await requireOnboardingComplete(createAdminClient(), orgId);
+  } catch {
+    return NextResponse.json({ ok: false, error: "onboarding_incomplete" }, { status: 403 });
+  }
+
+  let phase5;
+  try {
+    phase5 = await getCachedExecutivePhase5(orgId);
+  } catch {
+    phase5 = null;
+  }
 
   const rangeDays = parseRangeDays(req);
   const since = new Date();
@@ -175,6 +191,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    phase5,
     rangeDays,
     revenueAtRisk: {
       totalEstimatedMrrAffected,

@@ -19,6 +19,8 @@ import ExecutiveNarrativeCard from "@/components/executive/ExecutiveNarrativeCar
 import RevenueAtRiskCard from "@/components/executive/RevenueAtRiskCard";
 import TopDriversTable from "@/components/executive/TopDriversTable";
 import ExecutiveInsightsPanel from "@/components/executive/ExecutiveInsightsPanel";
+import ValueEngineIssuesSection from "@/components/executive/ValueEngineIssuesSection";
+import NeedsAttentionCard from "@/components/executive/NeedsAttentionCard";
 import { Phase3ExecutiveTracker } from "@/components/onboarding/phase3/Phase3ExecutiveTracker";
 import { Phase3FromEmailSummaryTracker } from "@/components/onboarding/phase3/Phase3FromEmailSummaryTracker";
 
@@ -74,7 +76,7 @@ export default async function ExecutivePage() {
   const ra = data.revenueAtRisk;
 
   return (
-    <div className="space-y-6">
+    <div className="max-h-[min(900px,100dvh)] space-y-4 overflow-y-auto lg:max-h-[900px] lg:overflow-y-hidden">
       <Suspense fallback={null}>
         <Phase3FromEmailSummaryTracker />
       </Suspense>
@@ -109,6 +111,55 @@ export default async function ExecutivePage() {
       <RevenueAtRiskCard />
       <TopDriversTable />
       <ExecutiveInsightsPanel />
+
+      <Suspense fallback={null}>
+        <NeedsAttentionCard />
+      </Suspense>
+
+      <ValueEngineIssuesSection />
+
+      {data.phase5 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardBody>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Issues revenue at risk</p>
+              <p className="mt-2 text-2xl font-bold text-[var(--text)]">
+                {formatMoney((data.phase5.issuesRevenueAtRiskCents ?? 0) / 100)}
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Open issues (single-currency org assumption)</p>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">ROI (verified)</p>
+              <p className="mt-2 text-2xl font-bold text-[var(--text)]">
+                {formatMoney(
+                  (Object.values(data.phase5.roiByType ?? {}) as number[]).reduce((a, b) => a + (Number(b) || 0), 0) /
+                    100
+                )}
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Sum of roi_events.actual_value_cents</p>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Needs attention</p>
+              <p className="mt-2 text-sm text-[var(--text)]">
+                Approval {data.phase5.needsAttention?.approvalPending ?? 0} · SLA breached{" "}
+                {data.phase5.needsAttention?.slaBreached ?? 0} · Unassigned high-impact{" "}
+                {data.phase5.needsAttention?.unassignedHighImpact ?? 0}
+              </p>
+            </CardBody>
+          </Card>
+          <Card>
+            <CardBody>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Trend window</p>
+              <p className="mt-2 text-sm text-[var(--text)]">30 days · {data.phase5.timezone ?? "UTC"}</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Cached 60s · issues opened vs resolved per day</p>
+            </CardBody>
+          </Card>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>

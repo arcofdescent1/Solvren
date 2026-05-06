@@ -93,7 +93,7 @@ export async function buildInsightsBundle(
     .from("issues")
     .select("id", { count: "exact", head: true })
     .eq("org_id", orgId)
-    .eq("status", "open")
+    .in("status", ["open", "triaged", "detected", "acknowledged", "assigned", "in_progress", "reopened"])
     .eq("severity", "critical");
 
   if ((criticalOpen ?? 0) > 0) {

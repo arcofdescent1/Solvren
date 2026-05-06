@@ -48,7 +48,11 @@ export function collectAttentionDrivers(input: AttentionDriverInput): RankedDriv
   if (blocked.length > 0) {
     hits.add("READINESS_BLOCKED_DOMAIN");
   }
-  if (view.executiveOverlay === "DELAYED" || view.executiveOverlay === "REQUESTED_INFO") {
+  if (
+    view.executiveOverlay === "DELAYED" ||
+    view.executiveOverlay === "REQUESTED_INFO" ||
+    view.executiveOverlay === "DENIED"
+  ) {
     hits.add("EXEC_OVERLAY_BLOCK");
   }
   if (view.recommendation === "ESCALATE") {

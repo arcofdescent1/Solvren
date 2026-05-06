@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Card, CardBody, Input, Stack } from "@/ui";
 import { Switch } from "@/ui/primitives/switch";
+import { useIsDemoOrg } from "@/lib/hooks/useIsDemoOrg";
 
 type SlackConfig = {
   enabled?: boolean;
@@ -39,8 +40,10 @@ export default function SlackConfigForm({
   onSaved,
   onCancel,
 }: Props) {
+  const { isDemo, loading: demoLoading } = useIsDemoOrg();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoMsg, setDemoMsg] = useState<string | null>(null);
 
   const [enabled, setEnabled] = useState(initialConfig?.enabled ?? true);
   const [approvalMessages, setApprovalMessages] = useState(
@@ -81,6 +84,14 @@ export default function SlackConfigForm({
   );
 
   async function handleSave() {
+    setDemoMsg(null);
+    if (demoLoading) return;
+    if (isDemo) {
+      setError(null);
+      setDemoMsg("Simulated action recorded (demo mode)");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -217,10 +228,15 @@ export default function SlackConfigForm({
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {demoMsg && (
+          <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
+            {demoMsg}
+          </p>
+        )}
 
         <div className="flex items-center gap-2">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : "Save"}
+          <Button onClick={handleSave} disabled={saving || demoLoading}>
+            {saving ? "Saving…" : demoLoading ? "…" : "Save"}
           </Button>
           <Button variant="outline" onClick={onCancel}>
             Cancel

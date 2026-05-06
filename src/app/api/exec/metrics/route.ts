@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireOnboardingComplete } from "@/lib/onboarding/onboardingApiGuards";
 import { fetchExecMetrics } from "@/services/revenue/execMetrics";
 
 export async function GET(req: Request) {
@@ -18,6 +20,12 @@ export async function GET(req: Request) {
   if (orgErr) return NextResponse.json({ error: orgErr.message }, { status: 500 });
   const orgId = orgRow?.org_id as string | undefined;
   if (!orgId) return NextResponse.json({ error: "No org" }, { status: 400 });
+
+  try {
+    await requireOnboardingComplete(createAdminClient(), orgId);
+  } catch {
+    return NextResponse.json({ error: "onboarding_incomplete" }, { status: 403 });
+  }
 
   const days = Number(new URL(req.url).searchParams.get("days") ?? "30");
   const metrics = await fetchExecMetrics(supabase, {

@@ -189,7 +189,9 @@ export default async function DashboardPage() {
 
   for (const issue of issueRows.data ?? []) {
     const status = String(issue.status ?? "");
-    const isOpen = ["open", "triaged", "assigned", "in_progress"].includes(status);
+    const isOpen = ["open", "triaged", "detected", "acknowledged", "assigned", "in_progress", "reopened"].includes(
+      status
+    );
     if (!isOpen) continue;
     const severity = String(issue.severity ?? "").toLowerCase();
     const highImpact = severity === "high" || severity === "critical";

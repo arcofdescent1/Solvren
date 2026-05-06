@@ -65,20 +65,33 @@ export class HubSpotClient {
    */
   async searchCrmObjects(
     objectType: string,
-    opts: { limit?: number; filterGroups?: unknown[]; sorts?: { propertyName: string; direction: string }[] } = {}
-  ): Promise<{ total?: number; results: unknown[] }> {
-    const data = (await this.request<{ total?: number; results?: unknown[] }>(
-      `/crm/v3/objects/${objectType}/search`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          limit: opts.limit ?? 100,
-          filterGroups: opts.filterGroups ?? [],
-          sorts: opts.sorts ?? [{ propertyName: "createdate", direction: "DESCENDING" }],
-        }),
-      }
-    )) as { total?: number; results?: unknown[] };
-    return { total: data.total, results: data.results ?? [] };
+    opts: {
+      limit?: number;
+      after?: string;
+      filterGroups?: unknown[];
+      sorts?: { propertyName: string; direction: string }[];
+      properties?: string[];
+    } = {}
+  ): Promise<{ total?: number; results: unknown[]; paging?: { next?: { after?: string } } }> {
+    const data = (await this.request<{
+      total?: number;
+      results?: unknown[];
+      paging?: { next?: { after?: string } };
+    }>(`/crm/v3/objects/${objectType}/search`, {
+      method: "POST",
+      body: JSON.stringify({
+        limit: opts.limit ?? 100,
+        after: opts.after,
+        filterGroups: opts.filterGroups ?? [],
+        sorts: opts.sorts ?? [{ propertyName: "createdate", direction: "DESCENDING" }],
+        properties: opts.properties,
+      }),
+    })) as {
+      total?: number;
+      results?: unknown[];
+      paging?: { next?: { after?: string } };
+    };
+    return { total: data.total, results: data.results ?? [], paging: data.paging };
   }
 
   /**
@@ -133,6 +146,46 @@ export class HubSpotClient {
       body: JSON.stringify(body),
     })) as { id?: string };
     return { id: data.id ?? "" };
+  }
+
+  /**
+   * Page HubSpot contacts via CRM list endpoint (read scope).
+   */
+  async listContactsPage(opts: {
+    limit?: number;
+    after?: string;
+    properties?: string[];
+  }): Promise<{ results: unknown[]; paging?: { next?: { after?: string } } }> {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 100));
+    if (opts.after) params.set("after", opts.after);
+    const props = opts.properties ?? ["email", "lifecyclestage", "createdate", "firstname"];
+    params.set("properties", props.join(","));
+    const data = (await this.request<{ results?: unknown[]; paging?: { next?: { after?: string } } }>(
+      `/crm/v3/objects/contacts?${params.toString()}`
+    )) as { results?: unknown[]; paging?: { next?: { after?: string } } };
+    return { results: data.results ?? [], paging: data.paging };
+  }
+
+  /**
+   * Page HubSpot deals.
+   */
+  async listDealsPage(opts: {
+    limit?: number;
+    after?: string;
+    properties?: string[];
+  }): Promise<{ results: unknown[]; paging?: { next?: { after?: string } } }> {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 100));
+    if (opts.after) params.set("after", opts.after);
+    const props =
+      opts.properties ??
+      ["dealname", "dealstage", "amount", "closedate", "hs_lastmodifieddate", "hs_is_closed"];
+    params.set("properties", props.join(","));
+    const data = (await this.request<{ results?: unknown[]; paging?: { next?: { after?: string } } }>(
+      `/crm/v3/objects/deals?${params.toString()}`
+    )) as { results?: unknown[]; paging?: { next?: { after?: string } } };
+    return { results: data.results ?? [], paging: data.paging };
   }
 
   /**
