@@ -4,7 +4,7 @@ import { SimpleLegalPage } from "@/components/legal/SimpleLegalPage";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How Solvren collects, uses, and protects personal and customer data.",
+  description: "How Solvren collects, uses, minimizes, and protects personal and customer data.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -12,28 +12,39 @@ export default function PrivacyPolicyPage() {
     <SimpleLegalPage title="Privacy Policy">
       <p>
         This Privacy Policy describes how Solvren, Inc. (“Solvren,” “we,” “us”) handles information in connection with
-        our websites and services. It is provided for transparency and will be updated as our product and legal
-        obligations evolve. For specific contractual terms, refer to your agreement with Solvren.
+        our websites and services. It is provided for transparency and will be updated as our product, contractual
+        commitments, and legal obligations evolve. For specific contractual terms, refer to your agreement with Solvren.
+      </p>
+      <p>
+        <strong className="text-white">Privacy-first product design.</strong> Solvren is designed to operate on system
+        signals, metadata, minimized identifiers, and derived operational impact rather than broad replication of source-
+        of-truth customer or financial data. Where feasible, sensitive values are redacted, hashed, minimized, or avoided.
       </p>
       <p>
         <strong className="text-white">Information we process.</strong> We process account and authentication data you
-        provide, usage and technical data needed to operate the service (such as logs and device information), and
-        content you submit through the product (for example, change records, approvals, and integrations you connect).
+        provide, usage and technical data needed to operate and secure the service, and customer-configured operational
+        content such as change records, approvals, integration metadata, and signals from systems you connect.
       </p>
       <p>
-        <strong className="text-white">How we use information.</strong> We use this information to provide and improve
-        the service, secure the platform, support customers, meet legal obligations, and communicate about the product.
-        We do not sell personal information.
+        <strong className="text-white">How we use information.</strong> We use information to provide, secure, support,
+        and improve the service; detect operational risk; coordinate workflows; communicate with customers; comply with
+        legal obligations; and enforce agreements. We do not sell personal information.
       </p>
       <p>
-        <strong className="text-white">Sharing.</strong> We share data with subprocessors that help us run the service
-        (such as hosting and email), when required by law, or with your direction (for example, integrations you enable).
-        A current list of key subprocessors is described in our Trust and security materials.
+        <strong className="text-white">Customer data and integrations.</strong> Customers control which integrations are
+        enabled and what configuration is applied. Solvren’s architecture is intended to minimize stored customer-sourced
+        payloads and protect credentials through server-side controls. Integration behavior may vary by plan, provider,
+        and configuration.
+      </p>
+      <p>
+        <strong className="text-white">Sharing.</strong> We share data with subprocessors that help us run the service,
+        when required by law, or with your direction, such as integrations you enable. A current list of key subprocessors
+        may be described in our Trust and security materials or contractual documentation.
       </p>
       <p>
         <strong className="text-white">Retention.</strong> We retain information for as long as needed to provide the
-        service, comply with law, resolve disputes, and enforce agreements. Retention details may be governed by your
-        contract and organization settings.
+        service, comply with law, resolve disputes, enforce agreements, and maintain security. Retention details may be
+        governed by your contract, organization settings, and product capabilities.
       </p>
       <p>
         <strong className="text-white">Your rights.</strong> Depending on your location, you may have rights to access,

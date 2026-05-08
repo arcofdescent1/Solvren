@@ -3,7 +3,7 @@ import { SimpleLegalPage } from "@/components/legal/SimpleLegalPage";
 
 export const metadata: Metadata = {
   title: "Cookie Policy",
-  description: "How Solvren uses cookies and similar technologies.",
+  description: "How Solvren uses cookies and similar technologies for security, authentication, preferences, and analytics.",
 };
 
 export default function CookiePolicyPage() {
@@ -11,18 +11,22 @@ export default function CookiePolicyPage() {
     <SimpleLegalPage title="Cookie Policy">
       <p>
         This Cookie Policy explains how Solvren uses cookies and similar technologies on our websites and product
-        surfaces. We use these technologies to operate the service, maintain security, remember preferences, and
-        understand usage in aggregate.
+        surfaces. We use these technologies to operate the service, maintain security, remember preferences, support
+        authentication, and understand usage in aggregate.
       </p>
       <p>
         <strong className="text-white">Essential cookies.</strong> Some cookies are strictly necessary for
-        authentication, session management, load balancing, and security. These cannot be disabled without affecting
-        core functionality.
+        authentication, session management, load balancing, fraud prevention, and security. These cannot be disabled
+        without affecting core functionality.
+      </p>
+      <p>
+        <strong className="text-white">Preferences and product functionality.</strong> Cookies or similar technologies
+        may remember settings such as organization context, interface preferences, or consent choices where applicable.
       </p>
       <p>
         <strong className="text-white">Analytics.</strong> Where enabled, we may use analytics cookies or similar tools
-        to measure performance and improve the product. Any such use will be described in product settings or notices
-        as applicable.
+        to measure performance and improve the product. We aim to use analytics in a way that supports product quality
+        without unnecessary collection of sensitive customer information.
       </p>
       <p>
         <strong className="text-white">Your choices.</strong> Browser settings allow you to block or delete cookies.

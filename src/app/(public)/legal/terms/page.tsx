@@ -15,22 +15,36 @@ export default function TermsOfServicePage() {
         represent that you have authority to bind that organization.
       </p>
       <p>
-        <strong className="text-white">The service.</strong> Solvren provides software and related services for
-        governing and operating revenue-impacting changes. Features and availability may change as the product evolves.
+        <strong className="text-white">The service.</strong> Solvren provides software and related services for revenue
+        risk intelligence, operational governance, approvals, integration monitoring, and execution workflows. Features,
+        integrations, and availability may change as the product evolves.
       </p>
       <p>
         <strong className="text-white">Accounts and acceptable use.</strong> You are responsible for account
-        credentials and for activity under your account. You agree not to misuse the service, attempt unauthorized
-        access, or use the service in violation of law or third-party rights.
+        credentials, users you authorize, and activity under your account. You agree not to misuse the service, attempt
+        unauthorized access, bypass security controls, interfere with availability, or use the service in violation of law
+        or third-party rights.
       </p>
       <p>
-        <strong className="text-white">Customer data.</strong> You retain rights in data you submit. You grant Solvren
-        the rights needed to host, process, and display that data to provide the service. Details may be further
-        described in your order form or data processing addendum.
+        <strong className="text-white">Customer data.</strong> You retain rights in data you submit or configure for use
+        with the service. You grant Solvren the rights needed to host, process, secure, support, and display that data to
+        provide the service. Solvren is designed to minimize sensitive customer-sourced data where feasible, but customer
+        configuration and enabled integrations may affect what information is processed.
+      </p>
+      <p>
+        <strong className="text-white">Integrations and write-back.</strong> Customers are responsible for integrations
+        they enable and permissions they authorize. Solvren is designed to support read-only integration patterns by
+        default, with write-back behavior requiring explicit enablement where available.
+      </p>
+      <p>
+        <strong className="text-white">Security.</strong> Solvren implements technical and organizational measures
+        designed to protect the service. No system can be guaranteed completely secure, and customers remain responsible
+        for managing their own users, systems, permissions, and connected accounts.
       </p>
       <p>
         <strong className="text-white">Disclaimers.</strong> The service is provided on an “as is” basis to the extent
-        permitted by law. Solvren does not guarantee uninterrupted or error-free operation.
+        permitted by law. Solvren does not guarantee uninterrupted or error-free operation. Estimated revenue impact,
+        risk scores, and recommendations are operational decision-support outputs and are not audited financial measures.
       </p>
       <p>
         <strong className="text-white">Limitation of liability.</strong> To the maximum extent permitted by applicable

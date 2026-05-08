@@ -4,7 +4,7 @@ import { MarketingArticle } from "@/components/marketing/MarketingArticle";
 
 export const metadata: Metadata = {
   title: "Integrations",
-  description: "Integrations that connect Solvren to your revenue and operations stack.",
+  description: "Privacy-first integrations that connect Solvren to revenue and operations systems with minimal permissions.",
 };
 
 /**
@@ -14,11 +14,23 @@ export default function PlatformIntegrationsMarketingPage() {
   return (
     <MarketingArticle
       title="Integrations"
-      intro="Solvren integrates with ticketing, chat, identity, and data sources so change context, evidence, and notifications stay synchronized."
+      intro="Connect Solvren to your revenue and operations stack with minimal permissions, transparent scopes, and read-only behavior by default."
     >
       <p>
-        Supported connectors depend on your plan and configuration. Typical categories include issue tracking, messaging
-        for approvals and nudges, CRM and billing context, and warehouse or spreadsheet ingestion for reporting.
+        Solvren is designed to use system signals and operational metadata rather than replicate your systems of record.
+        Typical integrations include CRM, billing, scheduling, chat, issue tracking, identity, and reporting systems—used
+        to detect risk, coordinate action, and verify outcomes.
+      </p>
+      <p>
+        <strong className="text-white">Privacy-first connection model.</strong> Integration payloads should be
+        classified, minimized, redacted, or normalized before persistence. Credentials are handled through protected
+        server-side flows, and connected systems remain read-only unless write-back is explicitly enabled by authorized
+        administrators.
+      </p>
+      <p>
+        <strong className="text-white">What customers should expect.</strong> Clear scope explanations, no raw payload
+        storage by default, no plaintext credential exposure, and auditability around sensitive integration behavior.
+        Expanded insights can be enabled intentionally when there is a business case and appropriate governance.
       </p>
       <p>
         For the latest connector list and setup steps, see{" "}

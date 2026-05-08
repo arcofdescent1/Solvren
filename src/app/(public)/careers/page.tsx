@@ -4,18 +4,23 @@ import { MarketingArticle } from "@/components/marketing/MarketingArticle";
 
 export const metadata: Metadata = {
   title: "Careers",
-  description: "Careers at Solvren.",
+  description: "Careers at Solvren building privacy-first revenue risk intelligence for enterprise teams.",
 };
 
 export default function CareersPage() {
   return (
     <MarketingArticle
       title="Careers"
-      intro="We are building a focused team across product, engineering, and go-to-market. Open roles will be posted here as we grow."
+      intro="We are building a focused team to create enterprise-grade systems for revenue risk intelligence, operational governance, and privacy-first automation."
     >
       <p>
-        Interested in working on revenue protection, enterprise workflows, and trustworthy automation? Send a brief note
-        and resume or profile link to{" "}
+        Solvren is for people who care about building serious software: clear architecture, strong security posture,
+        practical workflows, and measurable business outcomes. We are especially interested in builders who understand
+        that enterprise trust is earned through thoughtful product decisions, not slogans.
+      </p>
+      <p>
+        Interested in working on data minimization, integration safety, approvals, executive risk visibility, and
+        trustworthy automation? Send a brief note and resume or profile link to{" "}
         <a href="mailto:careers@solvren.com" className="text-cyan-300 underline hover:text-cyan-200">
           careers@solvren.com
         </a>

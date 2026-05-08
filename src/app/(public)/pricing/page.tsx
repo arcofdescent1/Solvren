@@ -3,7 +3,7 @@ import { PricingPage } from "@/components/marketing/pages/PricingPage";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Solvren pricing and beta access for revenue change governance.",
+  description: "Solvren pricing for privacy-first revenue risk intelligence, approvals, integrations, and enterprise governance.",
 };
 
 export default function Page() {

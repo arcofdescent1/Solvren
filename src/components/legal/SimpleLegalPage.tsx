@@ -13,7 +13,7 @@ export function SimpleLegalPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>
-      <div className="mt-8 space-y-4 text-base leading-relaxed text-slate-300">{children}</div>
+      <div className="mt-8 space-y-4 text-base leading-relaxed text-slate-200">{children}</div>
     </div>
   );
 }
