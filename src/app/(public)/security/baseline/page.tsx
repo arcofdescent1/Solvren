@@ -26,7 +26,7 @@ export default function SecurityBaselinePage() {
       <p>
         <strong className="text-white">Baseline controls include:</strong>
       </p>
-      <ul className="list-disc space-y-2 pl-5 text-slate-200">
+      <ul className="list-disc space-y-2 pl-5 text-slate-100">
         <li>Data minimization by design for inbound integration payloads</li>
         <li>Classification, redaction, normalization, and minimized persistence for customer-sourced signals</li>
         <li>Tenant isolation through Supabase Row Level Security and server-side authorization checks</li>

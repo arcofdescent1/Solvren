@@ -15,8 +15,12 @@ export function MarketingArticle({
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>
-      {intro ? <p className="mt-4 text-lg leading-relaxed text-slate-200">{intro}</p> : null}
-      {children ? <div className="mt-8 space-y-4 text-base leading-relaxed text-slate-200">{children}</div> : null}
+      {intro ? <p className="mt-4 text-lg leading-relaxed text-slate-100">{intro}</p> : null}
+      {children ? (
+        <div className="mt-8 space-y-4 text-base leading-relaxed text-slate-100 [&_li]:text-inherit [&_p]:text-inherit">
+          {children}
+        </div>
+      ) : null}
     </div>
   );
 }
