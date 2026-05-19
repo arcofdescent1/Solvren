@@ -6,7 +6,7 @@ import { computeLastActivityAt } from "@/lib/internal/lastActivity";
 import { onboardingPhaseSummaryFromState } from "@/lib/internal/onboardingPhaseSummary";
 import { internalHasPermission } from "@/lib/internal/permissions";
 import { requireEmployeeCustomerAccess } from "@/lib/server/access/customer-access";
-import { planFromString } from "@/services/billing/entitlements";
+import { getOrgLicenseEntitlements } from "@/services/licensing";
 
 export const runtime = "nodejs";
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orgI
       .maybeSingle(),
   ]);
 
-  const plan = billing ? planFromString((billing as { plan_key?: string }).plan_key) : planFromString("FREE");
+  const license = await getOrgLicenseEntitlements(admin, orgId);
   const billingStatus = (billing as { status?: string } | null)?.status ?? null;
   const onboardingPhaseSummary = onboardingPhaseSummaryFromState(
     (ob ?? null) as Parameters<typeof onboardingPhaseSummaryFromState>[0]
@@ -68,7 +68,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orgI
     orgId: org.id,
     name: org.name,
     slug: org.slug,
-    plan,
+    plan: license.tier,
+    protectedRevenueBand: license.protectedRevenueBand,
+    implementationMode: license.implementationMode,
     billingStatus,
     onboardingPhaseSummary,
     lastActivityAt,

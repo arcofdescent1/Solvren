@@ -33,12 +33,12 @@ export default function RevenueAtRiskCard() {
       try {
         const res = await fetch("/api/exec/metrics?days=30");
         const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || "Failed");
+        if (!res.ok) throw new Error(json?.error || "Executive exposure metrics could not be loaded.");
         if (!mounted) return;
         setM(json.metrics);
       } catch (e: unknown) {
         if (!mounted) return;
-        setErr(e instanceof Error ? e.message : "Failed");
+        setErr(e instanceof Error ? e.message : "Executive exposure metrics could not be loaded.");
       } finally {
         if (!mounted) return;
         setLoading(false);
@@ -57,14 +57,14 @@ export default function RevenueAtRiskCard() {
   if (loading) {
     return (
       <div className="rounded-2xl border bg-white p-4">
-        Loading executive metrics…
+        Loading executive metrics...
       </div>
     );
   }
   if (err || !m) {
     return (
       <div className="rounded-2xl border bg-white p-4 text-sm text-neutral-600">
-        Failed to load: {err ?? "unknown"}
+        {err ?? "Executive exposure metrics could not be loaded."}
       </div>
     );
   }
@@ -110,7 +110,7 @@ export default function RevenueAtRiskCard() {
           })}
         </div>
         <div className="mt-1 text-[11px] text-neutral-500">
-          Each bar = daily sum of (MRR affected × revenue risk score)
+          Each bar estimates daily exposure from affected recurring revenue and review level.
         </div>
       </div>
 

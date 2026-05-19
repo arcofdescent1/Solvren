@@ -32,7 +32,7 @@ export function PageHeaderV2({
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <PageHeader
         title={title}
         description={description}
@@ -40,7 +40,7 @@ export function PageHeaderV2({
         right={right}
         className={className}
       />
-      {helper ? <p className="text-sm text-[var(--text-muted)]">{helper}</p> : null}
+      {helper ? <p className="px-1 text-sm text-[var(--text-muted)]">{helper}</p> : null}
     </div>
   );
 }

@@ -3,19 +3,7 @@
 import { Button, Input, NativeSelect } from "@/ui";
 import { FieldWithTooltip } from "@/components/forms/FieldWithTooltip";
 import type { IntakeDraft } from "../types";
-
-const SURFACES = [
-  "PRICING",
-  "BILLING",
-  "PAYMENTS",
-  "SUBSCRIPTIONS",
-  "ENTITLEMENTS",
-  "CHECKOUT",
-  "TAX",
-  "PROMOTIONS",
-  "INVOICING",
-  "OTHER",
-];
+import { formatRevenueSurface, REVENUE_SURFACES } from "@/lib/revenue/surfaces";
 
 const IMPACT_OPTIONS = [
   "Pricing",
@@ -27,12 +15,11 @@ const IMPACT_OPTIONS = [
   "Revenue recognition",
 ];
 
-// V1 spec: Impact Estimate bands
 const IMPACT_ESTIMATE_BANDS = [
-  { value: "", label: "Select…" },
+  { value: "", label: "Select..." },
   { value: "5000", label: "< $10k" },
-  { value: "55000", label: "$10k – $100k" },
-  { value: "550000", label: "$100k – $1M" },
+  { value: "55000", label: "$10k - $100k" },
+  { value: "550000", label: "$100k - $1M" },
   { value: "1500000", label: "$1M+" },
 ];
 
@@ -83,17 +70,17 @@ export function RevenueImpactStep(props: {
                   onDraftChange({ revenue_surface: e.target.value || null })
                 }
               >
-                <option value="">Select…</option>
-                {SURFACES.map((s) => (
+                <option value="">Select...</option>
+                {REVENUE_SURFACES.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {formatRevenueSurface(s)}
                   </option>
                 ))}
               </NativeSelect>
             </label>
 
             <FieldWithTooltip
-              label="Impact Estimate"
+              label="Impact estimate"
               tooltip="Estimate the potential revenue impact. This drives risk level and approval requirements. Use bands for quick selection."
               examples={["$50k pricing adjustment", "$300k contract change"]}
             >
@@ -139,7 +126,7 @@ export function RevenueImpactStep(props: {
 
             <label className="grid gap-1.5 sm:col-span-2">
               <span className="text-sm font-medium">
-                Percent customer base affected (0–100)
+                Percent customer base affected (0-100)
               </span>
               <Input
                 type="number"
@@ -201,7 +188,7 @@ export function RevenueImpactStep(props: {
       <div className="flex justify-between pt-4">
         <div />
         <Button onClick={onSave} disabled={saving}>
-          {saving ? "Saving…" : "Save & Continue"}
+          {saving ? "Saving..." : "Save & Continue"}
         </Button>
       </div>
     </div>

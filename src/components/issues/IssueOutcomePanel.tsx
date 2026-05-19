@@ -77,8 +77,8 @@ export function IssueOutcomePanel({ issueId }: { issueId: string }) {
             </li>
           ))}
         </ul>
-        <Link href="/executive/roi" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">
-          View ROI Dashboard →
+        <Link href="/insights/roi" className="text-xs text-[var(--primary)] hover:underline mt-2 inline-block">
+          View impact and outcomes
         </Link>
       </CardBody>
     </Card>

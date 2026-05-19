@@ -29,6 +29,7 @@ async function buildAccessContext(
   orgIds: string[],
   changeIds: string[]
 ): Promise<AccessContext> {
+  const nowIso = new Date().toISOString();
   const [membershipRows, domainPermRows, assignedRows, explicitRows] =
     await Promise.all([
       supabase
@@ -54,7 +55,7 @@ async function buildAccessContext(
             .select("change_event_id")
             .eq("user_id", userId)
             .eq("access_type", "VIEW")
-            .is("expires_at", null)
+            .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
             .in("change_event_id", changeIds)
         : Promise.resolve({ data: [] as Array<{ change_event_id: string }> }),
     ]);
@@ -128,6 +129,38 @@ export async function canViewChange(
   return canViewChangeWithContext(userId, row, ctx);
 }
 
+export function canEditChangeWithContext(
+  userId: string,
+  row: ChangeVisibilityRow,
+  ctx: AccessContext
+): boolean {
+  const role = ctx.roleByOrgId.get(row.org_id) ?? parseOrgRole(null);
+  if (role === "OWNER" || role === "ADMIN") return true;
+
+  const isCreator = row.created_by === userId;
+  const isAssigned = ctx.assignedChangeIds.has(row.id);
+  const status = String(row.status ?? "");
+
+  if (isCreator && canRole(role, "change.edit.own_draft")) {
+    return status === "DRAFT" || status === "READY";
+  }
+
+  if (role === "REVIEWER" && isAssigned) {
+    return status === "IN_REVIEW" || status === "SUBMITTED";
+  }
+
+  return false;
+}
+
+export async function canEditChange(
+  supabase: SupabaseClient,
+  userId: string,
+  row: ChangeVisibilityRow
+): Promise<boolean> {
+  const ctx = await buildAccessContext(supabase, userId, [row.org_id], [row.id]);
+  return canEditChangeWithContext(userId, row, ctx);
+}
+
 export async function filterVisibleChanges<T extends ChangeVisibilityRow>(
   supabase: SupabaseClient,
   userId: string,
@@ -163,7 +196,7 @@ export async function canReviewDomain(
     .eq("user_id", userId)
     .eq("domain", String(domain ?? "REVENUE"))
     .maybeSingle();
-  if (!perm) return true;
+  if (!perm) return false;
   return Boolean((perm as { can_review?: boolean | null }).can_review);
 }
 

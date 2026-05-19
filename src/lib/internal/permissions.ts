@@ -5,6 +5,8 @@ export type InternalPermission =
   | "internal.accounts.view"
   | "internal.accounts.billing.view"
   | "internal.accounts.billing.manage"
+  | "internal.accounts.license.view"
+  | "internal.accounts.license.manage"
   | "internal.accounts.team.manage"
   | "internal.accounts.onboarding.view"
   | "internal.accounts.onboarding.manage"
@@ -17,6 +19,8 @@ export type InternalPermission =
 const VIEW: InternalEmployeeRole[] = ["support_admin", "billing_support", "account_ops", "technical_support", "super_admin"];
 const BILLING_VIEW: InternalEmployeeRole[] = ["support_admin", "billing_support", "account_ops", "technical_support", "super_admin"];
 const BILLING_MANAGE: InternalEmployeeRole[] = ["billing_support", "account_ops", "super_admin"];
+const LICENSE_VIEW: InternalEmployeeRole[] = ["support_admin", "billing_support", "account_ops", "super_admin"];
+const LICENSE_MANAGE: InternalEmployeeRole[] = ["billing_support", "account_ops", "super_admin"];
 const TEAM: InternalEmployeeRole[] = ["support_admin", "account_ops", "super_admin"];
 
 const ONBOARDING_VIEW: InternalEmployeeRole[] = ["support_admin", "account_ops", "technical_support", "super_admin"];
@@ -35,6 +39,8 @@ const MAP: Record<InternalPermission, readonly InternalEmployeeRole[]> = {
   "internal.accounts.view": VIEW,
   "internal.accounts.billing.view": BILLING_VIEW,
   "internal.accounts.billing.manage": BILLING_MANAGE,
+  "internal.accounts.license.view": LICENSE_VIEW,
+  "internal.accounts.license.manage": LICENSE_MANAGE,
   "internal.accounts.team.manage": TEAM,
   "internal.accounts.onboarding.view": ONBOARDING_VIEW,
   "internal.accounts.onboarding.manage": ONBOARDING_MANAGE,
@@ -55,6 +61,7 @@ export type InternalWorkspaceTab =
   | "team_access"
   | "integrations"
   | "billing"
+  | "license"
   | "diagnostics"
   | "audit";
 
@@ -71,7 +78,7 @@ export function canAccessInternalTab(
   if (role === "super_admin") return true;
 
   if (role === "billing_support") {
-    return tab === "overview" || tab === "billing" || tab === "audit";
+    return tab === "overview" || tab === "billing" || tab === "license" || tab === "audit";
   }
 
   if (role === "support_admin") {
@@ -80,6 +87,7 @@ export function canAccessInternalTab(
       tab === "overview" ||
       tab === "team_access" ||
       tab === "billing" ||
+      tab === "license" ||
       tab === "onboarding" ||
       tab === "integrations" ||
       tab === "audit"
@@ -91,7 +99,7 @@ export function canAccessInternalTab(
   }
 
   if (role === "technical_support") {
-    if (tab === "billing") return false;
+    if (tab === "billing" || tab === "license") return false;
     if (tab === "team_access") return teamManage;
     return (
       tab === "overview" ||

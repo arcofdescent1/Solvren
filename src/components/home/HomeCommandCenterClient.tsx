@@ -14,7 +14,14 @@ import {
   Stack,
 } from "@/ui";
 import { trackAppEvent } from "@/lib/appAnalytics";
-import type { HomeActivityItem, HomeExposureMetric, HomeProtectionCard, HomeWorkItem } from "@/features/home/presentation/types";
+import type {
+  HomeActivityItem,
+  HomeExposureMetric,
+  HomeProtectionCard,
+  HomeRole,
+  HomeRoleStats,
+  HomeWorkItem,
+} from "@/features/home/presentation/types";
 import { HELP_COPY } from "@/config/helpCopy";
 import {
   EmptyStateHelp,
@@ -24,10 +31,13 @@ import {
   WhySurfacedText,
 } from "@/components/help";
 import { Phase2ActivationSuccessCard } from "@/components/home/Phase2ActivationSuccessCard";
+import { REVENUE_PROTECTION_PLAYBOOKS } from "@/lib/product/revenueProtectionPlaybooks";
 
 type Props = {
   userId: string;
   orgId: string | null;
+  role: HomeRole;
+  roleStats: HomeRoleStats;
   showPhase2SuccessCard?: boolean;
   priorities: HomeWorkItem[];
   assigned: HomeWorkItem[];
@@ -64,6 +74,107 @@ function workflowNext(item: HomeWorkItem) {
   return null;
 }
 
+const OPERATING_MODEL = [
+  {
+    title: "Detect revenue problems",
+    body: "Find leakage, funnel risk, data quality issues, and risky change patterns.",
+    href: "/issues",
+  },
+  {
+    title: "Govern risky changes",
+    body: "Declare changes, collect evidence, route approvals, and release with confidence.",
+    href: "/changes?view=all",
+  },
+  {
+    title: "Route work clearly",
+    body: "Give each person one queue for reviews, evidence, assignments, and follow-up.",
+    href: "/actions",
+  },
+  {
+    title: "Prove business impact",
+    body: "Show exposure, prevented incidents, recovered value, readiness, and ROI.",
+    href: "/insights",
+  },
+] as const;
+
+const CAPABILITY_LINKS = [
+  { title: "Release readiness", body: "Portfolio and release risk", href: "/readiness" },
+  { title: "Verified outcomes", body: "Value stories and prevented loss", href: "/outcomes" },
+  { title: "Executive summary", body: "Leadership-ready overview", href: "/executive" },
+  { title: "Integrations", body: "Coverage, health, and setup", href: "/integrations" },
+  { title: "Policies", body: "Governance rules and exceptions", href: "/settings/policies" },
+  { title: "Team settings", body: "Users, roles, access, and org setup", href: "/settings/users" },
+] as const;
+
+function roleLabel(role: HomeRole) {
+  if (role === "OWNER") return "Executive owner";
+  if (role === "ADMIN") return "Administrator";
+  if (role === "REVIEWER") return "Reviewer";
+  if (role === "SUBMITTER") return "Submitter";
+  return "Viewer";
+}
+
+function roleCommand(role: HomeRole, stats: HomeRoleStats) {
+  if (role === "OWNER") {
+    return {
+      title: "Executive command view",
+      body: "Start with decisions, exposure, and whether the operating rhythm is protecting revenue.",
+      primary: { label: "Review decisions", href: "/changes?view=needs-my-review", value: stats.needsReviewCount },
+      secondary: [
+        { label: "High-impact items", href: "/issues", value: stats.highImpactCount },
+        { label: "Revenue impact", href: "/insights", value: null },
+        { label: "Verified outcomes", href: "/outcomes", value: null },
+      ],
+    };
+  }
+  if (role === "ADMIN") {
+    return {
+      title: "Admin control view",
+      body: "Keep coverage, governance, and system follow-up healthy so teams can trust the workflow.",
+      primary: { label: "Fix system follow-up", href: "/actions", value: stats.staleIntegrationCount + stats.waitingCount },
+      secondary: [
+        { label: "Connected systems", href: "/integrations", value: stats.connectedSystemCount },
+        { label: "Governance rules", href: "/settings/policies", value: null },
+        { label: "Team access", href: "/settings/users", value: null },
+      ],
+    };
+  }
+  if (role === "REVIEWER") {
+    return {
+      title: "Reviewer desk",
+      body: "Focus on decisions waiting for you, missing evidence, and risks that need judgment.",
+      primary: { label: "Decisions for me", href: "/changes?view=needs-my-review", value: stats.needsReviewCount },
+      secondary: [
+        { label: "Overdue work", href: "/changes?view=overdue", value: stats.overdueCount },
+        { label: "High-impact risks", href: "/issues", value: stats.highImpactCount },
+        { label: "Evidence gaps", href: "/changes?view=needs-details", value: stats.waitingCount },
+      ],
+    };
+  }
+  if (role === "SUBMITTER") {
+    return {
+      title: "Submitter workspace",
+      body: "Prepare changes for review by finishing intake, evidence, and follow-up before they block release.",
+      primary: { label: "Finish drafts", href: "/changes?view=needs-details", value: stats.draftCount },
+      secondary: [
+        { label: "Create change", href: "/intake/new", value: null },
+        { label: "Waiting on others", href: "/home#waiting-on-others", value: stats.waitingCount },
+        { label: "Changes in flight", href: "/changes?view=all", value: null },
+      ],
+    };
+  }
+  return {
+    title: "Read-only overview",
+    body: "See current risks, changes, and business impact without taking operational actions.",
+    primary: { label: "View revenue risks", href: "/issues", value: stats.openIssueCount },
+    secondary: [
+      { label: "Changes in flight", href: "/changes?view=all", value: null },
+      { label: "Business impact", href: "/insights", value: null },
+      { label: "Reports", href: "/insights/governance-reports", value: null },
+    ],
+  };
+}
+
 function workItemCard(item: HomeWorkItem, eventName: string, payload: Record<string, unknown>, showWhy: boolean) {
   const next = workflowNext(item);
   return (
@@ -95,6 +206,8 @@ function workItemCard(item: HomeWorkItem, eventName: string, payload: Record<str
 export default function HomeCommandCenterClient({
   userId,
   orgId,
+  role,
+  roleStats,
   priorities,
   assigned,
   waiting,
@@ -107,6 +220,8 @@ export default function HomeCommandCenterClient({
   roiSignalAsOf,
   showPhase2SuccessCard = false,
 }: Props) {
+  const roleView = roleCommand(role, roleStats);
+
   useEffect(() => {
     trackAppEvent("home_page_view", { user_id: userId, org_id: orgId, section: "home" });
   }, [userId, orgId]);
@@ -115,35 +230,50 @@ export default function HomeCommandCenterClient({
     <Stack gap={6}>
       <PageHeaderV2
         breadcrumbs={[{ label: "Home" }]}
-        title="Home"
-        description="Your revenue risk command center. See what needs attention, what is assigned to you, what is blocked, and where Solvren is protecting the business."
-        helper="Solvren helps your team detect revenue-impacting issues, govern risky changes, and coordinate action before problems become losses."
+        title="Command Center"
+        description="A simple control room for revenue risk: what needs attention, what is exposed, and what Solvren is protecting."
+        helper="Start here for daily work. Use the queue for decisions, risks for investigations, changes for governance, and impact for executive proof."
         helpTrigger={<PageHelpDrawer page="home" />}
       />
 
       {showPhase2SuccessCard ? <Phase2ActivationSuccessCard /> : null}
 
-      <Card className="border-[var(--primary)]/25 bg-[color:color-mix(in_oklab,var(--primary)_6%,white)] shadow-sm">
+      <Card className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_7%,var(--bg-surface)),var(--bg-surface)_58%,color-mix(in_oklab,var(--success)_5%,var(--bg-surface)))]">
         <CardBody>
-          <Stack gap={3}>
-            <h2 className="text-lg font-semibold">What Solvren is protecting right now</h2>
-            <p className="text-sm text-[var(--text-muted)]">
-              Solvren continuously monitors revenue-impacting issues and changes across your systems so your team can catch risk early, act quickly, and verify outcomes.
-            </p>
-            <Stack direction="row" gap={2} className="flex-wrap text-sm">
-              <Badge variant="secondary">Detect issues earlier</Badge>
-              <Badge variant="secondary">Review risky changes before damage spreads</Badge>
-              <Badge variant="secondary">Coordinate action with clear ownership</Badge>
+          <Stack gap={4}>
+            <Stack direction="row" justify="between" gap={4} className="flex-wrap">
+              <div className="max-w-3xl">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Today in Solvren</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-[var(--text)]">Act on the few things that protect revenue now.</h2>
+                <p className="mt-2 text-sm text-[var(--text-muted)]">
+                  You are seeing the {roleLabel(role).toLowerCase()} view. Solvren turns detections, risky changes, approvals, and verification into plain next steps for your role.
+                </p>
+              </div>
+              <div className="grid min-w-[16rem] grid-cols-2 gap-2 text-sm">
+                <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                  <p className="text-xs text-[var(--text-muted)]">Needs you</p>
+                  <p className="text-xl font-semibold">{assigned.length}</p>
+                </div>
+                <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                  <p className="text-xs text-[var(--text-muted)]">Blocked</p>
+                  <p className="text-xl font-semibold">{waiting.length}</p>
+                </div>
+              </div>
             </Stack>
             <Stack direction="row" gap={2} className="flex-wrap">
               <Button asChild>
                 <Link data-testid="home-hero-action-center" href="/actions">
-                  View Action Center
+                  Open Work Queue
                 </Link>
               </Button>
               <Button asChild variant="secondary">
                 <Link data-testid="home-hero-changes" href="/changes?view=all">
-                  See Changes in flight
+                  Review changes
+                </Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/insights">
+                  View business impact
                 </Link>
               </Button>
             </Stack>
@@ -151,7 +281,80 @@ export default function HomeCommandCenterClient({
         </CardBody>
       </Card>
 
+      <Card className="border-[var(--border)]">
+        <CardBody>
+          <Stack gap={4}>
+            <Stack direction="row" justify="between" gap={4} className="flex-wrap">
+              <div className="max-w-2xl">
+                <Badge variant="outline">{roleLabel(role)}</Badge>
+                <h2 className="mt-3 text-lg font-semibold">{roleView.title}</h2>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">{roleView.body}</p>
+              </div>
+              <Button asChild>
+                <Link href={roleView.primary.href}>
+                  {roleView.primary.label}
+                  {roleView.primary.value != null ? ` (${roleView.primary.value})` : ""}
+                </Link>
+              </Button>
+            </Stack>
+            <Grid cols={1} gap={3} className="md:grid-cols-3">
+              {roleView.secondary.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface)]"
+                >
+                  <Stack direction="row" justify="between" align="center" gap={3}>
+                    <span className="text-sm font-semibold text-[var(--text)]">{item.label}</span>
+                    {item.value != null ? <Badge variant="secondary">{item.value}</Badge> : null}
+                  </Stack>
+                </Link>
+              ))}
+            </Grid>
+          </Stack>
+        </CardBody>
+      </Card>
+
       <Stack gap={3}>
+        <SectionHeader title="How to use Solvren" helper="The app is organized around four everyday jobs. Every capability rolls up into one of these areas." />
+        <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-4">
+          {OPERATING_MODEL.map((item) => (
+            <Link key={item.title} href={item.href} className="group block rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]">
+              <p className="font-semibold text-[var(--text)] group-hover:text-[var(--primary)]">{item.title}</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">{item.body}</p>
+            </Link>
+          ))}
+        </Grid>
+      </Stack>
+
+      <Card>
+        <CardBody>
+          <SectionHeader
+            title="Revenue protection playbooks"
+            helper="Common enterprise paths that turn Solvren from monitoring into a repeatable operating model."
+            action={
+              <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                View proof
+              </Link>
+            }
+          />
+          <Grid cols={1} gap={3} className="mt-3 md:grid-cols-3">
+            {REVENUE_PROTECTION_PLAYBOOKS.slice(0, 3).map((playbook) => (
+              <Link
+                key={playbook.key}
+                href={playbook.href}
+                className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 transition hover:border-[var(--primary)]/40"
+              >
+                <p className="text-sm font-semibold">{playbook.title}</p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">{playbook.trigger}</p>
+                <p className="mt-2 text-xs font-medium text-[var(--primary)]">{playbook.systems.slice(0, 3).join(" + ")}</p>
+              </Link>
+            ))}
+          </Grid>
+        </CardBody>
+      </Card>
+
+      <Stack gap={3} id="waiting-on-others">
         <SectionHeader title="Today's priorities" helper={HELP_COPY.sections.todays_priorities} />
         {priorities.length === 0 ? (
           <EmptyState
@@ -239,7 +442,7 @@ export default function HomeCommandCenterClient({
       </Stack>
 
       <Stack gap={3}>
-        <SectionHeader title="Revenue at risk" helper={HELP_COPY.sections.revenue_at_risk} />
+        <SectionHeader title="Revenue at risk" helper="A plain-English snapshot of current exposure and where attention is concentrated." />
         <Card className="shadow-sm">
           <CardBody>
             <Stack gap={3}>
@@ -260,7 +463,7 @@ export default function HomeCommandCenterClient({
                 ))}
               </Grid>
               <Button asChild variant="secondary">
-                <Link href="/insights">See Insights</Link>
+                <Link href="/insights">See impact details</Link>
               </Button>
             </Stack>
           </CardBody>
@@ -270,17 +473,17 @@ export default function HomeCommandCenterClient({
       <Stack gap={3}>
         <SectionHeader
           title="Impact signal"
-          helper="Same 30d ROI trend as Insights (active organization), from the shared ROI summary model."
+          helper="30-day trend for whether Solvren is reducing risk and improving operational outcomes."
         />
         <Card className="shadow-sm">
           <CardBody>
             <Stack direction="row" justify="between" align="center">
               <p className="text-sm">
                 {roiSignal === "improving"
-                  ? "Risk and operational outcomes are trending in the right direction."
+                  ? "The business is moving in the right direction."
                   : roiSignal === "stable"
-                    ? "Outcomes are stable; continue current governance and response rhythm."
-                    : "Outcomes need attention due to rising risk or overdue follow-up."}
+                    ? "The operating rhythm is stable."
+                    : "Leadership attention may be needed."}
               </p>
               <Badge variant={roiSignal === "improving" ? "success" : roiSignal === "stable" ? "secondary" : "warning"}>
                 {roiSignal.replaceAll("_", " ")}
@@ -376,14 +579,9 @@ export default function HomeCommandCenterClient({
       </Stack>
 
       <Stack gap={3}>
-        <SectionHeader title="Go next" helper={HELP_COPY.sections.go_next} />
-        <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-4">
-          {[
-            { title: "Issues", body: "Investigate detected problems", href: "/issues" },
-            { title: "Changes", body: "Review changes in flight", href: "/changes?view=all" },
-            { title: "Action Center", body: "See everything needing action", href: "/actions" },
-            { title: "Insights", body: "Understand exposure and outcomes", href: "/insights" },
-          ].map((dest, index) => (
+        <SectionHeader title="All capabilities" helper="Nothing is hidden. These links expose the deeper surfaces for operators, admins, and executives." />
+        <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-3">
+          {CAPABILITY_LINKS.map((dest, index) => (
             <Card key={dest.title} className="shadow-sm">
               <CardBody>
                 <Stack gap={2}>

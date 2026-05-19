@@ -30,6 +30,17 @@ export function Phase5OnboardingWizard() {
     topIssues: Array<{ id: string; title: string; revenue_impact_cents: number }>;
     projectedRevenueAtRiskCents: number;
     initialDetectionTriggered?: boolean;
+    license?: {
+      tier: string;
+      protectedRevenueBand: string;
+      implementationMode: string;
+      unlimitedExecutiveAccess: boolean;
+      licensedBusinessUnits: number | null;
+      licensedIntegrations: string[] | null;
+      licensedDomains: string[] | null;
+      premiumModules: string[];
+      capabilities: Record<string, boolean>;
+    };
   } | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -48,6 +59,17 @@ export function Phase5OnboardingWizard() {
       topIssues?: Array<{ id: string; title: string; revenue_impact_cents: number }>;
       projectedRevenueAtRiskCents?: number;
       initialDetectionTriggered?: boolean;
+      license?: {
+        tier: string;
+        protectedRevenueBand: string;
+        implementationMode: string;
+        unlimitedExecutiveAccess: boolean;
+        licensedBusinessUnits: number | null;
+        licensedIntegrations: string[] | null;
+        licensedDomains: string[] | null;
+        premiumModules: string[];
+        capabilities: Record<string, boolean>;
+      };
     };
     if (!res.ok || !j.ok) {
       setError(j.error ?? "Failed to load onboarding");
@@ -61,6 +83,7 @@ export function Phase5OnboardingWizard() {
       topIssues: j.topIssues ?? [],
       projectedRevenueAtRiskCents: j.projectedRevenueAtRiskCents ?? 0,
       initialDetectionTriggered: j.initialDetectionTriggered,
+      license: j.license,
     });
     setLoading(false);
   }, []);
@@ -171,6 +194,40 @@ export function Phase5OnboardingWizard() {
 
   return (
     <Stack gap={4}>
+      {payload?.license && (payload.license.tier === "ENTERPRISE" || payload.license.tier === "STRATEGIC_ENTERPRISE") && (
+        <Card>
+          <CardBody>
+            <p className="font-semibold">
+              {payload.license.implementationMode === "WHITE_GLOVE" ? "White-glove enterprise rollout" : "Guided enterprise rollout"}
+            </p>
+            <p className="mt-2 text-sm text-[var(--text-muted)]">
+              Your Solvren agreement is scoped to {payload.license.protectedRevenueBand.replaceAll("_", " ")} protected revenue.
+              Start by connecting the revenue systems in scope, inviting executive viewers, and proving one high-risk workflow.
+            </p>
+            <div className="mt-3 grid gap-2 text-sm md:grid-cols-3">
+              <div className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                <p className="font-semibold">1. Scope</p>
+                <p className="mt-1 text-[var(--text-muted)]">
+                  {payload.license.licensedBusinessUnits ?? "All licensed"} business units, {(payload.license.licensedDomains ?? ["REVENUE"]).join(", ")} domains.
+                </p>
+              </div>
+              <div className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                <p className="font-semibold">2. Systems</p>
+                <p className="mt-1 text-[var(--text-muted)]">
+                  {(payload.license.licensedIntegrations ?? ["Stripe", "Salesforce", "HubSpot"]).join(", ")}
+                </p>
+              </div>
+              <div className="rounded-md border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                <p className="font-semibold">3. Proof</p>
+                <p className="mt-1 text-[var(--text-muted)]">
+                  {payload.license.capabilities.board_ready_exports ? "Board-ready exports and proof packets are enabled." : "Use proof packets to show value quickly."}
+                </p>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       {step === "REVIEW_PRIVACY_MODE" && (
         <Card>
           <CardBody>
@@ -187,6 +244,11 @@ export function Phase5OnboardingWizard() {
               </Link>
               .
             </p>
+            {payload?.license?.tier === "ENTERPRISE" || payload?.license?.tier === "STRATEGIC_ENTERPRISE" ? (
+              <p className="mt-2 text-sm text-[var(--text-muted)]">
+                Enterprise setup keeps data minimization on by default while your account team helps map protected revenue scope, SSO, approval roles, and support access.
+              </p>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-2">
               <Button variant="default" onClick={() => void choosePrivacyAndContinue("minimal")}>
                 Continue with Minimal Data Mode

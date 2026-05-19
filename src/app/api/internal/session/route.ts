@@ -14,6 +14,7 @@ const ALL_TABS: InternalWorkspaceTab[] = [
   "team_access",
   "integrations",
   "billing",
+  "license",
   "diagnostics",
   "audit",
 ];
@@ -31,6 +32,7 @@ export async function GET() {
     team_access: canAccessInternalTab(role, "team_access", { teamManage }),
     integrations: canAccessInternalTab(role, "integrations", { teamManage }),
     billing: canAccessInternalTab(role, "billing", { teamManage }),
+    license: canAccessInternalTab(role, "license", { teamManage }),
     diagnostics: canAccessInternalTab(role, "diagnostics", { teamManage }),
     audit: canAccessInternalTab(role, "audit", { teamManage }),
   };
@@ -43,6 +45,8 @@ export async function GET() {
     permissions: {
       billingView: internalHasPermission(role, "internal.accounts.billing.view"),
       billingManage: internalHasPermission(role, "internal.accounts.billing.manage"),
+      licenseView: internalHasPermission(role, "internal.accounts.license.view"),
+      licenseManage: internalHasPermission(role, "internal.accounts.license.manage"),
       teamManage,
       onboardingView: internalHasPermission(role, "internal.accounts.onboarding.view"),
       onboardingManage: internalHasPermission(role, "internal.accounts.onboarding.manage"),

@@ -11,7 +11,10 @@ export async function loginAs(page: Page, persona: PersonaKey) {
   await page.getByPlaceholder("Password").fill(UAT_PASSWORD);
   await page.getByRole("button", { name: /^Login$/ }).click();
   try {
-    await page.waitForURL(/\/(home|dashboard|onboarding)/, { timeout: 45_000 });
+    await page.waitForURL(
+      /\/(home|dashboard|onboarding|actions|action-queue|changes|issues|insights|settings)/,
+      { timeout: 45_000 }
+    );
   } catch {
     if (page.url().includes("/auth/verify-pending")) {
       throw new Error(

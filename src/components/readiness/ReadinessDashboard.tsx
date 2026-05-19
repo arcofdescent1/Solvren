@@ -84,7 +84,7 @@ export function ReadinessDashboard({ orgId }: { orgId: string }) {
     <Stack gap={6} className="flex flex-col pb-10">
       <PageHeaderV2
         title="Release readiness"
-        description="Portfolio and change-level readiness scores, plus active predicted risks (Phase 5)."
+        description="Portfolio and change-level readiness scores, plus active predicted risks."
         actions={
           <button
             type="button"

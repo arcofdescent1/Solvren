@@ -2,7 +2,7 @@ import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { PageHeader, Card, CardBody } from "@/ui";
+import { Badge, PageHeader, Card, CardBody, SectionHeader } from "@/ui";
 import ChangeAssessmentPanel from "@/components/ChangeAssessmentPanel";
 import { RevenueExposureCard } from "@/components/changes/RevenueExposureCard";
 import { MitigationsPanel } from "@/components/changes/MitigationsPanel";
@@ -34,6 +34,34 @@ import { isRiskDomain, type RiskDomain } from "@/types/risk";
 import type { EvidenceKind, RiskBucket } from "@/services/risk/requirements";
 import { canViewChange } from "@/lib/access/changeAccess";
 import RestrictedAccessPanel from "@/components/changes/RestrictedAccessPanel";
+
+function formatMoney(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(Number(value))) return "Not estimated";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(Number(value));
+}
+
+function statusLabel(status: string | null | undefined) {
+  if (status === "DRAFT") return "Draft";
+  if (status === "READY") return "Ready";
+  if (status === "IN_REVIEW") return "In review";
+  if (status === "APPROVED") return "Approved";
+  if (status === "REJECTED") return "Rejected";
+  if (status === "CLOSED") return "Closed";
+  if (status === "RESOLVED") return "Resolved";
+  return status ?? "Unknown";
+}
+
+function statusTone(status: string | null | undefined): "secondary" | "success" | "warning" | "danger" | "outline" {
+  if (status === "APPROVED" || status === "RESOLVED") return "success";
+  if (status === "IN_REVIEW" || status === "READY") return "warning";
+  if (status === "REJECTED") return "danger";
+  if (status === "DRAFT") return "secondary";
+  return "outline";
+}
 
 export default async function ChangeDetailPage({
   params,
@@ -209,6 +237,30 @@ export default async function ChangeDetailPage({
   const deterministicSignals = (signals ?? []).filter(
     (s: { source?: string }) => s.source === "RULE"
   );
+  const pendingApprovalCount = (approvals ?? []).filter((a: { decision: string }) => a.decision === "PENDING").length;
+  const approvedCount = (approvals ?? []).filter((a: { decision: string }) => a.decision === "APPROVED").length;
+  const totalApprovalCount = approvals?.length ?? 0;
+  const approvalTargetCount = Math.max(totalApprovalCount, requiredApprovalAreas.length);
+  const evidenceCompleteCount = requiredEvidence.length - missingEvidenceKinds.length;
+  const revenueAtRisk = (change as { revenue_at_risk?: number | null }).revenue_at_risk ?? null;
+  const estimatedMrr = (change as { estimated_mrr_affected?: number | null }).estimated_mrr_affected ?? null;
+  const isOwner = change.created_by === currentUserId;
+  const myPendingApproval = (approvals ?? []).some(
+    (a: { approver_user_id: string; decision: string }) => a.approver_user_id === currentUserId && a.decision === "PENDING"
+  );
+  const primaryNextStep = myPendingApproval
+    ? "Review evidence and decide"
+    : change.status === "DRAFT" || change.status === "READY"
+      ? isOwner
+        ? "Finish intake and submit"
+        : "Waiting for submitter"
+      : pendingApprovalCount > 0
+        ? "Waiting on approvals"
+        : missingEvidenceKinds.length > 0
+          ? "Add required evidence"
+          : change.status === "APPROVED"
+            ? "Monitor release and outcomes"
+            : "Review current status";
 
   return (
     <div className="space-y-6">
@@ -289,8 +341,115 @@ export default async function ChangeDetailPage({
         }
       />
 
-      <Card>
+      <nav className="flex flex-wrap gap-2 text-sm">
+        {[
+          { label: "Overview", href: "#overview" },
+          { label: "Impact", href: "#impact" },
+          { label: "Evidence", href: "#evidence" },
+          { label: "Approvals", href: "#approvals" },
+          { label: "Timeline", href: "#timeline" },
+          { label: "System details", href: "#system-details" },
+        ].map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 font-medium text-[var(--text)] transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]"
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <Card id="overview" className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_5%,var(--bg-surface)),var(--bg-surface)_70%)] scroll-mt-24">
         <CardBody>
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={statusTone(change.status)}>{statusLabel(change.status)}</Badge>
+                {assessment?.risk_bucket ? <Badge variant="outline">Risk: {assessment.risk_bucket}</Badge> : null}
+                {(change as { domain?: string }).domain ? <Badge variant="outline">{(change as { domain: string }).domain}</Badge> : null}
+              </div>
+              <h2 className="mt-3 text-xl font-semibold tracking-normal">Next step: {primaryNextStep}</h2>
+              <p className="mt-2 max-w-3xl text-sm text-[var(--text-muted)]">
+                Use this workspace to decide whether the change is ready, what revenue is exposed, whether evidence is complete, and who still needs to act.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">Revenue at risk</p>
+                <p className="mt-1 text-lg font-semibold">{formatMoney(revenueAtRisk ?? estimatedMrr)}</p>
+              </div>
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">Approvals</p>
+                <p className="mt-1 text-lg font-semibold">
+                  {approvalTargetCount === 0 ? "None required" : `${approvedCount}/${approvalTargetCount}`}
+                </p>
+              </div>
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">Evidence</p>
+                <p className="mt-1 text-lg font-semibold">{requiredEvidence.length === 0 ? "None required" : `${evidenceCompleteCount}/${requiredEvidence.length}`}</p>
+              </div>
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                <p className="text-xs text-[var(--text-muted)]">Pending reviews</p>
+                <p className="mt-1 text-lg font-semibold">{pendingApprovalCount}</p>
+              </div>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card className="border-[var(--primary)]/20">
+        <CardBody>
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Executive proof packet</p>
+              <h2 className="mt-1 text-lg font-semibold">Board-ready evidence for the decision</h2>
+              <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
+                This packet summarizes revenue exposure, decision status, evidence, readiness, risks, mitigations, incidents, and delivery history in a format leaders can review outside the product.
+              </p>
+              <div className="mt-3 grid gap-2 text-sm md:grid-cols-3">
+                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                  <p className="text-xs text-[var(--text-muted)]">Decision</p>
+                  <p className="font-semibold">{primaryNextStep}</p>
+                </div>
+                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                  <p className="text-xs text-[var(--text-muted)]">Methodology</p>
+                  <p className="font-semibold">Evidence + exposure + approvals</p>
+                </div>
+                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                  <p className="text-xs text-[var(--text-muted)]">Confidence</p>
+                  <p className="font-semibold">{missingEvidenceKinds.length === 0 ? "Evidence complete" : "Evidence needed"}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 lg:flex-col">
+              <a
+                href={`/api/changes/${id}/approval-packet?format=pdf`}
+                className="rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-3 py-2 text-sm font-semibold text-white hover:opacity-90"
+                download
+              >
+                Download PDF
+              </a>
+              <a
+                href={`/api/changes/${id}/approval-packet?format=md`}
+                className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--primary)] hover:bg-[var(--bg-surface-2)]"
+                download
+              >
+                Download Markdown
+              </a>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card className="scroll-mt-24">
+        <CardBody>
+          <div className="mb-4 border-b border-[var(--border)] pb-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Readiness</p>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              These checks explain whether the change can be submitted or approved, and what still blocks progress.
+            </p>
+          </div>
           <SlaBadge
             dueAt={change.due_at ?? null}
             slaStatus={change.sla_status ?? null}
@@ -322,6 +481,11 @@ export default async function ChangeDetailPage({
       </Card>
 
       <div id="sla" className="scroll-mt-24">
+        <SectionHeader
+          title="Workflow status"
+          helper="SLA, due-date, and governance timing for this change."
+          className="mb-3"
+        />
         <SlaTimeline changeId={id} />
       </div>
 
@@ -366,7 +530,12 @@ export default async function ChangeDetailPage({
         </Card>
       )}
 
-      <IncidentsPanel changeEventId={change.id} />
+      <section className="space-y-3">
+        <SectionHeader
+          title="Related risks"
+          helper="Incidents and detected issues linked to this change."
+        />
+        <IncidentsPanel changeEventId={change.id} />
 
       <Card>
         <CardBody>
@@ -400,7 +569,13 @@ export default async function ChangeDetailPage({
           </div>
         </CardBody>
       </Card>
+      </section>
 
+      <section id="impact" className="scroll-mt-24 space-y-3">
+        <SectionHeader
+          title="Business impact"
+          helper="Revenue exposure, mitigation plan, impact report, and risk assessment."
+        />
       <RevenueExposureCard
         changeId={id}
         initial={{
@@ -416,16 +591,23 @@ export default async function ChangeDetailPage({
       />
 
       <MitigationsPanel changeId={id} />
-      <CoordinationAutopilotCard changeId={id} />
       <RevenueImpactReportPanel changeId={id} />
       <ReportSuggestionsPanel changeId={id} />
-      <EvidenceChecklist changeId={id} />
 
       <ChangeAssessmentPanel
         changeEventId={id}
         signals={(signals ?? []) as Parameters<typeof ChangeAssessmentPanel>[0]["signals"]}
         assessment={assessment}
       />
+      </section>
+
+      <section id="evidence" className="scroll-mt-24 space-y-3">
+        <SectionHeader
+          title="Evidence and routing"
+          helper="What reviewers need before they can approve confidently."
+        />
+      <CoordinationAutopilotCard changeId={id} />
+      <EvidenceChecklist changeId={id} />
 
       <EvidencePanel
         changeEventId={id}
@@ -445,46 +627,73 @@ export default async function ChangeDetailPage({
           </CardBody>
         </Card>
       )}
+      </section>
 
-      {(requiredApprovalAreas.length > 0 || (approvals && approvals.length > 0)) && (
-        <div id="approvals" className="scroll-mt-24">
+      <section id="approvals" className="scroll-mt-24 space-y-3">
+        <SectionHeader
+          title="Approvals"
+          helper="Who needs to decide and which approval lanes are still pending."
+        />
+        {(requiredApprovalAreas.length > 0 || (approvals && approvals.length > 0)) ? (
           <ApprovalsPanel
           approvals={(approvals ?? []) as Parameters<typeof ApprovalsPanel>[0]["approvals"]}
-          currentUserId={currentUserId}
-          requiredApprovalAreas={requiredApprovalAreas}
+            currentUserId={currentUserId}
+            requiredApprovalAreas={requiredApprovalAreas}
+          />
+        ) : (
+          <Card>
+            <CardBody>
+              <p className="text-sm text-[var(--text-muted)]">
+                No approval lanes are required or assigned yet for this change.
+              </p>
+            </CardBody>
+          </Card>
+        )}
+      </section>
+
+      <section id="timeline" className="scroll-mt-24 space-y-3">
+        <SectionHeader
+          title="Timeline"
+          helper="Important change events, review activity, and workflow history."
         />
-        </div>
-      )}
-
-      <DeliveryPanel deliveries={deliveries ?? []} />
-
-      <ChangeTimeline changeId={id} />
+        <ChangeTimeline changeId={id} />
+      </section>
 
       <RestrictedAccessPanel
         changeId={id}
         isRestricted={Boolean((change as { is_restricted?: boolean | null }).is_restricted)}
       />
 
+      <details id="system-details" className="scroll-mt-24 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm">
+        <summary className="cursor-pointer px-[var(--card-spacer-x)] py-[var(--card-spacer-y)] font-semibold">
+          System health, audit, and risk internals
+          <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
+            Delivery logs, audit trail, signal provenance, and scoring details.
+          </span>
+        </summary>
+        <div className="space-y-6 border-t border-[var(--border)] p-[var(--card-spacer-x)]">
+          <DeliveryPanel deliveries={deliveries ?? []} />
+
       <AuditPanel changeId={id} initialRows={(auditRows ?? undefined) as AuditRow[] | undefined} />
 
-      <SignalCorrelationPanel />
+          <SignalCorrelationPanel />
 
-      {((change as { risk_explanation?: unknown }).risk_explanation != null ||
-        (change as { base_risk_score?: number | null }).base_risk_score != null ||
-        (change as { exposure_multiplier?: number | null }).exposure_multiplier != null) && (
-        <RiskBreakdownCard
-          riskExplanation={(change as { risk_explanation?: unknown }).risk_explanation}
-          baseRiskScore={(change as { base_risk_score?: number | null }).base_risk_score}
-          exposureMultiplier={(change as { exposure_multiplier?: number | null }).exposure_multiplier}
-          revenueRiskScore={(change as { revenue_risk_score?: number | null }).revenue_risk_score}
-          exposureComponents={(change as { exposure_components?: Record<string, unknown> | null }).exposure_components}
-        />
-      )}
+          {((change as { risk_explanation?: unknown }).risk_explanation != null ||
+            (change as { base_risk_score?: number | null }).base_risk_score != null ||
+            (change as { exposure_multiplier?: number | null }).exposure_multiplier != null) && (
+            <RiskBreakdownCard
+              riskExplanation={(change as { risk_explanation?: unknown }).risk_explanation}
+              baseRiskScore={(change as { base_risk_score?: number | null }).base_risk_score}
+              exposureMultiplier={(change as { exposure_multiplier?: number | null }).exposure_multiplier}
+              revenueRiskScore={(change as { revenue_risk_score?: number | null }).revenue_risk_score}
+              exposureComponents={(change as { exposure_components?: Record<string, unknown> | null }).exposure_components}
+            />
+          )}
 
-      <Card>
-        <CardBody>
-          <h2 className="font-semibold">Deterministic signals</h2>
-          <div className="mt-2 space-y-2">
+          <Card>
+            <CardBody>
+              <h2 className="font-semibold">Deterministic signals</h2>
+              <div className="mt-2 space-y-2">
             {deterministicSignals.map((s) => (
               <div key={s.id} className="rounded-[var(--radius-sb)] border border-[var(--border)] p-2 text-sm">
               <div className="flex justify-between gap-3">
@@ -503,12 +712,14 @@ export default async function ChangeDetailPage({
               </div>
             </div>
           ))}
-          {deterministicSignals.length === 0 && (
-            <p className="text-sm text-[var(--text-muted)]">No deterministic signals yet.</p>
-          )}
-          </div>
-        </CardBody>
-      </Card>
+                {deterministicSignals.length === 0 && (
+                  <p className="text-sm text-[var(--text-muted)]">No deterministic signals yet.</p>
+                )}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      </details>
     </div>
   );
 }

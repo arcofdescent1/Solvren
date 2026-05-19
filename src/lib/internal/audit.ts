@@ -11,6 +11,7 @@ const TAB_TO_ACTION: Record<InternalWorkspaceTab, string> = {
   team_access: "internal.team_access.view",
   integrations: "internal.integrations.view",
   billing: "internal.billing.view",
+  license: "internal.license.view",
   diagnostics: "internal.diagnostics.view",
   audit: "internal.audit.view",
 };

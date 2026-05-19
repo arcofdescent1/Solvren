@@ -14,6 +14,12 @@ describe("internalHasPermission", () => {
     expect(internalHasPermission("support_admin", "internal.accounts.billing.view")).toBe(true);
   });
 
+  it("allows license.manage for account operations and billing support", () => {
+    expect(internalHasPermission("account_ops", "internal.accounts.license.manage")).toBe(true);
+    expect(internalHasPermission("billing_support", "internal.accounts.license.manage")).toBe(true);
+    expect(internalHasPermission("support_admin", "internal.accounts.license.manage")).toBe(false);
+  });
+
   it("denies team.manage for billing_support", () => {
     expect(internalHasPermission("billing_support", "internal.accounts.team.manage")).toBe(false);
   });
@@ -41,13 +47,14 @@ describe("canAccessInternalTab (Phase 2 matrix)", () => {
     "team_access",
     "integrations",
     "billing",
+    "license",
     "diagnostics",
     "audit",
   ] as const;
 
   it("billing_support: overview, billing, audit only", () => {
     for (const tab of tabs) {
-      const ok = tab === "overview" || tab === "billing" || tab === "audit";
+      const ok = tab === "overview" || tab === "billing" || tab === "license" || tab === "audit";
       expect(canAccessInternalTab("billing_support", tab)).toBe(ok);
     }
   });
@@ -66,6 +73,7 @@ describe("canAccessInternalTab (Phase 2 matrix)", () => {
 
   it("technical_support: no billing; team_access only with team.manage", () => {
     expect(canAccessInternalTab("technical_support", "billing")).toBe(false);
+    expect(canAccessInternalTab("technical_support", "license")).toBe(false);
     expect(canAccessInternalTab("technical_support", "team_access")).toBe(false);
     expect(canAccessInternalTab("technical_support", "team_access", { teamManage: true })).toBe(true);
     expect(canAccessInternalTab("technical_support", "diagnostics")).toBe(true);

@@ -16,6 +16,7 @@ type TabKey =
   | "team_access"
   | "integrations"
   | "billing"
+  | "license"
   | "diagnostics"
   | "audit";
 
@@ -35,6 +36,7 @@ const TAB_ORDER: TabKey[] = [
   "team_access",
   "integrations",
   "billing",
+  "license",
   "diagnostics",
   "audit",
 ];
@@ -45,6 +47,7 @@ const TAB_LABEL: Record<TabKey, string> = {
   team_access: "Team & Access",
   integrations: "Integrations",
   billing: "Billing",
+  license: "License & rollout",
   diagnostics: "Diagnostics",
   audit: "Audit",
 };
@@ -58,6 +61,8 @@ type SessionState = {
   permissions: {
     billingView: boolean;
     billingManage: boolean;
+    licenseView: boolean;
+    licenseManage: boolean;
     teamManage: boolean;
     onboardingView: boolean;
     onboardingManage: boolean;
@@ -68,6 +73,28 @@ type SessionState = {
     diagnosticsRemediate: boolean;
     integrationDisableEnable: boolean;
   };
+};
+
+type LicenseState = {
+  tier: string;
+  status: string;
+  protectedRevenueBand: string;
+  contractStart: string | null;
+  contractEnd: string | null;
+  renewalDate: string | null;
+  licensedBusinessUnits: number | null;
+  licensedIntegrations: string[] | null;
+  licensedDomains: string[] | null;
+  includedAdminSeats: number | null;
+  unlimitedExecutiveAccess: boolean;
+  premiumModules: string[];
+  implementationMode: string;
+  accountManagerUserId: string | null;
+  customerSuccessOwnerUserId: string | null;
+  orderFormReference: string | null;
+  commercialNotes: string | null;
+  capabilities: Record<string, boolean>;
+  source: string;
 };
 
 export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
@@ -101,6 +128,7 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
     portalEligible: boolean;
     currentPeriodEnd: string | null;
   } | null>(null);
+  const [license, setLicense] = useState<LicenseState | null>(null);
   const [audit, setAudit] = useState<{ items: Record<string, unknown>[]; total: number }>({ items: [], total: 0 });
   const [auditPage, setAuditPage] = useState(1);
   const [msg, setMsg] = useState<string | null>(null);
@@ -158,6 +186,14 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
     }
   }, [orgId]);
 
+  const loadLicense = useCallback(async () => {
+    const res = await fetch(`/api/internal/accounts/${orgId}/license`, { cache: "no-store" });
+    if (res.ok) {
+      const d = (await res.json()) as { license: LicenseState };
+      setLicense(d.license);
+    }
+  }, [orgId]);
+
   const loadAudit = useCallback(async () => {
     const res = await fetch(`/api/internal/accounts/${orgId}/audit?page=${auditPage}&pageSize=25`, { cache: "no-store" });
     if (res.ok) {
@@ -206,6 +242,10 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
   }, [tab, session?.tabs.billing, loadBilling]);
 
   useEffect(() => {
+    if (tab === "license" && session?.tabs.license) void loadLicense();
+  }, [tab, session?.tabs.license, loadLicense]);
+
+  useEffect(() => {
     if (tab === "audit" && session?.tabs.audit) void loadAudit();
   }, [tab, session?.tabs.audit, loadAudit]);
 
@@ -230,6 +270,36 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
       return;
     }
     await loadOnboarding();
+  }
+
+  async function saveLicense() {
+    if (!license) return;
+    setMsg(null);
+    const res = await fetch(`/api/internal/accounts/${orgId}/license`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(license),
+    });
+    const data = (await res.json().catch(() => ({}))) as { license?: LicenseState; error?: string };
+    if (!res.ok || !data.license) {
+      setMsg(data.error ?? "License update failed");
+      return;
+    }
+    setLicense(data.license);
+    await loadSummary();
+    setMsg("License and rollout scope saved.");
+  }
+
+  function patchLicense(patch: Partial<LicenseState>) {
+    setLicense((prev) => (prev ? { ...prev, ...patch } : prev));
+  }
+
+  function listToText(items: string[] | null) {
+    return (items ?? []).join(", ");
+  }
+
+  function textToList(value: string) {
+    return value.split(",").map((item) => item.trim()).filter(Boolean);
   }
 
   const visibleTabs = session ? TAB_ORDER.filter((t) => session.tabs[t]) : TAB_ORDER;
@@ -437,6 +507,127 @@ export function InternalAccountWorkspace({ orgId }: { orgId: string }) {
               ) : (
                 <p className="text-muted-foreground">View-only billing access.</p>
               )}
+            </>
+          )}
+        </Card>
+      )}
+
+      {tab === "license" && session?.tabs.license && (
+        <Card className="p-4 space-y-4 text-sm">
+          {!license ? (
+            <p>Loading...</p>
+          ) : (
+            <>
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Tier</span>
+                  <select className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.tier} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ tier: e.target.value })}>
+                    {["FREE", "TEAM", "BUSINESS", "ENTERPRISE", "STRATEGIC_ENTERPRISE"].map((tier) => <option key={tier} value={tier}>{tier}</option>)}
+                  </select>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Status</span>
+                  <select className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.status} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ status: e.target.value })}>
+                    {["ACTIVE", "TRIALING", "PAST_DUE", "INCOMPLETE", "CANCELED"].map((status) => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Protected revenue band</span>
+                  <select className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.protectedRevenueBand} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ protectedRevenueBand: e.target.value })}>
+                    {["UNSET", "UNDER_25M", "25M_100M", "100M_250M", "250M_1B", "1B_PLUS"].map((band) => <option key={band} value={band}>{band}</option>)}
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-4">
+                {[
+                  ["Contract start", "contractStart"],
+                  ["Contract end", "contractEnd"],
+                  ["Renewal date", "renewalDate"],
+                ].map(([label, key]) => (
+                  <label key={key} className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground">{label}</span>
+                    <input
+                      type="date"
+                      className="w-full rounded-md border border-border bg-background px-3 py-2"
+                      value={(license[key as "contractStart" | "contractEnd" | "renewalDate"] as string | null) ?? ""}
+                      disabled={!session.permissions.licenseManage}
+                      onChange={(e) => patchLicense({ [key]: e.target.value || null } as Partial<LicenseState>)}
+                    />
+                  </label>
+                ))}
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Implementation mode</span>
+                  <select className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.implementationMode} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ implementationMode: e.target.value })}>
+                    {["SELF_SERVE", "GUIDED", "WHITE_GLOVE"].map((mode) => <option key={mode} value={mode}>{mode}</option>)}
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Licensed business units</span>
+                  <input type="number" min={0} className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.licensedBusinessUnits ?? ""} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ licensedBusinessUnits: e.target.value ? Number(e.target.value) : null })} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Included admin seats</span>
+                  <input type="number" min={0} className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.includedAdminSeats ?? ""} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ includedAdminSeats: e.target.value ? Number(e.target.value) : null })} />
+                </label>
+                <label className="flex items-center gap-2 pt-6">
+                  <input type="checkbox" checked={license.unlimitedExecutiveAccess} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ unlimitedExecutiveAccess: e.target.checked })} />
+                  <span>Unlimited executive/viewer access</span>
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Licensed integrations</span>
+                  <input className="w-full rounded-md border border-border bg-background px-3 py-2" value={listToText(license.licensedIntegrations)} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ licensedIntegrations: textToList(e.target.value) })} placeholder="stripe, salesforce, hubspot" />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Licensed domains</span>
+                  <input className="w-full rounded-md border border-border bg-background px-3 py-2" value={listToText(license.licensedDomains)} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ licensedDomains: textToList(e.target.value) })} placeholder="REVENUE, DATA, SECURITY" />
+                </label>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">Premium modules</span>
+                <input className="w-full rounded-md border border-border bg-background px-3 py-2" value={listToText(license.premiumModules)} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ premiumModules: textToList(e.target.value) })} placeholder="ADVANCED_AI, BOARD_REPORTING, ADVANCED_SECURITY" />
+              </label>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Account manager user ID</span>
+                  <input className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.accountManagerUserId ?? ""} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ accountManagerUserId: e.target.value || null })} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Customer success owner user ID</span>
+                  <input className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.customerSuccessOwnerUserId ?? ""} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ customerSuccessOwnerUserId: e.target.value || null })} />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">Order form reference</span>
+                  <input className="w-full rounded-md border border-border bg-background px-3 py-2" value={license.orderFormReference ?? ""} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ orderFormReference: e.target.value || null })} />
+                </label>
+              </div>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">Commercial notes</span>
+                <textarea className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2" value={license.commercialNotes ?? ""} disabled={!session.permissions.licenseManage} onChange={(e) => patchLicense({ commercialNotes: e.target.value || null })} />
+              </label>
+
+              <div>
+                <div className="mb-2 text-xs font-medium text-muted-foreground">Enabled capabilities</div>
+                <div className="grid gap-2 md:grid-cols-3">
+                  {Object.entries(license.capabilities).filter(([, enabled]) => enabled).map(([capability]) => (
+                    <span key={capability} className="rounded-md border border-border bg-muted px-2 py-1 text-xs">{capability}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {session.permissions.licenseManage ? <Button type="button" onClick={() => void saveLicense()}>Save license & rollout</Button> : <p className="text-muted-foreground">View-only license access.</p>}
+                <span className="text-xs text-muted-foreground">Source: {license.source}</span>
+              </div>
             </>
           )}
         </Card>

@@ -62,10 +62,10 @@ export default async function ExecutivePage() {
         <Card>
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">
-              Unable to load: {data?.error ?? "unknown_error"}
+              Executive summary could not be loaded right now.
             </p>
             <Link href="/changes" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              Go to Revenue Changes →
+              Go to revenue changes
             </Link>
           </CardBody>
         </Card>
@@ -92,20 +92,48 @@ export default async function ExecutivePage() {
         actions={
           <div className="flex flex-wrap gap-3">
             <Link href="/insights/roi" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              ROI →
+              ROI
             </Link>
             <Link href="/insights/risk-drivers" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              Risk Drivers →
+              Exposure drivers
             </Link>
             <Link href="/changes" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              Revenue Changes →
+              Revenue changes
             </Link>
             <Link href="/intake/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-              New Change →
+              New change
             </Link>
           </div>
         }
       />
+
+      <Card className="border-[var(--primary)]/20 bg-[var(--bg-surface)]">
+        <CardBody>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Board-ready view</p>
+              <h2 className="mt-1 text-xl font-semibold">Revenue protected, decisions needed, and change confidence</h2>
+              <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
+                Solvren ties every revenue-sensitive change to exposure, ownership, evidence, action, and verified outcome so leaders can approve quickly without reading the implementation details.
+              </p>
+            </div>
+            <div className="grid min-w-[280px] grid-cols-3 gap-2 text-center text-sm">
+              <Link href="/insights/roi" className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 hover:border-[var(--primary)]/40">
+                <p className="text-xs text-[var(--text-muted)]">Prove</p>
+                <p className="font-semibold">Value</p>
+              </Link>
+              <Link href="/actions" className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 hover:border-[var(--primary)]/40">
+                <p className="text-xs text-[var(--text-muted)]">Decide</p>
+                <p className="font-semibold">Work</p>
+              </Link>
+              <Link href="/readiness" className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 hover:border-[var(--primary)]/40">
+                <p className="text-xs text-[var(--text-muted)]">Release</p>
+                <p className="font-semibold">Safely</p>
+              </Link>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
 
       <ExecutiveNarrativeCard />
       <RevenueAtRiskCard />
@@ -138,15 +166,15 @@ export default async function ExecutivePage() {
                     100
                 )}
               </p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]">Sum of roi_events.actual_value_cents</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Verified impact events</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody>
               <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Needs attention</p>
               <p className="mt-2 text-sm text-[var(--text)]">
-                Approval {data.phase5.needsAttention?.approvalPending ?? 0} · SLA breached{" "}
-                {data.phase5.needsAttention?.slaBreached ?? 0} · Unassigned high-impact{" "}
+                Approval {data.phase5.needsAttention?.approvalPending - 0} - Deadline missed{" "}
+                {data.phase5.needsAttention?.slaBreached - 0} - Unassigned high-impact{" "}
                 {data.phase5.needsAttention?.unassignedHighImpact ?? 0}
               </p>
             </CardBody>
@@ -154,8 +182,8 @@ export default async function ExecutivePage() {
           <Card>
             <CardBody>
               <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Trend window</p>
-              <p className="mt-2 text-sm text-[var(--text)]">30 days · {data.phase5.timezone ?? "UTC"}</p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]">Cached 60s · issues opened vs resolved per day</p>
+              <p className="mt-2 text-sm text-[var(--text)]">30 days - {data.phase5.timezone ?? "UTC"}</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Issues opened vs resolved per day</p>
             </CardBody>
           </Card>
         </div>
@@ -187,7 +215,7 @@ export default async function ExecutivePage() {
           <CardBody>
             <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Overdue / Escalated</p>
             <p className="mt-2 text-2xl font-bold text-[var(--text)]">{ra.overdueCount}</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">SLA pressure items</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Deadline pressure items</p>
           </CardBody>
         </Card>
       </div>
@@ -229,7 +257,7 @@ export default async function ExecutivePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Top Risk Drivers</CardTitle>
+          <CardTitle>Top Exposure Drivers</CardTitle>
         </CardHeader>
         <CardBody>
           <div className="flex flex-wrap gap-2">

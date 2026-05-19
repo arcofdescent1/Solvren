@@ -70,8 +70,8 @@ export default async function NeedsAttentionCard() {
             Pending approvals or SLA due within 24 hours.
           </p>
         </div>
-        <Link href="/action-queue" className="text-sm font-semibold text-[var(--primary)] hover:underline shrink-0">
-          Action queue →
+        <Link href="/actions" className="text-sm font-semibold text-[var(--primary)] hover:underline shrink-0">
+          Work Queue
         </Link>
       </CardHeader>
       <CardBody className="space-y-3">

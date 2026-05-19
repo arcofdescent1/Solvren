@@ -3,7 +3,7 @@
  * Labels and hrefs are English-only for Phase 1; structure is translation-friendly.
  */
 
-export const footerLegalLine = "© 2026 Solvren, Inc. All rights reserved.";
+export const footerLegalLine = "Copyright 2026 Solvren, Inc. All rights reserved.";
 
 export const footerBrand = {
   name: "Solvren",

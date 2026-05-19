@@ -141,7 +141,7 @@ export default function OrgPurgeClient(props: { orgId: string; orgName: string |
             {props.orgName ? ` (${props.orgName})` : ""}
           </p>
           <p className="text-sm text-[var(--danger)]">
-            Destructive: purges tenant data per Phase 7 policy. Requires dry run, approval, and execute. See runbook in
+            Destructive: purges tenant data under the approved tenant offboarding policy. Requires dry run, approval, and execute. See runbook in
             docs.
           </p>
           <label className="block text-sm font-medium">Reason</label>

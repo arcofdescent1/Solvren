@@ -71,7 +71,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
     <Stack gap={6} className="flex flex-col pb-10">
       <PageHeaderV2
         title="Executive outcomes"
-        description="Revenue protected, incidents avoided, and value stories backed by evidence (Phase 6)."
+        description="Revenue protected, incidents avoided, and value stories backed by evidence."
         actions={
           <button
             type="button"
@@ -92,7 +92,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
         </Card>
       )}
 
-      {loading && !data ? <p className="text-sm text-[var(--text-muted)]">Loading…</p> : null}
+      {loading && !data ? <p className="text-sm text-[var(--text-muted)]">Loading...</p> : null}
 
       {data?.disabled ? (
         <EmptyState
@@ -105,8 +105,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
       {data && !data.disabled ? (
         <>
           <p className="text-xs text-[var(--text-muted)]">
-            Revenue figures use estimated monthly revenue at risk recorded on each change (default one-month basis), then Phase 6
-            prevention confidence and duration factors.
+            Revenue figures use estimated monthly revenue at risk recorded on each change, then apply prevention confidence and duration factors.
           </p>
           <Grid cols={1} gap={4} className="sm:grid-cols-2 lg:grid-cols-4">
             <Card>

@@ -70,7 +70,7 @@ export async function evaluatePolicy(
     const threshold = rules.financial_threshold as number | undefined;
     if (threshold != null && (context.amount ?? 0) > threshold) {
       requiresApproval = true;
-      blockedReason = blockedReason ?? `Amount exceeds threshold $${threshold}`;
+      blockedReason = blockedReason ?? `Amount exceeds threshold ${threshold}`;
     }
 
     const modeOrder = ["manual_only", "suggest_only", "approve_then_execute", "auto_execute_low_risk", "auto_execute_policy_bounded", "full_trusted_autonomy"];

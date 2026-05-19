@@ -81,10 +81,10 @@ type BulkAction = "NUDGE_APPROVERS" | "RETRY_FAILED" | "MARK_DELIVERED";
 
 const SEGMENTS: Array<{ key: CanonicalView; label: string }> = [
   { key: "all", label: "All changes" },
-  { key: "needs-review", label: "Needs my review" },
+  { key: "needs-review", label: "For my decision" },
   { key: "needs-details", label: "Needs details" },
   { key: "overdue", label: "Overdue" },
-  { key: "delivery-health", label: "Delivery health" },
+  { key: "delivery-health", label: "System follow-up" },
 ];
 
 const LEGACY_VIEW_NAME_MAP: Record<string, string> = {
@@ -365,7 +365,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
       <PageHeaderV2
         breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes" }]}
         title="Changes"
-        description="Track revenue-impacting changes, identify blockers quickly, and take the next best action."
+        description="A workspace for declaring, preparing, reviewing, and approving revenue-impacting changes."
         actions={
           <Link
             href="/intake/new"
@@ -376,6 +376,29 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
         }
         helpTrigger={<PageHelpDrawer page="changes" />}
       />
+
+      <Card className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_4%,var(--bg-surface)),var(--bg-surface)_72%)]">
+        <CardBody>
+          <div className="grid gap-3 md:grid-cols-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Workflow</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">Draft → Prepare → Review → Approve → Monitor</p>
+            </div>
+            <div>
+              <p className="font-semibold">Submitters</p>
+              <p className="text-sm text-[var(--text-muted)]">Add context and evidence before review.</p>
+            </div>
+            <div>
+              <p className="font-semibold">Reviewers</p>
+              <p className="text-sm text-[var(--text-muted)]">Use impact, evidence, and approvals to decide quickly.</p>
+            </div>
+            <div>
+              <p className="font-semibold">Leaders</p>
+              <p className="text-sm text-[var(--text-muted)]">See what is blocked, overdue, or high impact.</p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
 
       <Card className="shadow-sm">
         <CardBody className="space-y-3">
@@ -445,23 +468,23 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
           </div>
 
           <div className="grid gap-3 md:grid-cols-5">
-            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "needs_review" })}>
+            <button className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-left transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]" onClick={() => trackAppEvent("changes_summary_card_click", { card: "needs_review" })}>
               <p className="text-xs text-[var(--text-muted)]">Needs review</p>
               <p className="text-xl font-semibold">{cardCounts.needsReview}</p>
             </button>
-            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "needs_details" })}>
+            <button className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-left transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]" onClick={() => trackAppEvent("changes_summary_card_click", { card: "needs_details" })}>
               <p className="text-xs text-[var(--text-muted)]">Needs details</p>
               <p className="text-xl font-semibold">{cardCounts.needsDetail}</p>
             </button>
-            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "overdue" })}>
+            <button className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-left transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]" onClick={() => trackAppEvent("changes_summary_card_click", { card: "overdue" })}>
               <p className="text-xs text-[var(--text-muted)]">Overdue</p>
               <p className="text-xl font-semibold">{cardCounts.overdue}</p>
             </button>
-            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "high_impact" })}>
+            <button className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-left transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]" onClick={() => trackAppEvent("changes_summary_card_click", { card: "high_impact" })}>
               <p className="text-xs text-[var(--text-muted)]">High impact</p>
               <p className="text-xl font-semibold">{cardCounts.highImpact}</p>
             </button>
-            <button className="rounded-lg border p-3 text-left" onClick={() => trackAppEvent("changes_summary_card_click", { card: "linked_issues" })}>
+            <button className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-left transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]" onClick={() => trackAppEvent("changes_summary_card_click", { card: "linked_issues" })}>
               <p className="text-xs text-[var(--text-muted)]">Linked to issues</p>
               <p className="text-xl font-semibold">{cardCounts.linkedIssues}</p>
             </button>
@@ -472,7 +495,11 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
               <Link
                 key={segment.key}
                 href={withQuery(pathname, searchParams, { view: segment.key })}
-                className={`rounded-full border px-3 py-1 text-sm ${resolvedView === segment.key ? "bg-black text-white" : ""}`}
+                className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                  resolvedView === segment.key
+                    ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-contrast)]"
+                    : "border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-surface-2)]"
+                }`}
                 onClick={() =>
                   trackAppEvent("changes_segment_change", { from: resolvedView, to: segment.key })
                 }
@@ -483,7 +510,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
             <div className="ml-auto flex items-center gap-2">
               <details>
                 <summary className="cursor-pointer rounded-md border px-3 py-1 text-sm">Views</summary>
-                <div className="absolute mt-2 w-64 rounded-md border bg-white p-2 shadow-md">
+                <div className="absolute mt-2 w-64 rounded-md border border-[var(--border)] bg-[var(--bg-elevated)] p-2 shadow-md">
                   {savedViews.map((saved) => {
                     const mappedName = LEGACY_VIEW_NAME_MAP[saved.name] ?? saved.name;
                     return (
@@ -504,7 +531,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
                           trackAppEvent("changes_saved_view_used", { saved_view_id: saved.id, view: mapped });
                           window.location.href = withQuery(pathname, searchParams, { view: mapped });
                         }}
-                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-black/5"
+                        className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-[var(--bg-surface-2)]"
                       >
                         {mappedName}
                       </button>
@@ -523,9 +550,9 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
             <SectionHeader title="Recommended next" />
             <div className="grid gap-2 md:grid-cols-3">
               {recommended.map((row) => (
-                <button
+              <button
                   key={row.changeId}
-                  className="rounded-md border p-3 text-left hover:bg-black/5"
+                  className="rounded-md border border-[var(--border)] p-3 text-left transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]"
                   onClick={() => {
                     setActiveRowId(row.changeId);
                     trackAppEvent("changes_recommended_open", { change_id: row.changeId, next_step: getNextStep(row) });
@@ -627,7 +654,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
                     </th>
                     <th className="px-2 py-2">Change</th>
                     <th className="px-2 py-2">Owner</th>
-                    <th className="px-2 py-2">Reviewers</th>
+                    <th className="px-2 py-2">Pending reviews</th>
                     <th className="px-2 py-2">Due</th>
                     <th className="px-2 py-2">
                       <span className="inline-flex items-center gap-1">
@@ -745,7 +772,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
             </CardBody>
           </Card>
 
-          <aside className="fixed inset-y-0 right-0 z-30 hidden w-[420px] border-l bg-white p-4 shadow-xl lg:block">
+          <aside className="fixed inset-y-0 right-0 z-30 hidden w-[420px] border-l border-[var(--border)] bg-[var(--bg-elevated)] p-4 shadow-xl lg:block">
             <div className="flex items-center justify-between">
               <p className="text-xs uppercase text-[var(--text-muted)]">Change details</p>
               <button onClick={() => setActiveRowId(null)} className="text-sm text-[var(--text-muted)]">

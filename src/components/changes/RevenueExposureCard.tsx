@@ -1,25 +1,8 @@
-"use client";;
-import { Button, Input, NativeSelect } from "@/ui";
+"use client";
 
 import { useMemo, useState } from "react";
-
-type RevenueSurface =
-  | "PRICING"
-  | "BILLING"
-  | "PAYMENTS"
-  | "SUBSCRIPTIONS"
-  | "ENTITLEMENTS"
-  | "CHECKOUT"
-  | "TAX"
-  | "PROMOTIONS"
-  | "INVOICING"
-  | "OTHER";
-
-const SURFACES: (RevenueSurface | "PLAN_LOGIC" | "SUBSCRIPTION")[] = [
-  "PRICING", "BILLING", "PAYMENTS", "SUBSCRIPTION", "SUBSCRIPTIONS", "PLAN_LOGIC",
-  "ENTITLEMENTS", "CHECKOUT", "TAX", "PROMOTIONS",
-  "INVOICING", "OTHER",
-];
+import { Button, Input, NativeSelect } from "@/ui";
+import { formatRevenueSurface, normalizeRevenueSurface, REVENUE_SURFACES } from "@/lib/revenue/surfaces";
 
 function fmtMoney(n: number) {
   try {
@@ -47,13 +30,9 @@ export function RevenueExposureCard(props: {
   };
   onUpdated?: (next: unknown) => void;
 }) {
-  const [estimated, setEstimated] = useState<string>(
-    props.initial.estimatedMrrAffected?.toString() ?? ""
-  );
-  const [pct, setPct] = useState<string>(
-    props.initial.percentCustomerBaseAffected?.toString() ?? ""
-  );
-  const [surface, setSurface] = useState<string>(props.initial.revenueSurface ?? "");
+  const [estimated, setEstimated] = useState<string>(props.initial.estimatedMrrAffected?.toString() ?? "");
+  const [pct, setPct] = useState<string>(props.initial.percentCustomerBaseAffected?.toString() ?? "");
+  const [surface, setSurface] = useState<string>(normalizeRevenueSurface(props.initial.revenueSurface) ?? "");
   const [saving, setSaving] = useState(false);
   const [serverRevenue, setServerRevenue] = useState<{
     exposureMultiplier?: number;
@@ -62,12 +41,9 @@ export function RevenueExposureCard(props: {
   } | null>(props.initial.revenue ?? null);
   const [err, setErr] = useState<string | null>(null);
 
-  const exposureMultiplier =
-    serverRevenue?.exposureMultiplier ?? props.initial.revenue?.exposureMultiplier ?? null;
-  const explanation =
-    serverRevenue?.explanation ?? props.initial.revenue?.explanation ?? null;
-  const revenueAtRisk =
-    serverRevenue?.revenueAtRisk ?? props.initial.revenue?.revenueAtRisk ?? null;
+  const exposureMultiplier = serverRevenue?.exposureMultiplier ?? props.initial.revenue?.exposureMultiplier ?? null;
+  const explanation = serverRevenue?.explanation ?? props.initial.revenue?.explanation ?? null;
+  const revenueAtRisk = serverRevenue?.revenueAtRisk ?? props.initial.revenue?.revenueAtRisk ?? null;
 
   const computedAtRisk = useMemo(() => {
     const m = Number(estimated);
@@ -82,7 +58,7 @@ export function RevenueExposureCard(props: {
       const body = {
         estimatedMrrAffected: estimated.trim() === "" ? null : Number(estimated),
         percentCustomerBaseAffected: pct.trim() === "" ? null : Number(pct),
-        revenueSurface: surface.trim() === "" ? null : surface,
+        revenueSurface: normalizeRevenueSurface(surface),
       };
       const res = await fetch(`/api/changes/${props.changeId}/revenue`, {
         method: "PUT",
@@ -90,34 +66,28 @@ export function RevenueExposureCard(props: {
         body: JSON.stringify(body),
       });
       const json = await res.json();
-      if (!res.ok)
-        throw new Error((json as { error?: string }).error || "Failed to update revenue exposure");
+      if (!res.ok) throw new Error((json as { error?: string }).error || "Revenue exposure could not be saved.");
       setServerRevenue(json.revenue);
       props.onUpdated?.(json.revenue);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Failed to save");
+      setErr(e instanceof Error ? e.message : "Revenue exposure could not be saved.");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="rounded-2xl border p-4 shadow-sm">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-lg font-semibold">Revenue Exposure</div>
-          <div className="text-sm text-neutral-600">
-            Add money context so risk becomes executive-relevant.
-          </div>
+          <div className="text-lg font-semibold">Revenue exposure</div>
+          <div className="text-sm text-[var(--text-muted)]">Add money context so risk becomes executive-relevant.</div>
         </div>
-        <Button
-          onClick={save}
-          disabled={saving}
-          className="rounded-xl border px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save"}
+        <Button onClick={save} disabled={saving}>
+          {saving ? "Saving..." : "Save"}
         </Button>
       </div>
+
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         <label className="text-sm">
           <div className="mb-1 font-medium">Estimated MRR affected</div>
@@ -125,69 +95,64 @@ export function RevenueExposureCard(props: {
             value={estimated}
             onChange={(e) => setEstimated(e.target.value)}
             placeholder="e.g. 25000"
-            className="w-full rounded-xl border px-3 py-2"
+            className="w-full"
             inputMode="numeric"
           />
-          <div className="mt-1 text-xs text-neutral-500">
-            {computedAtRisk != null ? fmtMoney(computedAtRisk) : "—"}
+          <div className="mt-1 text-xs text-[var(--text-muted)]">
+            {computedAtRisk != null ? fmtMoney(computedAtRisk) : "-"}
           </div>
         </label>
+
         <label className="text-sm">
           <div className="mb-1 font-medium">% customer base affected</div>
           <Input
             value={pct}
             onChange={(e) => setPct(e.target.value)}
-            placeholder="0–100"
-            className="w-full rounded-xl border px-3 py-2"
+            placeholder="0-100"
+            className="w-full"
             inputMode="decimal"
           />
-          <div className="mt-1 text-xs text-neutral-500">Use rough estimate.</div>
+          <div className="mt-1 text-xs text-[var(--text-muted)]">Use a rough estimate.</div>
         </label>
+
         <label className="text-sm">
           <div className="mb-1 font-medium">Revenue surface</div>
-          <NativeSelect
-            value={surface}
-            onChange={(e) => setSurface(e.target.value)}
-            className="w-full rounded-xl border px-3 py-2"
-          >
+          <NativeSelect value={surface} onChange={(e) => setSurface(e.target.value)} className="w-full">
             <option value="">Unspecified</option>
-            {SURFACES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+          {REVENUE_SURFACES.map((s) => (
+            <option key={s} value={s}>
+              {formatRevenueSurface(s)}
+            </option>
+          ))}
           </NativeSelect>
-          <div className="mt-1 text-xs text-neutral-500">Where this touches revenue.</div>
+          <div className="mt-1 text-xs text-[var(--text-muted)]">Where this touches revenue.</div>
         </label>
       </div>
-      <div className="mt-4 rounded-xl border bg-white p-3">
+
+      <div className="mt-4 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold">Revenue at Risk</div>
-          <div className="text-sm font-bold">
-            {revenueAtRisk != null ? fmtMoney(revenueAtRisk) : "—"}
-          </div>
+          <div className="text-sm font-semibold">Revenue at risk</div>
+          <div className="text-sm font-bold">{revenueAtRisk != null ? fmtMoney(revenueAtRisk) : "-"}</div>
         </div>
-        <div className="mt-1 text-xs text-neutral-600">
-          Computed as: estimated MRR affected × (risk score ÷ 100)
+        <div className="mt-1 text-xs text-[var(--text-muted)]">
+          Estimate based on affected recurring revenue and the current review level.
         </div>
       </div>
-      <div className="mt-4 rounded-xl bg-neutral-50 p-3">
+
+      <div className="mt-4 rounded-[var(--radius-md)] bg-[var(--bg-surface-2)] p-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold">Exposure Multiplier</div>
-          <div className="text-sm font-semibold">
-            {exposureMultiplier != null ? exposureMultiplier.toFixed(2) + "×" : "—"}
-          </div>
+          <div className="text-sm font-semibold">Exposure multiplier</div>
+          <div className="text-sm font-semibold">{exposureMultiplier != null ? `${exposureMultiplier.toFixed(2)}x` : "-"}</div>
         </div>
-        <details className="mt-2 text-sm text-neutral-700">
-          <summary className="cursor-pointer select-none text-sm font-medium">
-            Why am I seeing this multiplier?
-          </summary>
-          <pre className="mt-2 overflow-auto rounded-lg border bg-white p-2 text-xs">
-            {explanation
-              ? JSON.stringify(explanation, null, 2)
-              : "No explanation available yet. Save revenue exposure to compute."}
+        <details className="mt-2 text-sm text-[var(--text-muted)]">
+          <summary className="cursor-pointer select-none text-sm font-medium">Show calculation details</summary>
+          <pre className="mt-2 overflow-auto rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] p-2 text-xs">
+            {explanation ? JSON.stringify(explanation, null, 2) : "No explanation available yet. Save revenue exposure to compute."}
           </pre>
         </details>
       </div>
-      {err ? <div className="mt-3 text-sm text-red-600">{err}</div> : null}
+
+      {err ? <div className="mt-3 text-sm text-[var(--danger)]">{err}</div> : null}
     </div>
   );
 }

@@ -22,7 +22,7 @@ export function Content({
       {...props}
     >
       <DemoEnvironmentBanner />
-      <Container className="py-6">{children}</Container>
+      <Container className="py-5 sm:py-6">{children}</Container>
     </div>
   );
 }

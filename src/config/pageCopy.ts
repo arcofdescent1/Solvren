@@ -1,13 +1,13 @@
 export const PAGE_COPY = {
   home: {
-    title: "Home",
+    title: "Command Center",
     description:
       "Your revenue risk command center. See what needs attention, what is assigned to you, what is blocked, and where Solvren is protecting the business.",
     helper:
       "Solvren helps your team detect revenue-impacting issues, govern risky changes, and coordinate action before problems become losses.",
   },
   issues: {
-    title: "Issues",
+    title: "Revenue Risks",
     description:
       "Problems Solvren detected across your systems. Investigate what happened, understand the business impact, and move resolution forward.",
     helper:
@@ -21,7 +21,7 @@ export const PAGE_COPY = {
       "Start here when a change needs review, approval, supporting details, or follow-up.",
   },
   actions: {
-    title: "Action Center",
+    title: "Work Queue",
     description:
       "Everything that needs action now, including work assigned to you, recommended next steps, and operational follow-up.",
     helper: "Start here when you want to know exactly what needs your attention.",
@@ -47,4 +47,3 @@ export const PAGE_COPY = {
       "Use settings to control how Solvren works for your organization without changing the underlying monitoring model.",
   },
 } as const;
-

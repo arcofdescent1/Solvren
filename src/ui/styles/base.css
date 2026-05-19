@@ -13,7 +13,7 @@
   }
 
   /* SB-ish type scale */
-  h1 { font-size: 1.5rem; line-height: 2rem; font-weight: 700; letter-spacing: -0.01em; }
+  h1 { font-size: 1.5rem; line-height: 2rem; font-weight: 700; letter-spacing: 0; }
   h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; }
   h3 { font-size: 1.125rem; line-height: 1.5rem; font-weight: 700; }
 
@@ -80,12 +80,12 @@
     font-size: 0.75rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    padding: var(--cell-y) var(--cell-x);
+    padding: 0.7rem var(--cell-x);
     border-bottom: 1px solid var(--table-border);
   }
 
   td {
-    padding: var(--cell-y) var(--cell-x);
+    padding: 0.85rem var(--cell-x);
     border-bottom: 1px solid var(--table-border);
     color: var(--text);
   }

@@ -38,7 +38,7 @@ export class PaymentFailureSpikeDetector implements IDetector {
       timeline: paymentFailed.slice(0, 5).map((s) => ({
         event: "payment_failed",
         timestamp: s.signal_time,
-        detail: `$${(s.measures_json as Record<string, number>)?.amount ?? 0}`,
+        detail: `${(s.measures_json as Record<string, number>)?.amount ?? 0}`,
       })),
       thresholds_crossed: [{ threshold: "min_count", value: paymentFailed.length, limit: minCount }],
       supporting_metrics: { count: paymentFailed.length, totalAmount },

@@ -147,7 +147,7 @@ export default function PoliciesClient() {
 
       <Card className="border-[var(--border)] bg-[var(--bg-muted)]/40">
         <CardBody className="text-sm text-[var(--text-muted)]">
-          <p className="font-medium text-[var(--text)]">Org revenue policies (legacy authoring)</p>
+          <p className="font-medium text-[var(--text)]">Organization revenue policies</p>
           <p className="mt-1">
             Rules here are org-scoped guardrails. Enforcement goes through the unified governance engine via a read-time
             adapter. Canonical DSL policies (including platform-owned, non-relaxable controls) are managed under{" "}

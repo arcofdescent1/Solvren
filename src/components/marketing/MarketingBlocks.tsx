@@ -878,7 +878,7 @@ export function SecurityGrid() {
 export function PricingCards() {
   const tiers = [
     {
-      name: "Starter",
+      name: "Team",
       price: "Custom",
       badge: "Pilot-ready",
       body: "Start in Safe Mode with signals-first onboarding — ideal for teams proving value on pricing, billing, and revenue-change governance without expanding data scope.",
@@ -889,7 +889,7 @@ export function PricingCards() {
       ],
     },
     {
-      name: "Growth",
+      name: "Business",
       price: "Contact sales",
       badge: "Scale",
       body: "For cross-functional teams that need expanded operational insight while still defaulting to data minimization and auditable controls.",
@@ -910,11 +910,22 @@ export function PricingCards() {
         "Write-back and scope controls per integration",
       ],
     },
+    {
+      name: "Strategic Enterprise",
+      price: "Contact sales",
+      badge: "White-glove",
+      body: "For large deployments that need multi-business-unit governance, board-ready proof, advanced security, and dedicated success ownership.",
+      bullets: [
+        "White-glove implementation and executive cadence",
+        "Advanced security, reporting, and governance modules",
+        "Custom protected revenue scope and renewal success plan",
+      ],
+    },
   ];
 
   return (
     <SectionFrame eyebrow="Pricing" title="Early access is focused on high-value pilots, not self-serve commodity seats.">
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
         {tiers.map((tier) => (
           <div key={tier.name} className="rounded-[32px] border border-white/10 bg-white/5 p-8">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">

@@ -182,6 +182,14 @@ export default async function IssueDetailPage({
     <div className="flex flex-col gap-6">
       <Phase3IssueReviewedTracker issueId={issueId} />
       <IssueDetailHeader issue={issue} />
+      <Card className="border-[var(--primary)]/20 shadow-sm">
+        <CardBody>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Investigation guide</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            Start with the next action, owner, lifecycle, and business impact. Evidence, lineage, and source details are still available below for audit and deeper investigation.
+          </p>
+        </CardBody>
+      </Card>
       <IssueDetailNextAction issue={issue as typeof issue & { approval_state?: string | null }} />
       <div className="grid gap-4 md:grid-cols-2">
         <IssueOwnerPanel issue={issue} />
@@ -195,12 +203,22 @@ export default async function IssueDetailPage({
           confidenceExplanation={assessment?.confidence_explanation_json ?? null}
         />
       </div>
-      <IssueSourcePanel issue={issue} evidenceJson={evidenceJson} />
-      <IssueLinksPanel changes={changes} entities={entities} />
-      <div className="grid gap-4 md:grid-cols-2">
-        <IssueEvidencePanel evidence={evidence} evidenceJson={evidenceJson} detectorKey={issueRow.detector_key} />
-        <IssueLineagePanel lineage={lineage} />
-      </div>
+      <details className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm">
+        <summary className="cursor-pointer px-[var(--card-spacer-x)] py-[var(--card-spacer-y)] font-semibold">
+          Evidence, linked records, and source details
+          <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
+            Full audit context for operators and reviewers.
+          </span>
+        </summary>
+        <div className="space-y-4 border-t border-[var(--border)] p-[var(--card-spacer-x)]">
+          <IssueSourcePanel issue={issue} evidenceJson={evidenceJson} />
+          <IssueLinksPanel changes={changes} entities={entities} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <IssueEvidencePanel evidence={evidence} evidenceJson={evidenceJson} detectorKey={issueRow.detector_key} />
+            <IssueLineagePanel lineage={lineage} />
+          </div>
+        </div>
+      </details>
       <div className="grid gap-4 md:grid-cols-2">
         <IssueTimelinePanel history={history} />
         <IssueVerificationPanel verificationStatus={issue.verification_status} runs={runs} />

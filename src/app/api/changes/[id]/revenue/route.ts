@@ -1,6 +1,8 @@
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { canEditChange } from "@/lib/access/changeAccess";
+import { normalizeRevenueSurface } from "@/lib/revenue/surfaces";
 import { recomputeAndPersistRevenueFields } from "@/services/risk/revenuePersist";
 
 type Body = {
@@ -26,7 +28,9 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { data: change, error: changeErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("id, org_id"))
+  const { data: change, error: changeErr } = await scopeActiveChangeEvents(
+    supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted")
+  )
     .eq("id", changeId)
     .maybeSingle();
 
@@ -48,13 +52,18 @@ export async function PUT(
       { status: 403 }
     );
 
+  const canEdit = await canEditChange(supabase, userRes.user.id, change);
+  if (!canEdit) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const estimated =
     body.estimatedMrrAffected == null ? null : Number(body.estimatedMrrAffected);
   const pct =
     body.percentCustomerBaseAffected == null
       ? null
       : Number(body.percentCustomerBaseAffected);
-  const surface = body.revenueSurface ?? null;
+  const surface = body.revenueSurface == null ? null : normalizeRevenueSurface(body.revenueSurface);
 
   if (pct != null && (pct < 0 || pct > 100)) {
     return NextResponse.json(
@@ -67,6 +76,9 @@ export async function PUT(
       { error: "estimatedMrrAffected must be >= 0" },
       { status: 400 }
     );
+  }
+  if (body.revenueSurface != null && surface == null) {
+    return NextResponse.json({ error: "Invalid revenueSurface" }, { status: 400 });
   }
 
   const { error: updErr } = await supabase

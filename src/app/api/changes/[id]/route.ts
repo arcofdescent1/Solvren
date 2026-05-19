@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { auditLog } from "@/lib/audit";
-import { canGrantRestrictedAccess, canViewChange } from "@/lib/access/changeAccess";
+import { canEditChange, canGrantRestrictedAccess, canViewChange } from "@/lib/access/changeAccess";
 import { markRevenueImpactStale } from "@/services/revenueImpact/markRevenueImpactStale";
 import { markCoordinationPlanStale } from "@/services/coordination/markCoordinationPlanStale";
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
-
-const REVENUE_SURFACES = [
-  "PRICING", "BILLING", "PAYMENTS", "SUBSCRIPTIONS",
-  "ENTITLEMENTS", "CHECKOUT", "TAX", "PROMOTIONS",
-  "INVOICING", "OTHER",
-] as const;
+import { normalizeRevenueSurface } from "@/lib/revenue/surfaces";
 
 type Body = {
   estimatedMrrAffected?: number | null;
@@ -59,6 +54,8 @@ export async function PATCH(
       ? undefined
       : Number(body.percentCustomerBaseAffected);
   const revenueSurface = body.revenueSurface ?? undefined;
+  const normalizedRevenueSurface =
+    revenueSurface === undefined ? undefined : normalizeRevenueSurface(revenueSurface);
 
   // Guardrails
   if (percentCustomerBaseAffected != null) {
@@ -78,7 +75,7 @@ export async function PATCH(
   if (
     revenueSurface != null &&
     revenueSurface !== "" &&
-    !REVENUE_SURFACES.includes(revenueSurface as (typeof REVENUE_SURFACES)[number])
+    normalizedRevenueSurface == null
   ) {
     return NextResponse.json(
       { error: "Invalid revenueSurface" },
@@ -87,13 +84,25 @@ export async function PATCH(
   }
 
   const patch: Record<string, unknown> = {};
-  if (body.title !== undefined) patch.title = body.title;
+  const editsBusinessFields =
+    body.title !== undefined ||
+    estimatedMrrAffected !== undefined ||
+    percentCustomerBaseAffected !== undefined ||
+    revenueSurface !== undefined;
+  if (editsBusinessFields) {
+    const canEdit = await canEditChange(supabase, userRes.user.id, change);
+    if (!canEdit) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  if (body.title !== undefined) patch.title = body.title.trim();
   if (estimatedMrrAffected !== undefined)
     patch.estimated_mrr_affected = estimatedMrrAffected;
   if (percentCustomerBaseAffected !== undefined)
     patch.percent_customer_base_affected = percentCustomerBaseAffected;
   if (revenueSurface !== undefined)
-    patch.revenue_surface = revenueSurface === "" ? null : revenueSurface;
+    patch.revenue_surface = normalizedRevenueSurface;
   if (body.isRestricted !== undefined) {
     const canManageRestricted = await canGrantRestrictedAccess(supabase, userRes.user.id, change);
     if (!canManageRestricted) {

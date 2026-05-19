@@ -116,8 +116,7 @@ export default function ValueStoryDetailPage() {
                 </p>
               ) : (
                 <p className="text-xs text-[var(--text-muted)]">
-                  Dollar estimates use monthly revenue at risk from the change record (default one-month basis) with Phase 6 confidence
-                  and duration weighting.
+                  Dollar estimates use monthly revenue at risk from the change record with confidence and duration weighting.
                 </p>
               )}
               <p className="text-sm">{story.story_text}</p>

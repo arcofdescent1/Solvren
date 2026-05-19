@@ -5,7 +5,7 @@ import { useState } from "react";
 
 type Billing = {
   org_id: string;
-  plan_key: "FREE" | "TEAM" | "BUSINESS";
+  plan_key: "FREE" | "TEAM" | "BUSINESS" | "ENTERPRISE" | "STRATEGIC_ENTERPRISE";
   status: string;
   current_period_end: string | null;
 };
@@ -91,8 +91,8 @@ export default function BillingPanel({
         </Button>
       </div>
       <p className="text-sm text-[var(--text-muted)]">
-        Plans gate Slack + digests. Start on Free, upgrade when you want
-        team-wide risk visibility.
+        Licensing controls your Solvren package, contract scope, and enterprise capabilities.
+        Start on Team or Business, then expand into enterprise protected-revenue bands with Solvren.
       </p>
       {billing ? (
         <div className="text-sm text-[var(--text)]">

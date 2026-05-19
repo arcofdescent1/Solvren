@@ -1,13 +1,13 @@
 import * as React from "react";
 import { cn } from "@/lib/cn";
 
-/** SB Admin Pro: box-shadow, neutral card header, cap background. */
+/** Quiet SaaS surface: subtle border, low shadow, compact radius. */
 export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-md)]",
+        "overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--shadow-sm)]",
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ CardHeader.displayName = "CardHeader";
 
 export const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-base font-bold leading-none tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn("text-base font-semibold leading-none tracking-normal", className)} {...props} />
   )
 );
 CardTitle.displayName = "CardTitle";

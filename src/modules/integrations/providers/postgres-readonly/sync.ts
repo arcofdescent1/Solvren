@@ -19,7 +19,7 @@ export async function fetchTableRows(
 ): Promise<{ rows: Record<string, unknown>[]; error?: string }> {
   const colList = columns.length > 0 ? columns.map((c) => `"${c}"`).join(", ") : "*";
   const whereClause = where ? ` WHERE ${where}` : "";
-  const query = `SELECT ${colList} FROM "${tableName}"${whereClause} LIMIT $${(params?.length ?? 0) + 1}`;
+  const query = `SELECT ${colList} FROM "${tableName}"${whereClause} LIMIT ${(params?.length ?? 0) + 1}`;
   const allParams = [...(params ?? []), limit];
 
   try {

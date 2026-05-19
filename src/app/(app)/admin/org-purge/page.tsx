@@ -30,7 +30,7 @@ export default async function OrgPurgePage() {
           { label: "Admin", href: "/admin/domains" },
           { label: "Org purge" },
         ]}
-        title="Org purge (Phase 7)"
+        title="Tenant data purge"
         description="Tenant offboarding: dry-run, approval, checkpointed execution, verification."
         right={
           <div className="flex gap-3">

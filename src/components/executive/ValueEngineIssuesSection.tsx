@@ -53,18 +53,18 @@ export default async function ValueEngineIssuesSection() {
           </p>
         </div>
         <Link href="/signals" className="text-sm font-semibold text-[var(--primary)] hover:underline shrink-0">
-          Signals overview →
+          Review factors
         </Link>
       </CardHeader>
       <CardBody>
         {rows.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]">
-            No issues yet. Connect Stripe or HubSpot under Settings → Integrations. We’ll surface more as we analyze
+            No issues yet. Connect Stripe or HubSpot under Settings - Integrations. We&apos;ll surface more as we analyze
             additional data.
           </p>
         ) : rows.length < 3 ? (
           <p className="mb-3 text-sm text-[var(--text-muted)]">
-            Showing {rows.length} issue{rows.length === 1 ? "" : "s"}. We’ll surface more as we analyze additional data.
+            Showing {rows.length} issue{rows.length === 1 ? "" : "s"}. We&apos;ll surface more as we analyze additional data.
           </p>
         ) : null}
 
@@ -90,7 +90,7 @@ export default async function ValueEngineIssuesSection() {
                   </TableCell>
                   <TableCell>{formatMoneyCents(r.revenue_impact_cents, r.currency)}</TableCell>
                   <TableCell>{r.affected_count}</TableCell>
-                  <TableCell className="capitalize">{r.detection_source ?? "—"}</TableCell>
+                  <TableCell className="capitalize">{r.detection_source ?? "-"}</TableCell>
                   <TableCell>
                     <Badge variant={r.severity === "high" ? "danger" : r.severity === "medium" ? "warning" : "secondary"}>
                       {r.severity}

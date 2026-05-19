@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getReadyStatus } from "@/services/risk/readyStatus";
 import { fetchMitigationsForSignals } from "@/services/risk/mitigationsDb";
+import { canViewChange } from "@/lib/access/changeAccess";
 import PDFDocument from "pdfkit";
 
 export const runtime = "nodejs";
@@ -336,7 +337,9 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: changeOrgRow, error: orgErr } = await scopeActiveChangeEvents(supabase.from("change_events").select("org_id"))
+  const { data: changeOrgRow, error: orgErr } = await scopeActiveChangeEvents(
+    supabase.from("change_events").select("id, org_id, domain, status, created_by, is_restricted")
+  )
     .eq("id", changeId)
     .maybeSingle();
 
@@ -354,6 +357,11 @@ export async function GET(
     .maybeSingle();
 
   if (!member) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const canView = await canViewChange(supabase, userRes.user.id, changeOrgRow);
+  if (!canView) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

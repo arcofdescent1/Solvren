@@ -9,7 +9,7 @@ export function Topbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--bg-surface)]/90 backdrop-blur">
       <Container className="flex h-14 items-center gap-3">
-        <div className="font-bold tracking-tight">Solvren</div>
+        <div className="font-bold tracking-normal">Solvren</div>
 
         <nav className="hidden items-center gap-1 md:flex">
           <NavItem href="/dashboard" label="Overview" />

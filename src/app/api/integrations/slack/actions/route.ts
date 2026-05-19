@@ -28,6 +28,7 @@ import {
   slackActionIdToIssueAction,
 } from "@/lib/issues/issueWorkflowSlack";
 import type { IssueWorkflowSlackJobPayload } from "@/lib/slack/approvalActions";
+import { REVENUE_SURFACES } from "@/lib/revenue/surfaces";
 
 const EXEC_DECISION_IDS: ExecutiveDecisionApi[] = [
   "APPROVE",
@@ -151,10 +152,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Slack app not installed for this workspace" }, { status: 400 });
     }
     const orgId = install.org_id as string;
-    const surfaceOptions = [
-      "PRICING", "BILLING", "PAYMENTS", "SUBSCRIPTIONS", "ENTITLEMENTS",
-      "CHECKOUT", "TAX", "PROMOTIONS", "INVOICING", "OTHER",
-    ];
+    const surfaceOptions = [...REVENUE_SURFACES];
     const view = {
       type: "modal",
       callback_id: "submit_change_modal",

@@ -8,18 +8,14 @@ import {
   ListTodo,
   PlugZap,
   LifeBuoy,
-  ShieldAlert,
-  TrendingUp,
 } from "lucide-react";
 
 export type AppNavKey =
   | "home"
   | "issues"
   | "changes"
-  | "readiness"
-  | "outcomes"
-  | "actions"
-  | "insights"
+  | "queue"
+  | "impact"
   | "integrations"
   | "settings";
 
@@ -35,59 +31,43 @@ export type AppNavItem = {
 export const PRIMARY_APP_NAV: AppNavItem[] = [
   {
     key: "home",
-    label: "Home",
+    label: "Command Center",
     href: "/home",
     icon: LayoutDashboard,
     activeMatch: ["/home", "/dashboard"],
-    description: "Your revenue risk command center.",
+    description: "What needs attention, what is at risk, and what changed.",
   },
   {
     key: "issues",
-    label: "Issues",
+    label: "Revenue Risks",
     href: "/issues",
     icon: AlertCircle,
-    activeMatch: ["/issues"],
-    description: "Detected revenue-impacting problems.",
+    activeMatch: ["/issues", "/risk"],
+    description: "Detected revenue-impacting problems and investigations.",
+  },
+  {
+    key: "queue",
+    label: "Work Queue",
+    href: "/actions",
+    icon: ListTodo,
+    activeMatch: ["/actions", "/ops", "/queue", "/reviews"],
+    description: "Approvals, evidence, assignments, and follow-up in one place.",
   },
   {
     key: "changes",
     label: "Changes",
     href: "/changes",
     icon: FileCheck,
-    activeMatch: ["/changes", "/reviews", "/queue"],
-    description: "Revenue-impacting changes in flight.",
+    activeMatch: ["/changes", "/intake"],
+    description: "Revenue-impacting changes from draft through approval.",
   },
   {
-    key: "readiness",
-    label: "Readiness",
-    href: "/readiness",
-    icon: ShieldAlert,
-    activeMatch: ["/readiness"],
-    description: "Portfolio and release readiness with predicted risks.",
-  },
-  {
-    key: "outcomes",
-    label: "Outcomes",
-    href: "/outcomes",
-    icon: TrendingUp,
-    activeMatch: ["/outcomes"],
-    description: "Revenue protected, incidents prevented, and value stories.",
-  },
-  {
-    key: "actions",
-    label: "Action Center",
-    href: "/actions",
-    icon: ListTodo,
-    activeMatch: ["/actions", "/ops"],
-    description: "Everything that needs action now.",
-  },
-  {
-    key: "insights",
-    label: "Insights",
+    key: "impact",
+    label: "Impact",
     href: "/insights",
     icon: BarChart3,
-    activeMatch: ["/insights", "/executive", "/reports", "/risk"],
-    description: "Exposure, ROI, and governance health.",
+    activeMatch: ["/insights", "/executive", "/reports", "/readiness", "/outcomes", "/roi"],
+    description: "Revenue exposure, readiness, ROI, and verified outcomes.",
   },
   {
     key: "integrations",
@@ -113,3 +93,10 @@ export const HELP_DOCS_NAV_ITEM = {
   icon: LifeBuoy,
 };
 
+export const SECONDARY_APP_NAV = [
+  { label: "Readiness", href: "/readiness", description: "Release and portfolio readiness" },
+  { label: "Outcomes", href: "/outcomes", description: "Verified value and prevented loss" },
+  { label: "Executive view", href: "/executive", description: "Leadership summaries" },
+  { label: "ROI", href: "/insights/roi", description: "Impact trend and value proof" },
+  { label: "Governance reports", href: "/insights/governance-reports", description: "Exportable governance evidence" },
+] as const;

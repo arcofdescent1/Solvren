@@ -15,6 +15,7 @@ import {
 import { PageHelpDrawer, MetricHelpTooltip } from "@/components/help";
 import { trackAppEvent } from "@/lib/appAnalytics";
 import type { RoiSummaryResponse } from "@/features/roi/types";
+import { REVENUE_PROTECTION_PLAYBOOKS } from "@/lib/product/revenueProtectionPlaybooks";
 
 type RevenueSummary = {
   revenueAtRisk30d?: number;
@@ -219,10 +220,39 @@ export default function InsightsLandingPage() {
       <PageHeaderV2
         breadcrumbs={[{ label: "Insights" }]}
         title="Insights"
-        description="Understand revenue exposure, risk drivers, trends, and the impact of actions across your systems."
+        description="Understand revenue exposure, exposure drivers, trends, and the impact of actions across your systems."
         helper="Use this page to understand where your business is at risk and how it is changing over time."
         helpTrigger={<PageHelpDrawer page="insights" />}
       />
+
+      <Card className="border-[var(--primary)]/20 shadow-sm">
+        <CardBody>
+          <SectionHeader
+            title="Revenue protection loop"
+            helper="The operating model Solvren runs for every revenue-impacting change and detected risk."
+            action={
+              <Link href="/actions" className="text-sm font-semibold text-[var(--primary)] hover:underline">
+                Open Work Queue
+              </Link>
+            }
+          />
+          <div className="mt-3 grid gap-3 md:grid-cols-5">
+            {[
+              ["Detect", "Find risky changes, failing revenue workflows, and coverage gaps."],
+              ["Quantify", "Translate technical activity into dollars, customers, urgency, and confidence."],
+              ["Route", "Send the right decision to the right owner with the evidence attached."],
+              ["Act", "Approve, defer, request evidence, assign, retry, or remediate from one queue."],
+              ["Prove", "Verify outcomes and build the board-ready revenue-protected story."],
+            ].map(([title, body], index) => (
+              <div key={title} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">{index + 1}</p>
+                <p className="mt-1 font-semibold">{title}</p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">{body}</p>
+              </div>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
 
       <Card className="shadow-sm">
         <CardBody>
@@ -353,34 +383,26 @@ export default function InsightsLandingPage() {
             }
           />
           <Grid cols={4} gap={3}>
-            <Card>
-              <CardBody>
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Potential issues prevented</p>
                 <p className="text-xl font-semibold">{roi?.metrics?.prevented?.displayValue ?? "0"}</p>
                 <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.prevented?.confidence ?? "estimated").replaceAll("_", " ")}</p>
-              </CardBody>
-            </Card>
-            <Card>
-              <CardBody>
+            </div>
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Issues resolved</p>
                 <p className="text-xl font-semibold">{roi?.metrics?.resolved?.displayValue ?? "0"}</p>
                 <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.resolved?.confidence ?? "observed").replaceAll("_", " ")}</p>
-              </CardBody>
-            </Card>
-            <Card>
-              <CardBody>
+            </div>
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">High-risk changes reviewed</p>
                 <p className="text-xl font-semibold">{roi?.metrics?.governed?.displayValue ?? "0 (0%)"}</p>
                 <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.governed?.confidence ?? "observed").replaceAll("_", " ")}</p>
-              </CardBody>
-            </Card>
-            <Card>
-              <CardBody>
+            </div>
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Risk trend improvement</p>
                 <p className="text-xl font-semibold capitalize">{(roi?.impactSummary?.trend ?? "stable").replaceAll("_", " ")}</p>
                 <p className="text-xs text-[var(--text-muted)]">{roi?.metrics?.trend?.displayValue ?? "0%"} estimated</p>
-              </CardBody>
-            </Card>
+            </div>
           </Grid>
           {!roi || !roi.ok ? (
             <p className="mt-3 text-xs text-[var(--text-muted)]">
@@ -393,11 +415,11 @@ export default function InsightsLandingPage() {
       <Card>
         <CardBody>
           <SectionHeader
-            title="Top risk drivers"
+            title="Top exposure drivers"
             helper="What is actually causing exposure right now."
             action={
               <Link href="/insights/risk-drivers" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-                Open risk drivers
+                Open exposure drivers
               </Link>
             }
           />
@@ -425,7 +447,7 @@ export default function InsightsLandingPage() {
               <li>{(revenue?.overdue ?? []).length} overdue follow-ups</li>
             </ul>
             <Link href="/actions" className="mt-3 inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
-              Open Action Center
+              Open Work Queue
             </Link>
           </CardBody>
         </Card>
@@ -446,6 +468,24 @@ export default function InsightsLandingPage() {
           </CardBody>
         </Card>
       </Grid>
+
+      <Card>
+        <CardBody>
+          <SectionHeader
+            title="Executive proof plays"
+            helper="Fast paths that make the platform valuable to CIOs, engineering leaders, finance, and CEOs."
+          />
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            {REVENUE_PROTECTION_PLAYBOOKS.slice(0, 3).map((play) => (
+              <Link key={play.title} href={play.href} className="rounded-[var(--radius-md)] border border-[var(--border)] p-4 transition hover:border-[var(--primary)]/40 hover:bg-[var(--table-row-hover)]">
+                <p className="font-semibold">{play.title}</p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{play.buyer}</p>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">{play.outcome}</p>
+              </Link>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
 
       <Card>
         <CardBody>

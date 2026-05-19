@@ -17,7 +17,7 @@ export type Phase4ThresholdSet = {
 };
 
 export function phase4Thresholds(plan: PlanTier): Phase4ThresholdSet {
-  if (plan === "BUSINESS") {
+  if (plan === "BUSINESS" || plan === "ENTERPRISE" || plan === "STRATEGIC_ENTERPRISE") {
     return {
       businessUnitDelta: 2,
       connectedIntegrations: 5,

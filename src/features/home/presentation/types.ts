@@ -49,3 +49,16 @@ export type HomeProtectionCard = {
   value: string;
   tone: "healthy" | "warning" | "neutral";
 };
+
+export type HomeRole = "OWNER" | "ADMIN" | "REVIEWER" | "SUBMITTER" | "VIEWER";
+
+export type HomeRoleStats = {
+  needsReviewCount: number;
+  draftCount: number;
+  highImpactCount: number;
+  overdueCount: number;
+  openIssueCount: number;
+  staleIntegrationCount: number;
+  connectedSystemCount: number;
+  waitingCount: number;
+};

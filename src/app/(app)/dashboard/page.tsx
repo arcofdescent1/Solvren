@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { filterVisibleChanges } from "@/lib/access/changeAccess";
+import { parseOrgRole } from "@/lib/rbac/roles";
 import HomeCommandCenterClient from "@/components/home/HomeCommandCenterClient";
 import { getTopPriorities } from "@/features/home/presentation/homePriorities";
 import { getAssignedItems } from "@/features/home/presentation/homeAssignments";
@@ -12,7 +13,7 @@ import {
   formatEstimatedExposure,
 } from "@/features/home/presentation/homeExposure";
 import { buildProtectionCards } from "@/features/home/presentation/homeProtection";
-import type { HomeActivityItem, HomeWorkItem } from "@/features/home/presentation/types";
+import type { HomeActivityItem, HomeRoleStats, HomeWorkItem } from "@/features/home/presentation/types";
 import { buildRoiSummary } from "@/features/roi/buildRoiSummary";
 import type { RoiTrendState } from "@/features/roi/types";
 
@@ -39,11 +40,13 @@ export default async function DashboardPage() {
 
   const { data: memberships } = await supabase
     .from("organization_members")
-    .select("org_id")
+    .select("org_id, role")
     .eq("user_id", userRes.user.id);
   if (!memberships?.length) redirect("/onboarding");
   const orgIds = memberships.map((m) => m.org_id);
   const { activeOrgId } = await getActiveOrg(supabase, userRes.user.id);
+  const activeMembership = memberships.find((m) => m.org_id === activeOrgId) ?? memberships[0];
+  const activeRole = parseOrgRole((activeMembership as { role?: string | null } | undefined)?.role ?? null);
 
   let showPhase2SuccessCard = false;
   if (activeOrgId) {
@@ -222,6 +225,8 @@ export default async function DashboardPage() {
   const highImpactChanges = workItems.filter((x) => x.objectType === "Change" && x.highImpact).length;
   const overdueItems = workItems.filter((x) => x.overdue).length;
   const linkedIncidents = workItems.filter((x) => x.linkedToActiveIssue).length;
+  const draftChanges = visibleChanges.filter((change) => String(change.status ?? "") === "DRAFT").length;
+  const openIssueCount = workItems.filter((x) => x.objectType === "Issue").length;
 
   let roiSignal: RoiTrendState = "stable";
   let roiSignalAsOf: string | null = null;
@@ -260,6 +265,16 @@ export default async function DashboardPage() {
     reviewCoverageEnabled: visibleChanges.length > 0 ? 1 : 0,
   });
   const setupIncomplete = connectedSystems === 0;
+  const roleStats: HomeRoleStats = {
+    needsReviewCount: myApprovals.data?.length ?? 0,
+    draftCount: draftChanges,
+    highImpactCount: openHighImpactIssues + highImpactChanges,
+    overdueCount: overdueItems,
+    openIssueCount,
+    staleIntegrationCount: staleSystems,
+    connectedSystemCount: connectedSystems,
+    waitingCount: waiting.length,
+  };
 
   const activity: HomeActivityItem[] = (auditRows.data ?? [])
     .map((row) => {
@@ -295,6 +310,8 @@ export default async function DashboardPage() {
     <HomeCommandCenterClient
       userId={userRes.user.id}
       orgId={activeOrgId ?? null}
+      role={activeRole}
+      roleStats={roleStats}
       showPhase2SuccessCard={showPhase2SuccessCard}
       priorities={priorities}
       assigned={assigned}

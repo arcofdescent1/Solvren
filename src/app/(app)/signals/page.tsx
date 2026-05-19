@@ -13,9 +13,9 @@ import {
   Stack,
 } from "@/ui";
 
-function learningStatus(eligibleSignals: number) {
-  if (eligibleSignals <= 0) return "Early";
-  if (eligibleSignals < 10) return "Active";
+function learningStatus(eligibleFactors: number) {
+  if (eligibleFactors <= 0) return "Early";
+  if (eligibleFactors < 10) return "Active";
   return "Mature";
 }
 
@@ -37,7 +37,7 @@ export default async function SignalsLeaderboardPage() {
   const baseline = Number(baselineRow?.baseline_incident_rate_smoothed ?? 0);
   const minSamples = Number(baselineRow?.min_samples ?? 20);
 
-  const { count: eligibleSignals } = await supabase
+  const { count: eligibleFactors } = await supabase
     .from("signal_statistics")
     .select("*", { count: "exact", head: true })
     .gte("total_changes", minSamples);
@@ -51,24 +51,26 @@ export default async function SignalsLeaderboardPage() {
   const fmtPct = (n: number) => `${Math.round(n * 100)}%`;
   const lastComputed = baselineRow?.last_computed_at
     ? new Date(baselineRow.last_computed_at).toLocaleString()
-    : "—";
+    : "-";
 
   return (
     <Stack gap={4}>
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Signals" },
+          { label: "Review factors" },
         ]}
-        title="Top risky signals"
+        title="Top review factors"
         description={
           <>
-            Baseline (smoothed): {fmtPct(baseline)} • min samples: {minSamples}
-            {" • "}
-            Learning: {learningStatus(eligibleSignals ?? 0)}
-            {" • "}
-            Eligible signals: {eligibleSignals ?? 0}
-            {" • "}
+            Baseline: {fmtPct(baseline)}
+            {" - "}
+            Minimum samples: {minSamples}
+            {" - "}
+            Learning: {learningStatus(eligibleFactors ?? 0)}
+            {" - "}
+            Eligible factors: {eligibleFactors ?? 0}
+            {" - "}
             Last computed: {lastComputed}
           </>
         }
@@ -78,13 +80,13 @@ export default async function SignalsLeaderboardPage() {
               href="/executive"
               className="text-sm font-semibold text-[var(--primary)] hover:underline"
             >
-              First-value issues (Executive) →
+              Executive issues
             </Link>
             <Link
               href="/reviews"
               className="text-sm font-semibold text-[var(--primary)] hover:underline"
             >
-              ← Reviews
+              Reviews
             </Link>
             <Link
               href="/dashboard"
@@ -100,9 +102,9 @@ export default async function SignalsLeaderboardPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Signal</TableHead>
+              <TableHead>Review factor</TableHead>
               <TableHead>Incident rate</TableHead>
-              <TableHead>Δ vs baseline</TableHead>
+              <TableHead>Change vs baseline</TableHead>
               <TableHead>Samples</TableHead>
               <TableHead>Incidents</TableHead>
             </TableRow>

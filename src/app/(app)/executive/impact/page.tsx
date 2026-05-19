@@ -127,15 +127,15 @@ export default function ExecutiveImpactPage() {
   return (
     <Stack gap={6}>
       <PageHeaderV2
-        breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "Risk Drivers" }]}
-        title="Top risk drivers"
+        breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "Exposure drivers" }]}
+        title="Top exposure drivers"
         description="See what is causing exposure, which drivers are worsening, and where to act now."
         helper="Driver categories are normalized so leaders can compare trends consistently over time."
         helpTrigger={<PageHelpDrawer page="risk_drivers" />}
       />
 
       {loading ? (
-        <Card><CardBody><p className="text-sm text-[var(--text-muted)]">Loading risk drivers...</p></CardBody></Card>
+        <Card><CardBody><p className="text-sm text-[var(--text-muted)]">Loading exposure drivers...</p></CardBody></Card>
       ) : rows.length === 0 ? (
         <EmptyState
           variant="still_building"

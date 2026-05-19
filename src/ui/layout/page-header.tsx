@@ -24,12 +24,12 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "mb-6 flex flex-col gap-4",
+        "mb-6 border-b border-[var(--border)] pb-4",
         className
       )}
     >
       {breadcrumbs && breadcrumbs.length > 0 ? (
-        <nav className="flex items-center gap-1 text-sm text-[var(--text-muted)]">
+        <nav className="mb-3 flex items-center gap-1 text-sm text-[var(--text-muted)]">
           {breadcrumbs.map((b, i) => (
             <span key={i} className="flex items-center gap-1">
               {b.href ? (
@@ -48,7 +48,7 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--text)]">
+          <h1 className="text-2xl font-semibold tracking-normal text-[var(--text)]">
             {title}
           </h1>
           {description ? (

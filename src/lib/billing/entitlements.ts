@@ -1,39 +1,29 @@
-export type PlanKey = "FREE" | "TEAM" | "BUSINESS";
+import {
+  buildLicenseEntitlements,
+  isLicenseActive,
+  normalizeLicenseTier,
+  type LicenseTier,
+} from "@/services/licensing";
 
-export function isPaidActive(
-  plan: PlanKey,
-  status: string | null | undefined
-) {
-  if (plan === "FREE") return false;
-  const s = (status ?? "ACTIVE").toUpperCase();
-  return s === "ACTIVE" || s === "TRIALING" || s === "PAST_DUE";
+export type PlanKey = LicenseTier;
+
+export function isPaidActive(plan: PlanKey, status: string | null | undefined) {
+  return isLicenseActive(status, normalizeLicenseTier(plan));
 }
 
-export function canUseSlack(
-  plan: PlanKey,
-  status: string | null | undefined
-) {
-  return isPaidActive(plan, status) && (plan === "TEAM" || plan === "BUSINESS");
+export function canUseSlack(plan: PlanKey, status: string | null | undefined) {
+  return buildLicenseEntitlements({ tier: normalizeLicenseTier(plan), status }).capabilities.slack_notifications;
 }
 
-/** Email alerts (approval requested, overdue, etc.) — TEAM+ only */
-export function canUseEmailNotifications(
-  plan: PlanKey,
-  status: string | null | undefined
-) {
-  return isPaidActive(plan, status) && (plan === "TEAM" || plan === "BUSINESS");
+/** Email alerts (approval requested, overdue, etc.) - TEAM+ only */
+export function canUseEmailNotifications(plan: PlanKey, status: string | null | undefined) {
+  return buildLicenseEntitlements({ tier: normalizeLicenseTier(plan), status }).capabilities.email_notifications;
 }
 
-export function canUseWeeklyDigest(
-  plan: PlanKey,
-  status: string | null | undefined
-) {
-  return isPaidActive(plan, status) && (plan === "TEAM" || plan === "BUSINESS");
+export function canUseWeeklyDigest(plan: PlanKey, status: string | null | undefined) {
+  return buildLicenseEntitlements({ tier: normalizeLicenseTier(plan), status }).capabilities.weekly_digest;
 }
 
-export function canUseEscalations(
-  plan: PlanKey,
-  status: string | null | undefined
-) {
-  return isPaidActive(plan, status) && plan === "BUSINESS";
+export function canUseEscalations(plan: PlanKey, status: string | null | undefined) {
+  return buildLicenseEntitlements({ tier: normalizeLicenseTier(plan), status }).capabilities.escalations;
 }

@@ -4,8 +4,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { getStripe } from "@/lib/stripe";
 import { persistWebhookToRawEvents } from "@/modules/signals/ingestion/webhook-to-raw-event.bridge";
+import { normalizeLicenseTier, type LicenseTier } from "@/services/licensing";
 
-function planKeyFromPriceId(priceId: string | null): "FREE" | "TEAM" | "BUSINESS" {
+function planKeyFromPriceId(priceId: string | null): Extract<LicenseTier, "FREE" | "TEAM" | "BUSINESS"> {
   if (!priceId) return "FREE";
   if (priceId === env.stripePriceTeam) return "TEAM";
   if (priceId === env.stripePriceBusiness) return "BUSINESS";
@@ -87,13 +88,15 @@ export async function POST(req: Request) {
           headers: null,
         });
         const planKey = planKeyFromPriceId(priceId);
+        const licenseTier = normalizeLicenseTier(planKey);
+        const licenseStatus = statusKey(sub.status);
         await admin.from("billing_accounts").upsert(
           {
             org_id: orgId,
             stripe_customer_id: customerId,
             stripe_subscription_id: subId,
             plan_key: planKey,
-            status: statusKey(sub.status),
+            status: licenseStatus,
             current_period_end: (() => {
               const end = (sub as unknown as { current_period_end?: number }).current_period_end;
               return end ? new Date(end * 1000).toISOString() : null;
@@ -101,11 +104,23 @@ export async function POST(req: Request) {
           },
           { onConflict: "org_id" }
         );
-        const planTier =
-          planKey === "TEAM" ? "PRO" : planKey === "BUSINESS" ? "BUSINESS" : "FREE";
+        await admin.from("organization_licenses").upsert(
+          {
+            org_id: orgId,
+            license_tier: licenseTier,
+            status: licenseStatus,
+            unlimited_executive_access: licenseTier === "BUSINESS",
+            implementation_mode: "SELF_SERVE",
+            renewal_date: (() => {
+              const end = (sub as unknown as { current_period_end?: number }).current_period_end;
+              return end ? new Date(end * 1000).toISOString().slice(0, 10) : null;
+            })(),
+          },
+          { onConflict: "org_id" }
+        );
         await admin
           .from("organizations")
-          .update({ plan_tier: planTier })
+          .update({ plan_tier: licenseTier })
           .eq("id", orgId);
       }
     }

@@ -43,12 +43,12 @@ export function Topbar({
   onSidebarToggle,
 }: TopbarProps) {
   return (
-    <nav className="fixed left-0 right-0 top-0 z-[var(--z-topbar)] flex h-[var(--topbar-height)] items-center gap-4 border-b border-[var(--border)] bg-[var(--bg-surface)] px-4 shadow-sm">
+    <nav className="fixed left-0 right-0 top-0 z-[var(--z-topbar)] flex h-[var(--topbar-height)] items-center gap-4 border-b border-[var(--border)] bg-[color:color-mix(in_oklab,var(--bg-surface)_94%,var(--bg-app))] px-4 shadow-[var(--shadow-sm)]">
       {/* Sidebar toggle - always visible */}
       <button
         type="button"
         onClick={onSidebarToggle}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sb)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)] lg:-ml-2"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)] lg:-ml-2"
         aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
       >
         <Menu className="h-5 w-5" />
@@ -57,7 +57,7 @@ export function Topbar({
       {/* Brand - hidden on mobile, shown on sm+ */}
       <Link
         href={user ? "/home" : "/"}
-        className="hidden shrink-0 items-center gap-2 font-bold tracking-tight text-[var(--text)] sm:inline-flex"
+        className="hidden shrink-0 items-center gap-2 font-bold tracking-normal text-[var(--text)] sm:inline-flex"
       >
         {user ? (
           <Image
@@ -76,7 +76,7 @@ export function Topbar({
       {/* Search - centered on desktop, hidden on mobile */}
       {user ? (
         <div className="hidden flex-1 max-w-xl lg:block">
-          <GlobalSearchBar placeholder="Search issues, changes, actions, and reports…" />
+          <GlobalSearchBar placeholder="Search risks, changes, work, and reports..." />
         </div>
       ) : null}
 
@@ -96,10 +96,10 @@ export function Topbar({
                   destination: "/actions?view=assigned-to-me",
                 })
               }
-              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-sb)] border border-[var(--border)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
-              aria-label={`My Work. ${myWorkCount} items need your attention.`}
+              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
+              aria-label={`Work Queue. ${myWorkCount} items need your attention.`}
             >
-              <span>My Work</span>
+              <span>Work Queue</span>
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{myWorkCount}</Badge>
             </Link>
             <Link
@@ -109,10 +109,10 @@ export function Topbar({
                   destination: "/changes?view=needs-my-review",
                 })
               }
-              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-sb)] border border-[var(--border)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
-              aria-label={`Needs Review. ${needsReviewCount} approvals are pending your review.`}
+              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
+              aria-label={`Review. ${needsReviewCount} approvals are pending your review.`}
             >
-              <span>Needs Review</span>
+              <span>Review</span>
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{needsReviewCount}</Badge>
             </Link>
             <Tooltip>
@@ -127,7 +127,7 @@ export function Topbar({
                       destination: "/docs",
                     })
                   }
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sb)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
                   aria-label="Help and Docs (opens in new tab)"
                 >
                   <HelpCircle className="h-4 w-4" />
@@ -137,7 +137,7 @@ export function Topbar({
             </Tooltip>
             <Link
               href="/notifications"
-              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-sb)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-2)] hover:text-[var(--text)]"
               aria-label="Notifications"
             >
               <Bell className="h-4 w-4" />

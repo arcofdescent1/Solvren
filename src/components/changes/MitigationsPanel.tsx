@@ -13,37 +13,13 @@ function severityBadge(sev: Mitigation["severity"]) {
   const base = "rounded-full border px-2 py-0.5 text-xs font-semibold";
   switch (sev) {
     case "CRITICAL":
-      return (
-        <span
-          className={`${base} border-red-300 bg-red-50 text-red-700`}
-        >
-          CRITICAL
-        </span>
-      );
+      return <span className={`${base} border-red-300 bg-red-50 text-red-700`}>Critical</span>;
     case "HIGH":
-      return (
-        <span
-          className={`${base} border-orange-300 bg-orange-50 text-orange-700`}
-        >
-          HIGH
-        </span>
-      );
+      return <span className={`${base} border-orange-300 bg-orange-50 text-orange-700`}>High</span>;
     case "MEDIUM":
-      return (
-        <span
-          className={`${base} border-yellow-300 bg-yellow-50 text-yellow-800`}
-        >
-          MEDIUM
-        </span>
-      );
+      return <span className={`${base} border-yellow-300 bg-yellow-50 text-yellow-800`}>Medium</span>;
     default:
-      return (
-        <span
-          className={`${base} border-neutral-300 bg-neutral-50 text-neutral-700`}
-        >
-          LOW
-        </span>
-      );
+      return <span className={`${base} border-[var(--border)] bg-[var(--bg-surface-2)] text-[var(--text-muted)]`}>Low</span>;
   }
 }
 
@@ -63,16 +39,10 @@ export function MitigationsPanel(props: {
       try {
         const res = await fetch(`/api/changes/${props.changeId}/mitigations`);
         const json = await res.json();
-        if (!res.ok)
-          throw new Error(
-            (json as { error?: string }).error || "Failed to load mitigations"
-          );
+        if (!res.ok) throw new Error((json as { error?: string }).error || "Safeguard recommendations could not be loaded.");
         if (mounted) setItems((json as { mitigations?: Mitigation[] }).mitigations ?? []);
       } catch (e: unknown) {
-        if (mounted)
-          setErr(
-            e instanceof Error ? e.message : "Failed to load mitigations"
-          );
+        if (mounted) setErr(e instanceof Error ? e.message : "Safeguard recommendations could not be loaded.");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -83,41 +53,32 @@ export function MitigationsPanel(props: {
   }, [props.changeId]);
 
   return (
-    <div className="rounded-2xl border p-4 shadow-sm">
-      <div className="text-lg font-semibold">Mitigation Recommendations</div>
-      <div className="text-sm text-neutral-600">
-        Actionable steps tied to the signals on this change.
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm">
+      <div className="text-lg font-semibold">Safeguard recommendations</div>
+      <div className="text-sm text-[var(--text-muted)]">
+        Practical steps reviewers can ask for before approving this change.
       </div>
 
-      {loading ? (
-        <div className="mt-3 text-sm text-neutral-600">Loading…</div>
-      ) : null}
-      {err ? (
-        <div className="mt-3 text-sm text-red-600">{err}</div>
-      ) : null}
+      {loading ? <div className="mt-3 text-sm text-[var(--text-muted)]">Loading...</div> : null}
+      {err ? <div className="mt-3 text-sm text-[var(--danger)]">{err}</div> : null}
 
       {!loading && !err && items.length === 0 ? (
-        <div className="mt-3 rounded-xl bg-neutral-50 p-3 text-sm text-neutral-700">
-          No mitigations found yet for the detected signals.
-          <div className="mt-1 text-xs text-neutral-500">
-            Tip: seed defaults on org bootstrap, then expand per domain.
+        <div className="mt-3 rounded-[var(--radius-md)] bg-[var(--bg-surface-2)] p-3 text-sm text-[var(--text)]">
+          No additional safeguards are recommended yet.
+          <div className="mt-1 text-xs text-[var(--text-muted)]">
+            This will update as the assessment gathers more evidence and review factors.
           </div>
         </div>
       ) : null}
 
       <div className="mt-3 space-y-2">
         {items.map((m, idx) => (
-          <div
-            key={`${m.signalKey}-${idx}`}
-            className="rounded-xl border bg-white p-3"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold">{m.signalKey}</div>
+          <div key={`${m.signalKey}-${idx}`} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="text-sm font-semibold">{m.recommendation}</div>
               {severityBadge(m.severity)}
             </div>
-            <div className="mt-1 text-sm text-neutral-700">
-              {m.recommendation}
-            </div>
+            <div className="mt-1 text-xs text-[var(--text-muted)]">Source factor: {m.signalKey}</div>
           </div>
         ))}
       </div>

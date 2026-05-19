@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canViewChangeWithContext } from "../changeAccess";
+import { canEditChangeWithContext, canViewChangeWithContext } from "../changeAccess";
 import type { OrgRole } from "@/lib/rbac/roles";
 import type { ChangeVisibilityRow } from "../changeAccess";
 
@@ -116,5 +116,54 @@ describe("canViewChangeWithContext", () => {
       domainViewByOrgDomain: new Map([["org1:REVENUE", false]]),
     });
     expect(canViewChangeWithContext(userId, row({ id: "c1", status: "IN_REVIEW" }), c)).toBe(true);
+  });
+});
+
+describe("canEditChangeWithContext", () => {
+  const userId = "user-1";
+  const orgId = "org1";
+
+  it("allows owners and admins to edit any change", () => {
+    expect(
+      canEditChangeWithContext(
+        userId,
+        row({ created_by: "other", status: "APPROVED" }),
+        ctx({ roleByOrgId: new Map([[orgId, "OWNER"]]) })
+      )
+    ).toBe(true);
+    expect(
+      canEditChangeWithContext(
+        userId,
+        row({ created_by: "other", status: "IN_REVIEW" }),
+        ctx({ roleByOrgId: new Map([[orgId, "ADMIN"]]) })
+      )
+    ).toBe(true);
+  });
+
+  it("allows a submitter to edit their own draft or ready change only", () => {
+    const c = ctx({ roleByOrgId: new Map([[orgId, "SUBMITTER"]]) });
+    expect(canEditChangeWithContext(userId, row({ created_by: userId, status: "DRAFT" }), c)).toBe(true);
+    expect(canEditChangeWithContext(userId, row({ created_by: userId, status: "READY" }), c)).toBe(true);
+    expect(canEditChangeWithContext(userId, row({ created_by: userId, status: "IN_REVIEW" }), c)).toBe(false);
+    expect(canEditChangeWithContext(userId, row({ created_by: "other", status: "DRAFT" }), c)).toBe(false);
+  });
+
+  it("allows an assigned reviewer to correct in-review metadata", () => {
+    const c = ctx({
+      roleByOrgId: new Map([[orgId, "REVIEWER"]]),
+      assignedChangeIds: new Set(["c1"]),
+    });
+    expect(canEditChangeWithContext(userId, row({ status: "IN_REVIEW" }), c)).toBe(true);
+    expect(canEditChangeWithContext(userId, row({ status: "SUBMITTED" }), c)).toBe(true);
+    expect(canEditChangeWithContext(userId, row({ status: "APPROVED" }), c)).toBe(false);
+  });
+
+  it("does not allow view-only users to edit visible changes", () => {
+    const c = ctx({
+      roleByOrgId: new Map([[orgId, "VIEWER"]]),
+      domainViewByOrgDomain: new Map([["org1:REVENUE", true]]),
+    });
+    expect(canViewChangeWithContext(userId, row({ status: "APPROVED" }), c)).toBe(true);
+    expect(canEditChangeWithContext(userId, row({ status: "APPROVED" }), c)).toBe(false);
   });
 });

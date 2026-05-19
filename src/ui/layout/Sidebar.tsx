@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { HELP_DOCS_NAV_ITEM, PRIMARY_APP_NAV } from "@/config/appNavigation";
+import { HELP_DOCS_NAV_ITEM, PRIMARY_APP_NAV, SECONDARY_APP_NAV } from "@/config/appNavigation";
 import { trackAppEvent } from "@/lib/appAnalytics";
 
 export type SidebarSection = {
@@ -40,7 +40,7 @@ function SidebarNavLink({
       href={href}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-[var(--radius-sb)] px-3 py-2 text-sm font-medium transition-colors",
+        "flex items-center gap-2 rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors",
         active
           ? "border-l-4 border-l-[var(--primary)] bg-[var(--primary)]/10 text-[var(--sidenav-link-active)]"
           : "border-l-4 border-l-transparent text-[var(--sidenav-link)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--sidenav-link-active)]"
@@ -65,6 +65,9 @@ export function Sidebar({ user, open = true }: SidebarProps) {
       )}
     >
       <nav className="flex flex-1 flex-col overflow-y-auto p-3">
+        <p className="px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--sidenav-heading)]">
+          Daily work
+        </p>
         <div className="flex flex-col gap-0.5">
           {PRIMARY_APP_NAV.map((item) => {
             const active = item.activeMatch.some(
@@ -88,6 +91,38 @@ export function Sidebar({ user, open = true }: SidebarProps) {
               />
             );
           })}
+        </div>
+        <div className="mt-5">
+          <p className="px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--sidenav-heading)]">
+            Business impact
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {SECONDARY_APP_NAV.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={item.description}
+                  onClick={() =>
+                    trackAppEvent("secondary_nav_click", {
+                      label: item.label,
+                      source_page: pathname,
+                      destination: item.href,
+                    })
+                  }
+                  className={cn(
+                    "rounded-[var(--radius-md)] px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "bg-[var(--primary)]/10 font-semibold text-[var(--sidenav-link-active)]"
+                      : "text-[var(--sidenav-link)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--sidenav-link-active)]"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 

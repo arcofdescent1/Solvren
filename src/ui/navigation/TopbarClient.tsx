@@ -28,7 +28,7 @@ export function TopbarClient({
       <Container className="flex h-14 items-center gap-3">
         <Link
           href={user ? "/dashboard" : "/"}
-          className="font-bold tracking-tight"
+          className="font-bold tracking-normal"
         >
           Solvren
         </Link>

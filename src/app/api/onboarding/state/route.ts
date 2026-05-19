@@ -12,6 +12,7 @@ import { runValueEngineBackfillOrg } from "@/lib/value-engine/runValueEngineCron
 import { authzErrorResponse, requireOrgPermission } from "@/lib/server/authz";
 import { logProductEventAsync } from "@/lib/telemetry/productEvents";
 import { retryWithBackoff, RETRY_PRESETS } from "@/lib/retry/retryWithBackoff";
+import { getOrgLicenseEntitlements } from "@/services/licensing";
 
 async function activeOrgId(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>, userId: string) {
   const { data: m } = await supabase
@@ -35,6 +36,7 @@ export async function GET() {
     const admin = createAdminClient();
     const step = await recomputeOnboardingState(admin, orgId);
     const state = await getOnboardingState(admin, orgId);
+    const license = await getOrgLicenseEntitlements(admin, orgId);
 
     const { count: integ } = await admin
       .from("integration_connections")
@@ -64,6 +66,17 @@ export async function GET() {
       step,
       state,
       initialDetectionTriggered: Boolean(state?.initial_detection_triggered_at),
+      license: {
+        tier: license.tier,
+        protectedRevenueBand: license.protectedRevenueBand,
+        implementationMode: license.implementationMode,
+        unlimitedExecutiveAccess: license.unlimitedExecutiveAccess,
+        licensedBusinessUnits: license.licensedBusinessUnits,
+        licensedIntegrations: license.licensedIntegrations,
+        licensedDomains: license.licensedDomains,
+        premiumModules: license.premiumModules,
+        capabilities: license.capabilities,
+      },
       connectedCount: integ ?? 0,
       topIssues: topIssues ?? [],
       projectedRevenueAtRiskCents: sum,

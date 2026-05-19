@@ -33,11 +33,11 @@ export const PAGE_HELP = {
   actions: {
     title: "How this page works",
     purpose:
-      "Action Center consolidates work that needs execution, follow-up, or operational attention.",
+      "Work Queue brings approvals, missing details, overdue work, and system follow-up into one prioritized place.",
     bullets: [
-      "Focus on items with pending or failed execution first.",
-      "Use issue links to complete the next step in context.",
-      "Completed actions automatically improve downstream status views.",
+      "Start at the top: items are ordered by urgency and business impact.",
+      "Use each item's recommended action to approve, add evidence, retry delivery, or follow up in context.",
+      "Completed work automatically improves change, issue, readiness, and executive views.",
     ],
   },
   insights: {
@@ -46,18 +46,18 @@ export const PAGE_HELP = {
       "Insights helps you understand exposure, governance outcomes, and business impact trends.",
     bullets: [
       "Start with executive summary for high-level direction.",
-      "Use risk drivers and revenue exposure for root-cause analysis.",
+      "Use exposure drivers and revenue exposure for root-cause analysis.",
       "Use governance reports for compliance and audit context.",
     ],
   },
   risk_drivers: {
     title: "How this page works",
     purpose:
-      "Risk Drivers shows where business impact is concentrated and which models or workflows are contributing most to exposure.",
+      "Exposure Drivers shows where business impact is concentrated and which systems, workflows, or review gaps need attention.",
     bullets: [
-      "Use revenue-at-risk and direct-loss metrics for impact context.",
-      "Use open-issue and impacted counts to gauge current workload.",
-      "Use detector-pack breakdown to identify concentration patterns.",
+      "Use revenue exposure and direct-loss metrics for business context.",
+      "Use open issue and impacted workflow counts to understand current workload.",
+      "Use driver breakdowns to decide whether to fix a workflow, tighten a policy, or improve an integration.",
     ],
   },
   integrations: {
@@ -73,21 +73,21 @@ export const PAGE_HELP = {
   settings: {
     title: "How this page works",
     purpose:
-      "Settings manages organization, access, policies, and notifications that govern how Solvren operates.",
+      "Settings manages the controls that decide who can act, when reviews are required, how people are notified, and which advanced diagnostics are available.",
     bullets: [
-      "Team & access controls ownership and permissions.",
-      "Policies & approvals controls governance behavior.",
-      "Notifications and diagnostics support operational reliability.",
+      "Start with Organization, Team & access, and Security for account-level controls.",
+      "Use Policies & approvals, approval mappings, and attention routing to tune workflow behavior.",
+      "Use Notifications and diagnostics when a team member or system needs operational follow-up.",
     ],
   },
   settings_policies: {
     title: "How this page works",
     purpose:
-      "Revenue Policies defines approval and enforcement guardrails for revenue-impacting changes.",
+      "Revenue policies define when Solvren monitors, requires approval, or blocks risky revenue-impacting work.",
     bullets: [
-      "Use enforcement mode to choose monitor, require-approval, or block behavior.",
-      "Use systems and rule type to scope policy impact.",
-      "Use active policies to verify coverage and detect gaps.",
+      "Use enforcement mode to choose monitor, require approval, or block behavior.",
+      "Use systems, domains, and rule type to scope where a policy applies.",
+      "Use active policies to confirm coverage and find governance gaps.",
     ],
   },
 } as const;

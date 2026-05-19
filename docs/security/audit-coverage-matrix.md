@@ -1,0 +1,17 @@
+# Audit Coverage Matrix
+
+Solvren treats auditability as a product feature. The following action families should emit or preserve an audit record.
+
+| Area | Examples | Why it matters |
+| --- | --- | --- |
+| Revenue exposure | MRR affected, customer-base affected, revenue surface | Proves who changed financial assumptions |
+| Change control | Title, restriction state, explicit access grants | Protects sensitive change records |
+| Approvals | Approve, reject, request changes, comments | Establishes decision accountability |
+| Evidence | Add evidence, mark evidence status, generated checklists | Shows why a decision was safe |
+| Domain permissions | View/review permission changes | Supports least-privilege reviews |
+| Integrations | Connect, disconnect, test, health recovery | Shows system-of-record access changes |
+| Executive decisions | Approve, block, snooze, external decision events | Provides leadership decision traceability |
+| Support access | Approve, deny, revoke, break-glass, employee access reads | Supports enterprise customer data access review |
+| Tenant offboarding | Dry run, approval, verification, execution | Supports data deletion governance |
+
+This file is intentionally paired with `src/lib/access/permissionMatrix.ts` so product language and test coverage stay aligned.

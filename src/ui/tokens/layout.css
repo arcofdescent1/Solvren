@@ -41,11 +41,11 @@
   /* Card (SB Admin) */
   --card-spacer-y: 1rem;
   --card-spacer-x: 1.35rem;
-  --card-cap-bg: #f8fafc;
-  --card-border-color: rgba(31, 45, 65, 0.125);
+  --card-cap-bg: #f7f9fc;
+  --card-border-color: rgba(23, 32, 51, 0.1);
 
   /* Shadow right (sidebar) - SB Admin box-shadow-right */
-  --shadow-right: 0.15rem 0 1.75rem 0 rgba(31, 45, 65, 0.15);
+  --shadow-right: 8px 0 24px -22px rgba(23, 32, 51, 0.35);
 }
 
 /* SB Admin Pro dark theme - sidenav uses dark vars */
