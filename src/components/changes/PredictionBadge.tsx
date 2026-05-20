@@ -1,10 +1,9 @@
-"use client";;
-import { Button } from "@/ui";
+"use client";
 
 import { useEffect, useState } from "react";
 
-const pct1 = (x?: number) => (x == null ? "—" : `${(x * 100).toFixed(1)}%`);
-const pct0 = (x?: number) => (x == null ? "—" : `${Math.round((x ?? 0) * 100)}%`);
+const pct1 = (x?: number) => (x == null ? "-" : `${(x * 100).toFixed(1)}%`);
+const pct0 = (x?: number) => (x == null ? "-" : `${Math.round((x ?? 0) * 100)}%`);
 
 type PredictionData = {
   bayes: { mean?: number; ciLow?: number; ciHigh?: number; confidence?: number };
@@ -49,15 +48,15 @@ export default function PredictionBadge(props: { changeId: string }) {
 
   if (loading) {
     return (
-      <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-neutral-600">
-        Predicting…
+      <div className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-muted)]">
+        Predicting...
       </div>
     );
   }
 
   if (err || !data) {
     return (
-      <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-neutral-600">
+      <div className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-muted)]">
         Prediction unavailable
       </div>
     );
@@ -67,33 +66,28 @@ export default function PredictionBadge(props: { changeId: string }) {
 
   return (
     <div className="inline-flex flex-wrap items-center gap-2">
-      <div className="inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1 dark:bg-neutral-900 dark:border-neutral-700">
-        <div className="text-xs font-semibold">Prediction</div>
-        <div className="text-xs text-neutral-700 dark:text-neutral-300">
-          {pct1(blended.final)}{" "}
-          <span className="text-neutral-500 dark:text-neutral-400">
-            (90% CI {pct1(bayes.ciLow)}–{pct1(bayes.ciHigh)})
-          </span>
+      <div className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs shadow-sm">
+        <div className="font-semibold text-[var(--text)]">Prediction</div>
+        <div className="text-[var(--text-muted)]">
+          {pct1(blended.final)} <span>(90% CI {pct1(bayes.ciLow)}-{pct1(bayes.ciHigh)})</span>
         </div>
-        <Button
-          className="text-xs text-neutral-500 underline"
+        <button
+          className="text-xs font-semibold text-[var(--primary)] hover:underline"
           onClick={() => setOpen((v) => !v)}
           type="button"
         >
           details
-        </Button>
+        </button>
       </div>
       {open ? (
-        <div className="rounded-xl border bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300">
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text)] shadow-sm">
           <div>
             <span className="font-semibold">Bayes:</span> {pct1(bayes.mean)} (conf {pct0(bayes.confidence)})
           </div>
           <div>
-            <span className="font-semibold">ML:</span> {ml == null ? "—" : pct1(ml)}
+            <span className="font-semibold">ML:</span> {ml == null ? "-" : pct1(ml)}
           </div>
-          <div className="text-neutral-500 dark:text-neutral-400">
-            blend weight: {pct0(blended.alpha)}
-          </div>
+          <div className="text-[var(--text-muted)]">blend weight: {pct0(blended.alpha)}</div>
         </div>
       ) : null}
     </div>

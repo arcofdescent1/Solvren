@@ -88,7 +88,7 @@ export default async function ChangeDetailPage({
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">The requested change could not be found.</p>
             <Link href="/changes" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Back to changes
+              Back to changes
             </Link>
           </CardBody>
         </Card>
@@ -107,7 +107,7 @@ export default async function ChangeDetailPage({
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">You do not have permission to view this change.</p>
             <Link href="/changes" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Back to changes
+              Back to changes
             </Link>
           </CardBody>
         </Card>
@@ -181,8 +181,8 @@ export default async function ChangeDetailPage({
       return {
         id: l.issue_id,
         issue_key: issue?.issue_key ?? l.issue_id.slice(0, 8),
-        title: issue?.title ?? "—",
-        status: issue?.status ?? "—",
+        title: issue?.title ?? "-",
+        status: issue?.status ?? "-",
         link_type: l.link_type,
       };
     });
@@ -288,7 +288,7 @@ export default async function ChangeDetailPage({
                           : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
               }`}
             >
-              {change.status === "DRAFT" ? "Draft" : change.status === "READY" ? "Ready" : change.status === "IN_REVIEW" ? "In Review" : change.status === "APPROVED" ? "Approved" : change.status === "REJECTED" ? "Rejected" : (change.status ?? "—")}
+              {change.status === "DRAFT" ? "Draft" : change.status === "READY" ? "Ready" : change.status === "IN_REVIEW" ? "In Review" : change.status === "APPROVED" ? "Approved" : change.status === "REJECTED" ? "Rejected" : (change.status ?? "-")}
             </span>
             {change.change_type && <span>• {change.change_type}</span>}
             {(change as { domain?: string }).domain && (
@@ -306,7 +306,7 @@ export default async function ChangeDetailPage({
           </span>
         }
         right={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex max-w-5xl flex-wrap items-center justify-end gap-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-2 shadow-sm">
             {(change.status === "DRAFT" || change.status === "READY") && (
               <Link
                 href={`/changes/${id}/intake?step=review`}
@@ -322,17 +322,16 @@ export default async function ChangeDetailPage({
             />
             <SubmitForReviewButton changeEventId={id} status={change.status} />
             <RunSlaTickButton />
-            <span className="text-[var(--text-muted)]">|</span>
             <a
               href={`/api/changes/${id}/approval-packet`}
-              className="text-sm font-semibold text-[var(--primary)] hover:underline"
+              className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
               download
             >
               Packet (MD)
             </a>
             <a
               href={`/api/changes/${id}/approval-packet?format=pdf`}
-              className="text-sm font-semibold text-[var(--primary)] hover:underline"
+              className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
               download
             >
               Packet (PDF)
@@ -341,7 +340,7 @@ export default async function ChangeDetailPage({
         }
       />
 
-      <nav className="flex flex-wrap gap-2 text-sm">
+      <nav className="flex flex-wrap gap-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-2 text-sm shadow-sm">
         {[
           { label: "Overview", href: "#overview" },
           { label: "Impact", href: "#impact" },
@@ -353,14 +352,14 @@ export default async function ChangeDetailPage({
           <a
             key={item.href}
             href={item.href}
-            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1.5 font-medium text-[var(--text)] transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]"
+            className="rounded-[var(--radius-md)] px-3 py-1.5 font-medium text-[var(--text)] transition hover:bg-[var(--bg-surface-2)] hover:text-[var(--primary)]"
           >
             {item.label}
           </a>
         ))}
       </nav>
 
-      <Card id="overview" className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_5%,var(--bg-surface)),var(--bg-surface)_70%)] scroll-mt-24">
+      <Card id="overview" className="scroll-mt-24 border-[var(--primary)]/20 bg-[var(--bg-surface)] shadow-sm">
         <CardBody>
           <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
             <div>
@@ -369,27 +368,28 @@ export default async function ChangeDetailPage({
                 {assessment?.risk_bucket ? <Badge variant="outline">Risk: {assessment.risk_bucket}</Badge> : null}
                 {(change as { domain?: string }).domain ? <Badge variant="outline">{(change as { domain: string }).domain}</Badge> : null}
               </div>
-              <h2 className="mt-3 text-xl font-semibold tracking-normal">Next step: {primaryNextStep}</h2>
+              <h2 className="mt-3 text-xl font-semibold tracking-normal">Decision workspace</h2>
+              <p className="mt-1 text-sm font-semibold text-[var(--primary)]">Next step: {primaryNextStep}</p>
               <p className="mt-2 max-w-3xl text-sm text-[var(--text-muted)]">
                 Use this workspace to decide whether the change is ready, what revenue is exposed, whether evidence is complete, and who still needs to act.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Revenue at risk</p>
                 <p className="mt-1 text-lg font-semibold">{formatMoney(revenueAtRisk ?? estimatedMrr)}</p>
               </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Approvals</p>
                 <p className="mt-1 text-lg font-semibold">
                   {approvalTargetCount === 0 ? "None required" : `${approvedCount}/${approvalTargetCount}`}
                 </p>
               </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Evidence</p>
                 <p className="mt-1 text-lg font-semibold">{requiredEvidence.length === 0 ? "None required" : `${evidenceCompleteCount}/${requiredEvidence.length}`}</p>
               </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
                 <p className="text-xs text-[var(--text-muted)]">Pending reviews</p>
                 <p className="mt-1 text-lg font-semibold">{pendingApprovalCount}</p>
               </div>
@@ -473,7 +473,7 @@ export default async function ChangeDetailPage({
               {requiredEvidence.length === 0
                 ? "Evidence: none required"
                 : missingEvidenceKinds.length === 0
-                  ? `Evidence: ${requiredEvidence.length}/${requiredEvidence.length} complete ✅`
+                  ? `Evidence: ${requiredEvidence.length}/${requiredEvidence.length} complete`
                   : `Evidence: ${requiredEvidence.length - missingEvidenceKinds.length}/${requiredEvidence.length} attached`}
             </p>
           )}
@@ -555,7 +555,7 @@ export default async function ChangeDetailPage({
                   >
                     {li.issue_key}
                   </Link>
-                  <span className="text-[var(--text-muted)]">—</span>
+                  <span className="text-[var(--text-muted)]">-</span>
                   <span>{li.title}</span>
                   <span className="text-[var(--text-muted)]">({li.status})</span>
                 </li>
