@@ -263,7 +263,7 @@ export default async function ChangeDetailPage({
             : "Review current status";
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-5">
       <PageHeader
         breadcrumbs={[
           { label: "Home", href: "/home" },
@@ -290,7 +290,7 @@ export default async function ChangeDetailPage({
             >
               {change.status === "DRAFT" ? "Draft" : change.status === "READY" ? "Ready" : change.status === "IN_REVIEW" ? "In Review" : change.status === "APPROVED" ? "Approved" : change.status === "REJECTED" ? "Rejected" : (change.status ?? "-")}
             </span>
-            {change.change_type && <span>• {change.change_type}</span>}
+            {change.change_type && <span>&bull; {change.change_type}</span>}
             {(change as { domain?: string }).domain && (
               <>
                 <span className="inline-flex items-center rounded border border-current/30 px-1.5 py-0.5 text-xs font-medium">
@@ -305,60 +305,65 @@ export default async function ChangeDetailPage({
             ) : null}
           </span>
         }
-        right={
-          <div className="flex max-w-5xl flex-wrap items-center justify-end gap-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-2 shadow-sm">
-            {(change.status === "DRAFT" || change.status === "READY") && (
-              <Link
-                href={`/changes/${id}/intake?step=review`}
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--border)] bg-transparent px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
-              >
-                Guided intake
-              </Link>
-            )}
-            <PredictionBadge changeId={id} />
-            <LinkIncidentButton
-              changeEventId={change.id}
-              orgId={change.org_id}
-            />
-            <SubmitForReviewButton changeEventId={id} status={change.status} />
-            <RunSlaTickButton />
-            <a
-              href={`/api/changes/${id}/approval-packet`}
-              className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
-              download
-            >
-              Packet (MD)
-            </a>
-            <a
-              href={`/api/changes/${id}/approval-packet?format=pdf`}
-              className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
-              download
-            >
-              Packet (PDF)
-            </a>
-          </div>
-        }
       />
 
-      <nav className="flex flex-wrap gap-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-2 text-sm shadow-sm">
-        {[
-          { label: "Overview", href: "#overview" },
-          { label: "Impact", href: "#impact" },
-          { label: "Evidence", href: "#evidence" },
-          { label: "Approvals", href: "#approvals" },
-          { label: "Timeline", href: "#timeline" },
-          { label: "System details", href: "#system-details" },
-        ].map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="rounded-[var(--radius-md)] px-3 py-1.5 font-medium text-[var(--text)] transition hover:bg-[var(--bg-surface-2)] hover:text-[var(--primary)]"
-          >
-            {item.label}
-          </a>
-        ))}
-      </nav>
+      <Card className="sticky top-[calc(var(--topbar-height)+0.75rem)] z-20 border-[var(--primary)]/15 bg-[color:color-mix(in_oklab,var(--bg-surface)_96%,var(--bg-app))] shadow-md">
+        <CardBody className="py-3">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <nav className="flex flex-wrap gap-1 text-sm" aria-label="Change workspace sections">
+              {[
+                { label: "Overview", href: "#overview" },
+                { label: "Impact", href: "#impact" },
+                { label: "Evidence", href: "#evidence" },
+                { label: "Approvals", href: "#approvals" },
+                { label: "Timeline", href: "#timeline" },
+                { label: "System details", href: "#system-details" },
+              ].map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex h-9 items-center rounded-[var(--radius-md)] px-3 font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-surface-2)] hover:text-[var(--primary)]"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="flex flex-wrap items-center gap-2">
+              {(change.status === "DRAFT" || change.status === "READY") && (
+                <Link
+                  href={`/changes/${id}/intake?step=review`}
+                  className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
+                >
+                  Guided intake
+                </Link>
+              )}
+              <PredictionBadge changeId={id} />
+              <LinkIncidentButton
+                changeEventId={change.id}
+                orgId={change.org_id}
+              />
+              <SubmitForReviewButton changeEventId={id} status={change.status} />
+              <RunSlaTickButton />
+              <a
+                href={`/api/changes/${id}/approval-packet`}
+                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
+                download
+              >
+                Packet (MD)
+              </a>
+              <a
+                href={`/api/changes/${id}/approval-packet?format=pdf`}
+                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
+                download
+              >
+                Packet (PDF)
+              </a>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
 
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
       <Card id="overview" className="scroll-mt-24 border-[var(--primary)]/20 bg-[var(--bg-surface)] shadow-sm">
         <CardBody>
           <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -441,6 +446,7 @@ export default async function ChangeDetailPage({
           </div>
         </CardBody>
       </Card>
+      </div>
 
       <Card className="scroll-mt-24">
         <CardBody>
@@ -699,7 +705,7 @@ export default async function ChangeDetailPage({
               <div className="flex justify-between gap-3">
                 <span className="font-mono">{s.signal_key}</span>
                 <span className="opacity-70 text-xs">
-                  +{s.contribution ?? 0} (w={s.weight_at_time ?? 0}) • {s.source}
+                  +{s.contribution ?? 0} (w={s.weight_at_time ?? 0}) &bull; {s.source}
                 </span>
               </div>
               <div className="opacity-80">
@@ -707,7 +713,7 @@ export default async function ChangeDetailPage({
                 {s.value_type === "BOOLEAN"
                   ? String(s.value_bool)
                   : String(s.value_num)}
-                {" • "}
+                {" | "}
                 {s.category}
               </div>
             </div>
