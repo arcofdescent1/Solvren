@@ -1,8 +1,19 @@
-"use client";;
-import { Button, Input, NativeSelect, Textarea } from "@/ui";
+"use client";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  NativeSelect,
+  Textarea,
+} from "@/ui";
 import {
   EVIDENCE_KIND_LABEL,
   type EvidenceKind,
@@ -23,9 +34,7 @@ type Suggestion = {
   suggested_label: string;
   what_good_looks_like?: string[];
   example_links?: string[];
-  /** @deprecated use what_good_looks_like */
   checklist_items?: string[];
-  /** @deprecated use example_links */
   suggested_url_types?: string[];
 };
 
@@ -42,7 +51,6 @@ export default function EvidencePanel({
   orgId: string;
   riskBucket: RiskBucket | null;
   requiredEvidenceKinds: EvidenceKind[];
-  /** When present (e.g. from server template), overrides requiredEvidenceKinds. */
   requiredEvidenceKindsOverride?: EvidenceKind[] | null;
   evidence: EvidenceRow[];
   missingEvidenceSuggestions?: {
@@ -60,17 +68,10 @@ export default function EvidencePanel({
   const [loading, setLoading] = useState(false);
   const [suggestLoading, setSuggestLoading] = useState(false);
 
-  const evidenceKindsPresent = useMemo(() => {
-    return new Set((evidence ?? []).map((e) => e.kind));
-  }, [evidence]);
-
-  const requiredKinds = useMemo(() => {
-    return (requiredEvidenceKindsOverride ?? requiredEvidenceKinds) ?? [];
-  }, [requiredEvidenceKindsOverride, requiredEvidenceKinds]);
-
-  const missingRequired = useMemo(() => {
-    return requiredKinds.filter((k) => !evidenceKindsPresent.has(k));
-  }, [requiredKinds, evidenceKindsPresent]);
+  const evidenceKindsPresent = useMemo(() => new Set((evidence ?? []).map((e) => e.kind)), [evidence]);
+  const requiredKinds = useMemo(() => (requiredEvidenceKindsOverride ?? requiredEvidenceKinds) ?? [], [requiredEvidenceKindsOverride, requiredEvidenceKinds]);
+  const missingRequired = useMemo(() => requiredKinds.filter((k) => !evidenceKindsPresent.has(k)), [requiredKinds, evidenceKindsPresent]);
+  const suggestions = (missingEvidenceSuggestions?.suggestions ?? []) as Suggestion[];
 
   async function addEvidence(e: React.FormEvent) {
     e.preventDefault();
@@ -93,7 +94,7 @@ export default function EvidencePanel({
     setLoading(false);
 
     if (!resp.ok) {
-      setMsg(json?.error ?? "Failed to add evidence.");
+      setMsg(json?.error ?? "Proof could not be added.");
       return;
     }
 
@@ -101,7 +102,7 @@ export default function EvidencePanel({
     setLabel("");
     setUrl("");
     setNote("");
-    setMsg("Evidence added.");
+    setMsg("Proof added.");
     router.refresh();
     window.dispatchEvent(new CustomEvent("timeline:refresh"));
   }
@@ -121,243 +122,179 @@ export default function EvidencePanel({
     setSuggestLoading(false);
 
     if (!resp.ok) {
-      setMsg((json as { error?: string })?.error ?? "Failed to suggest evidence.");
+      setMsg((json as { error?: string })?.error ?? "Proof suggestions could not be generated.");
       return;
     }
 
-    setMsg("Suggestions generated.");
+    setMsg("Proof suggestions refreshed.");
     router.refresh();
   }
 
-  const suggestions =
-    (missingEvidenceSuggestions?.suggestions ?? []) as Suggestion[];
+  function applySuggestion(s: Suggestion) {
+    const items = s.what_good_looks_like ?? s.checklist_items ?? [];
+    const links = s.example_links ?? s.suggested_url_types ?? [];
+    const firstUrl = links.find((x) => /^https?:\/\//i.test(x));
+
+    setKind(s.kind as EvidenceKind);
+    setLabel(s.suggested_label);
+    setUrl(firstUrl ?? "");
+    setNote(items.length > 0 ? items.map((x) => `- ${x}`).join("\n") : "");
+  }
 
   return (
-    <div id="evidence-panel" className="border rounded p-4 space-y-4">
-      <div className="flex items-start justify-between gap-4">
+    <Card id="evidence-panel">
+      <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <h2 className="font-semibold">Evidence</h2>
-          <p className="text-sm opacity-70">
-            Attach links and notes that prove the change is safe to ship.
-          </p>
+          <CardTitle>Proof record</CardTitle>
+          <CardDescription>
+            Attach the links, test results, and notes a reviewer needs before approving this change.
+          </CardDescription>
         </div>
+        {riskBucket ? <Badge variant="outline">{requiredKinds.length} required</Badge> : null}
+      </CardHeader>
 
-        {riskBucket && (
-          <div className="text-xs border rounded px-2 py-1 opacity-80">
-            Required for {riskBucket}: {requiredKinds.length}
-          </div>
-        )}
-      </div>
-      {riskBucket && (
-        <div className="border rounded p-3 space-y-2">
-          <div className="text-sm font-semibold">Required evidence</div>
-          {requiredKinds.length === 0 ? (
-            <div className="text-sm opacity-70">
-              None required for this risk level.
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {requiredKinds.map((k) => {
-                const ok = evidenceKindsPresent.has(k);
-                return (
-                  <span
-                    key={k}
-                    className={`text-xs px-2 py-1 rounded border ${
-                      ok ? "bg-black text-white" : "opacity-70"
-                    }`}
-                  >
-                    {EVIDENCE_KIND_LABEL[k]}
-                    {ok ? " ✓" : ""}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          {missingRequired.length > 0 && (
-            <div className="space-y-2">
-              <div className="text-sm opacity-80">
-                Missing:{" "}
-                <span className="font-semibold">
-                  {missingRequired.map((k) => EVIDENCE_KIND_LABEL[k as EvidenceKind]).join(", ")}
-                </span>
+      <CardBody className="space-y-5">
+        {riskBucket ? (
+          <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h3 className="text-sm font-semibold">Proof needed for approval</h3>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">
+                  Solvren keeps high-risk changes from moving forward until the right evidence is attached.
+                </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  onClick={suggestEvidence}
-                  disabled={suggestLoading}
-                  className="px-3 py-1.5 rounded border text-sm disabled:opacity-60"
-                >
-                  {suggestLoading
-                    ? "Suggesting..."
-                    : suggestions.length > 0
-                      ? "Refresh suggestions"
-                      : "Suggest evidence to attach"}
+              {missingRequired.length > 0 ? (
+                <Button type="button" onClick={suggestEvidence} disabled={suggestLoading} variant="secondary" size="sm">
+                  {suggestLoading ? "Finding proof..." : suggestions.length > 0 ? "Refresh suggestions" : "Suggest proof"}
                 </Button>
-              </div>
-              {suggestions.length > 0 && (
-                <div className="mt-3 space-y-3 border-t pt-3">
-                  <div className="text-sm font-semibold">
-                    Suggested evidence to attach
-                  </div>
-                  {suggestions.map((s, idx) => {
-                    const items =
-                      s.what_good_looks_like ?? s.checklist_items ?? [];
-                    const links =
-                      s.example_links ?? s.suggested_url_types ?? [];
-                    return (
-                      <div
-                        key={idx}
-                        className="border rounded p-3 text-sm space-y-2"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="font-medium">
-                            {EVIDENCE_KIND_LABEL[s.kind as EvidenceKind]}:{" "}
-                            {s.suggested_label}
-                          </div>
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              setKind(s.kind as EvidenceKind);
-                              setLabel(s.suggested_label);
-                              setUrl("");
-                              setNote("");
+              ) : null}
+            </div>
 
-                              const links =
-                                s.example_links ?? s.suggested_url_types ?? [];
-                              const firstUrl = links.find((x) =>
-                                /^https?:\/\//i.test(x)
-                              );
-                              if (firstUrl) setUrl(firstUrl);
-
-                              const items =
-                                s.what_good_looks_like ??
-                                s.checklist_items ??
-                                [];
-                              if (items.length > 0)
-                                setNote(items.map((x) => `- ${x}`).join("\n"));
-                            }}
-                            className="text-xs px-2 py-1 rounded border shrink-0"
-                          >
-                            Use template
-                          </Button>
-                        </div>
-                        {items.length > 0 && (
-                          <ul className="list-disc pl-5 text-xs opacity-80">
-                            {items.map((item, i) => (
-                              <li key={i}>{item}</li>
-                            ))}
-                          </ul>
-                        )}
-                        {links.length > 0 && (
-                          <div className="text-xs opacity-70">
-                            Example links: {links.join(", ")}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {requiredKinds.length === 0 ? (
+                <Badge variant="success">No proof required</Badge>
+              ) : (
+                requiredKinds.map((k) => {
+                  const ok = evidenceKindsPresent.has(k);
+                  return (
+                    <Badge key={k} variant={ok ? "success" : "outline"}>
+                      {EVIDENCE_KIND_LABEL[k]} {ok ? "complete" : "needed"}
+                    </Badge>
+                  );
+                })
               )}
             </div>
-          )}
-        </div>
-      )}
-      <form onSubmit={addEvidence} className="border rounded p-3 space-y-3">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <div className="text-sm font-medium">Kind</div>
-            <NativeSelect
-              className="border rounded px-3 py-2 w-full"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as EvidenceKind)}
-            >
-              {Object.keys(EVIDENCE_KIND_LABEL).map((k) => (
-                <option key={k} value={k}>
-                  {EVIDENCE_KIND_LABEL[k as EvidenceKind]}
-                </option>
-              ))}
-            </NativeSelect>
+
+            {missingRequired.length > 0 ? (
+              <p className="mt-3 text-sm text-[var(--text-muted)]">
+                Still needed: {missingRequired.map((k) => EVIDENCE_KIND_LABEL[k]).join(", ")}
+              </p>
+            ) : null}
+
+            {suggestions.length > 0 ? (
+              <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                {suggestions.map((s, idx) => {
+                  const items = s.what_good_looks_like ?? s.checklist_items ?? [];
+                  const links = s.example_links ?? s.suggested_url_types ?? [];
+                  return (
+                    <div key={idx} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 text-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-semibold">{EVIDENCE_KIND_LABEL[s.kind as EvidenceKind]}</div>
+                          <p className="mt-1 text-[var(--text-muted)]">{s.suggested_label}</p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={() => applySuggestion(s)}>
+                          Use
+                        </Button>
+                      </div>
+                      {items.length > 0 ? (
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-[var(--text-muted)]">
+                          {items.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                      ) : null}
+                      {links.length > 0 ? <p className="mt-2 text-xs text-[var(--text-muted)]">Examples: {links.join(", ")}</p> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        <form onSubmit={addEvidence} className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+          <div>
+            <h3 className="text-sm font-semibold">Attach proof</h3>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
+              Add a link or note that helps reviewers understand why this change is safe.
+            </p>
           </div>
 
-          <div className="space-y-1">
-            <div className="text-sm font-medium">Label</div>
-            <Input
-              className="border rounded px-3 py-2 w-full"
-              placeholder="e.g. Stripe annual plan PR"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="space-y-1 text-sm font-medium">
+              Proof type
+              <NativeSelect value={kind} onChange={(e) => setKind(e.target.value as EvidenceKind)}>
+                {Object.keys(EVIDENCE_KIND_LABEL).map((k) => (
+                  <option key={k} value={k}>{EVIDENCE_KIND_LABEL[k as EvidenceKind]}</option>
+                ))}
+              </NativeSelect>
+            </label>
+
+            <label className="space-y-1 text-sm font-medium">
+              Label
+              <Input placeholder="e.g. Stripe annual plan PR" value={label} onChange={(e) => setLabel(e.target.value)} />
+            </label>
+          </div>
+
+          <label className="mt-3 block space-y-1 text-sm font-medium">
+            Link
+            <Input placeholder="https://github.com/org/repo/pull/123" value={url} onChange={(e) => setUrl(e.target.value)} />
+          </label>
+
+          <label className="mt-3 block space-y-1 text-sm font-medium">
+            Reviewer note
+            <Textarea
+              className="min-h-24"
+              placeholder="What does this prove? What should the reviewer look for?"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
             />
+          </label>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <Button disabled={loading || !orgId}>{loading ? "Adding..." : "Add proof"}</Button>
+            {msg ? <span className="text-sm text-[var(--text-muted)]">{msg}</span> : null}
           </div>
-        </div>
+        </form>
 
-        <div className="space-y-1">
-          <div className="text-sm font-medium">URL (optional)</div>
-          <Input
-            className="border rounded px-3 py-2 w-full"
-            placeholder="https://github.com/org/repo/pull/123"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <div className="text-sm font-medium">Note (optional)</div>
-          <Textarea
-            className="border rounded px-3 py-2 w-full min-h-20"
-            placeholder="What does this prove? Any instructions?"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            className="px-3 py-2 rounded bg-black text-white text-sm disabled:opacity-60"
-            disabled={loading || !orgId}
-          >
-            {loading ? "Adding..." : "Add evidence"}
-          </Button>
-          {msg && <span className="text-xs opacity-70">{msg}</span>}
-        </div>
-      </form>
-      <div className="space-y-2">
-        <div className="text-sm font-semibold">Evidence items</div>
-        {!evidence || evidence.length === 0 ? (
-          <div className="text-sm opacity-70">No evidence attached yet.</div>
-        ) : (
-          <div className="space-y-2">
-            {evidence.map((ev) => (
-              <div key={ev.id} className="border rounded p-3 text-sm space-y-1">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold">
-                    {ev.kind}: {ev.label}
+        <section className="space-y-2">
+          <h3 className="text-sm font-semibold">Attached proof</h3>
+          {!evidence || evidence.length === 0 ? (
+            <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm text-[var(--text-muted)]">
+              No proof has been attached yet.
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              {evidence.map((ev) => (
+                <div key={ev.id} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 text-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold">{ev.label}</div>
+                      <div className="mt-1 text-xs text-[var(--text-muted)]">{EVIDENCE_KIND_LABEL[ev.kind as EvidenceKind] ?? ev.kind}</div>
+                    </div>
+                    <time className="text-xs text-[var(--text-muted)]">{new Date(ev.created_at).toLocaleString()}</time>
                   </div>
-                  <div className="text-xs opacity-60">
-                    {new Date(ev.created_at).toLocaleString()}
-                  </div>
-                </div>
-                {ev.url && (
-                  <div className="text-xs">
-                    <a
-                      className="underline"
-                      href={ev.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                  {ev.url ? (
+                    <a className="mt-2 block truncate text-xs font-medium text-[var(--primary)] hover:underline" href={ev.url} target="_blank" rel="noreferrer">
                       {ev.url}
                     </a>
-                  </div>
-                )}
-                {ev.note && (
-                  <div className="text-xs opacity-80">{ev.note}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                  ) : null}
+                  {ev.note ? <p className="mt-2 text-xs text-[var(--text-muted)]">{ev.note}</p> : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </CardBody>
+    </Card>
   );
 }

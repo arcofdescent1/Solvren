@@ -74,13 +74,13 @@ export default function SubmitForReviewButton({
     if (okJson?.alreadySubmitted) {
       setMsg(okJson?.message ?? "Already in review.");
     } else {
-      const bucket = okJson?.risk_bucket ?? "—";
-      const due = okJson?.due_at ? new Date(okJson.due_at).toLocaleString() : "—";
+      const bucket = okJson?.risk_bucket ?? "-";
+      const due = okJson?.due_at ? new Date(okJson.due_at).toLocaleString() : "-";
 
       // Keep it friendly and short. Don't scare with AI failures.
       const aiNote = okJson?.pass_a_ok === false ? " (AI skipped)" : "";
 
-      setMsg(`Submitted • ${bucket} • Due ${due}${aiNote}`);
+      setMsg(`Submitted | ${bucket} | Due ${due}${aiNote}`);
     }
 
     router.refresh();
@@ -89,12 +89,12 @@ export default function SubmitForReviewButton({
 
   // Prefer disabled button over disappearing button: users learn the workflow.
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex items-center">
       <Button
         data-testid="submit-for-review"
         onClick={submit}
         disabled={disabled}
-        className="px-3 py-2 rounded bg-black text-white text-sm disabled:opacity-50"
+        className="h-10"
         title={
           notReady || disabledByReady
             ? "Complete required fields (systems, rollout, revenue exposure, etc.) to submit."
@@ -105,12 +105,7 @@ export default function SubmitForReviewButton({
       >
         {loading ? "Submitting..." : "Submit for review"}
       </Button>
-      {msg && <div className="text-xs opacity-70 text-right max-w-xs">{msg}</div>}
-      {!canSubmit && (
-        <div className="text-[11px] opacity-50 text-right">
-          Status: {status}
-        </div>
-      )}
+      {msg ? <span className="sr-only">{msg}</span> : null}
     </div>
   );
 }
