@@ -1,16 +1,7 @@
 "use client";
 
-import { Button } from "@/ui";
-
 import { useCallback, useEffect, useState } from "react";
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border bg-neutral-50 px-3 py-1 text-xs">
-      {children}
-    </span>
-  );
-}
+import { Badge, Button, Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/ui";
 
 export default function ReportSuggestionsPanel(props: { changeId: string }) {
   const [loading, setLoading] = useState(true);
@@ -49,13 +40,10 @@ export default function ReportSuggestionsPanel(props: { changeId: string }) {
     setApplyA(true);
     setToast(null);
     try {
-      const res = await fetch(
-        `/api/changes/${props.changeId}/apply-approval-suggestions`,
-        { method: "POST" }
-      );
+      const res = await fetch(`/api/changes/${props.changeId}/apply-approval-suggestions`, { method: "POST" });
       const json = await res.json();
       if (!res.ok) throw new Error((json as { error?: string }).error || "Failed");
-      setToast("Approvals queued ✅");
+      setToast("Decision owners queued.");
       window.dispatchEvent(new CustomEvent("approvals:queued"));
       document.getElementById("approvals")?.scrollIntoView({ behavior: "smooth" });
     } catch (e: unknown) {
@@ -69,13 +57,10 @@ export default function ReportSuggestionsPanel(props: { changeId: string }) {
     setApplyE(true);
     setToast(null);
     try {
-      const res = await fetch(
-        `/api/changes/${props.changeId}/apply-evidence-suggestions`,
-        { method: "POST" }
-      );
+      const res = await fetch(`/api/changes/${props.changeId}/apply-evidence-suggestions`, { method: "POST" });
       const json = await res.json();
       if (!res.ok) throw new Error((json as { error?: string }).error || "Failed");
-      setToast(`Added ${(json as { applied?: number }).applied ?? 0} evidence item(s).`);
+      setToast(`Added ${(json as { applied?: number }).applied ?? 0} proof item(s).`);
       window.dispatchEvent(new CustomEvent("evidence:refresh"));
     } catch (e: unknown) {
       setToast(e instanceof Error ? e.message : "Failed");
@@ -85,86 +70,55 @@ export default function ReportSuggestionsPanel(props: { changeId: string }) {
   }
 
   return (
-    <div className="mt-4 rounded-2xl border bg-white p-4">
-      <div className="flex items-start justify-between gap-4">
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <div className="text-sm font-semibold">AI → Workflow suggestions</div>
-          <div className="text-xs text-neutral-500">
-            Use the report to pre-fill approvers and evidence. One click.
+          <CardTitle>Apply report recommendations</CardTitle>
+          <CardDescription>Use the revenue impact report to fill in decision owners and proof requirements.</CardDescription>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="secondary" onClick={applyApprovals} disabled={applyA || loading || !s}>
+            {applyA ? "Applying..." : "Add owners"}
+          </Button>
+          <Button type="button" onClick={applyEvidence} disabled={applyE || loading || !s}>
+            {applyE ? "Adding..." : "Add proof"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardBody className="space-y-4">
+        {toast ? <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 text-sm">{toast}</div> : null}
+        {loading ? <p className="text-sm text-[var(--text-muted)]">Loading recommendations...</p> : null}
+        {err ? <p className="text-sm text-[var(--danger)]">Error: {err}</p> : null}
+        {!loading && !err && !s ? (
+          <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm text-[var(--text-muted)]">
+            Generate a revenue impact report to see recommendations.
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            className="rounded-xl border px-3 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-50"
-            onClick={applyApprovals}
-            disabled={applyA || loading || !s}
-          >
-            {applyA ? "Applying…" : "Apply approval set"}
-          </Button>
-          <Button
-            type="button"
-            className="rounded-xl border px-3 py-2 text-sm font-semibold hover:bg-neutral-50 disabled:opacity-50"
-            onClick={applyEvidence}
-            disabled={applyE || loading || !s}
-          >
-            {applyE ? "Adding…" : "Add evidence checklist"}
-          </Button>
-        </div>
-      </div>
-      {toast ? (
-        <div className="mt-3 text-sm text-neutral-700">{toast}</div>
-      ) : null}
-      {loading ? (
-        <div className="mt-3 text-sm text-neutral-600">Loading suggestions…</div>
-      ) : err ? (
-        <div className="mt-3 text-sm text-neutral-600">Error: {err}</div>
-      ) : !s ? (
-        <div className="mt-3 text-sm text-neutral-600">
-          Generate a Revenue Impact Report to see suggestions.
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="rounded-xl border bg-neutral-50 p-3">
-            <div className="text-xs font-semibold text-neutral-700">
-              Suggested approvals
+        ) : null}
+        {s ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+              <div className="text-sm font-semibold">Suggested decision owners</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(s.suggestedApprovalAreas ?? []).length ? (
+                  (s.suggestedApprovalAreas ?? []).map((a) => <Badge key={a} variant="secondary">{a}</Badge>)
+                ) : (
+                  <div className="text-sm text-[var(--text-muted)]">No mapped decision owners.</div>
+                )}
+              </div>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(s.suggestedApprovalAreas ?? []).length ? (
-                (s.suggestedApprovalAreas ?? []).map((a) => (
-                  <Chip key={a}>{a}</Chip>
-                ))
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+              <div className="text-sm font-semibold">Suggested proof checklist</div>
+              {(s.suggestedEvidenceItems ?? []).length ? (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--text-muted)]">
+                  {(s.suggestedEvidenceItems ?? []).slice(0, 8).map((e, i) => <li key={i}>{e}</li>)}
+                </ul>
               ) : (
-                <div className="text-xs text-neutral-500">
-                  No mapped approval areas (configure in Settings → Approval role map (AI labels)).
-                </div>
+                <div className="mt-2 text-sm text-[var(--text-muted)]">No proof suggestions.</div>
               )}
             </div>
-            <div className="mt-2 text-xs text-neutral-500">
-              From report requiredApprovals:{" "}
-              {(s.requiredApprovalsRaw ?? []).join(", ") || "—"}
-            </div>
           </div>
-
-          <div className="rounded-xl border bg-neutral-50 p-3">
-            <div className="text-xs font-semibold text-neutral-700">
-              Suggested evidence checklist
-            </div>
-            <ul className="mt-2 list-disc pl-5 text-sm text-neutral-700">
-              {(s.suggestedEvidenceItems ?? [])
-                .slice(0, 8)
-                .map((e, i) => (
-                  <li key={i}>{e}</li>
-                ))}
-            </ul>
-            {(s.suggestedEvidenceItems ?? []).length > 8 ? (
-              <div className="mt-1 text-xs text-neutral-500">
-                + {(s.suggestedEvidenceItems ?? []).length - 8} more…
-              </div>
-            ) : null}
-          </div>
-        </div>
-      )}
-    </div>
+        ) : null}
+      </CardBody>
+    </Card>
   );
 }

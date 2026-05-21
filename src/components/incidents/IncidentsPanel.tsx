@@ -1,7 +1,7 @@
-"use client";;
-import { Button, Input, Textarea } from "@/ui";
+"use client";
 
 import { useEffect, useState } from "react";
+import { Badge, Button, Card, CardBody, CardDescription, CardHeader, CardTitle, Input, Textarea } from "@/ui";
 
 type Incident = {
   id: string;
@@ -12,15 +12,19 @@ type Incident = {
   description: string | null;
 };
 
+function money(value: number | null) {
+  if (value == null) return null;
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+}
+
 export default function IncidentsPanel({ changeEventId }: { changeEventId: string }) {
   const [items, setItems] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-
   const [editId, setEditId] = useState<string | null>(null);
   const [editSeverity, setEditSeverity] = useState(3);
-  const [editRevenueImpact, setEditRevenueImpact] = useState<string>("");
-  const [editDescription, setEditDescription] = useState<string>("");
+  const [editRevenueImpact, setEditRevenueImpact] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   async function reload() {
     setLoading(true);
@@ -62,18 +66,11 @@ export default function IncidentsPanel({ changeEventId }: { changeEventId: strin
   async function saveEdit() {
     if (!editId) return;
     const revenueImpact = editRevenueImpact.trim() ? Number(editRevenueImpact) : null;
-
     const res = await fetch("/api/incidents/update", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        incidentId: editId,
-        severity: editSeverity,
-        revenueImpact,
-        description: editDescription.trim() || null,
-      }),
+      body: JSON.stringify({ incidentId: editId, severity: editSeverity, revenueImpact, description: editDescription.trim() || null }),
     });
-
     const json = await res.json();
     if (!res.ok) {
       setErr(json?.error || "Failed to update incident");
@@ -84,7 +81,6 @@ export default function IncidentsPanel({ changeEventId }: { changeEventId: strin
   }
 
   async function resolveIncident(id: string) {
-    if (!confirm("Mark this incident as resolved?")) return;
     const res = await fetch("/api/incidents/resolve", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -99,7 +95,6 @@ export default function IncidentsPanel({ changeEventId }: { changeEventId: strin
   }
 
   async function unlinkIncident(id: string) {
-    if (!confirm("Unlink this incident from the change? (This affects learning.)")) return;
     const res = await fetch("/api/incidents/unlink", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -114,102 +109,79 @@ export default function IncidentsPanel({ changeEventId }: { changeEventId: strin
   }
 
   return (
-    <div className="border rounded p-4 space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Linked incidents</h3>
-        <Button className="text-sm underline opacity-70" onClick={reload}>
-          Refresh
-        </Button>
-      </div>
-      {loading && <div className="text-sm opacity-70">Loading…</div>}
-      {err && <div className="text-sm text-red-600">{err}</div>}
-      {!loading && items.length === 0 && (
-        <div className="text-sm opacity-70">No incidents linked to this change yet.</div>
-      )}
-      <div className="space-y-2">
-        {items.map((i) => {
-          const status = i.resolved_at ? "Resolved" : "Open";
-          return (
-            <div key={i.id} className="border rounded p-2 text-sm">
-              <div className="flex justify-between gap-3">
-                <div>
-                  <b>Severity {i.severity}</b> • {status}
-                  {i.revenue_impact != null && <span className="opacity-80"> • ${i.revenue_impact}</span>}
-                </div>
-                <div className="opacity-70 text-xs">{new Date(i.detected_at).toLocaleString()}</div>
-              </div>
-              {i.description && <div className="mt-1 opacity-80">{i.description}</div>}
-              <div className="mt-2 flex gap-2">
-                <Button className="px-2 py-1 border rounded text-xs" onClick={() => openEdit(i)}>
-                  Edit
-                </Button>
-                {!i.resolved_at && (
-                  <Button className="px-2 py-1 border rounded text-xs" onClick={() => resolveIncident(i.id)}>
-                    Resolve
-                  </Button>
-                )}
-                <Button className="px-2 py-1 border rounded text-xs" onClick={() => unlinkIncident(i.id)}>
-                  Unlink
-                </Button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {editId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded border w-full max-w-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Edit incident</h3>
-              <Button className="text-sm opacity-70" onClick={() => setEditId(null)}>
-                Close
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <label className="text-sm">
-                Severity (1–5)
-                <Input
-                  className="mt-1 w-full border rounded px-2 py-1"
-                  type="number"
-                  min={1}
-                  max={5}
-                  value={editSeverity}
-                  onChange={(e) => setEditSeverity(Number(e.target.value))}
-                />
-              </label>
-
-              <label className="text-sm">
-                Revenue impact
-                <Input
-                  className="mt-1 w-full border rounded px-2 py-1"
-                  value={editRevenueImpact}
-                  onChange={(e) => setEditRevenueImpact(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <label className="text-sm block">
-              Description
-              <Textarea
-                className="mt-1 w-full border rounded px-2 py-1"
-                rows={3}
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-              />
-            </label>
-
-            <div className="flex gap-2 justify-end">
-              <Button className="px-3 py-2 rounded border text-sm" onClick={() => setEditId(null)}>
-                Cancel
-              </Button>
-              <Button className="px-3 py-2 rounded border text-sm" onClick={saveEdit}>
-                Save
-              </Button>
-            </div>
+    <>
+      <Card>
+        <CardHeader className="flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle>Linked incidents</CardTitle>
+            <CardDescription>Customer or revenue issues connected to this change.</CardDescription>
           </div>
+          <Button variant="outline" size="sm" onClick={reload}>Refresh</Button>
+        </CardHeader>
+        <CardBody className="space-y-3">
+          {loading ? <p className="text-sm text-[var(--text-muted)]">Loading incidents...</p> : null}
+          {err ? <p className="text-sm text-[var(--danger)]">{err}</p> : null}
+          {!loading && items.length === 0 ? (
+            <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm text-[var(--text-muted)]">
+              No incidents are linked to this change yet.
+            </div>
+          ) : null}
+          {items.map((i) => (
+            <div key={i.id} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={i.resolved_at ? "success" : "warning"}>{i.resolved_at ? "Resolved" : "Open"}</Badge>
+                    <Badge variant="outline">Severity {i.severity}</Badge>
+                    {money(i.revenue_impact) ? <Badge variant="secondary">{money(i.revenue_impact)}</Badge> : null}
+                  </div>
+                  {i.description ? <p className="mt-2 text-[var(--text-muted)]">{i.description}</p> : null}
+                  <p className="mt-2 text-xs text-[var(--text-muted)]">Detected {new Date(i.detected_at).toLocaleString()}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openEdit(i)}>Edit</Button>
+                  {!i.resolved_at ? <Button size="sm" variant="secondary" onClick={() => resolveIncident(i.id)}>Resolve</Button> : null}
+                  <Button size="sm" variant="ghost" onClick={() => unlinkIncident(i.id)}>Unlink</Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+
+      {editId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <Card className="w-full max-w-lg shadow-2xl">
+            <CardHeader className="flex-row items-start justify-between gap-4">
+              <div>
+                <CardTitle>Edit incident</CardTitle>
+                <CardDescription>Update severity, estimated impact, or the incident description.</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setEditId(null)}>Close</Button>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1 text-sm font-medium">
+                  Severity
+                  <Input type="number" min={1} max={5} value={editSeverity} onChange={(e) => setEditSeverity(Number(e.target.value))} />
+                </label>
+                <label className="space-y-1 text-sm font-medium">
+                  Revenue impact
+                  <Input value={editRevenueImpact} onChange={(e) => setEditRevenueImpact(e.target.value)} />
+                </label>
+              </div>
+              <label className="block space-y-1 text-sm font-medium">
+                Description
+                <Textarea className="min-h-24" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+              </label>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditId(null)}>Cancel</Button>
+                <Button onClick={saveEdit}>Save</Button>
+              </div>
+            </CardBody>
+          </Card>
         </div>
-      )}
-    </div>
+      ) : null}
+    </>
   );
 }

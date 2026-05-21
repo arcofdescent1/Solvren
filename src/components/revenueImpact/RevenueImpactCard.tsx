@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/ui";
+import { Badge, Button, Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/ui";
 import { FailureModesList } from "./FailureModesList";
 import { SafeguardsList } from "./SafeguardsList";
 import { HistoricalSignalsList } from "./HistoricalSignalsList";
@@ -98,13 +98,11 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
   const report = data?.report ?? null;
 
   return (
-    <div className="rounded border border-[var(--border)] bg-[var(--bg)] p-4 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <h2 className="text-base font-semibold">Revenue Impact Report</h2>
-          <div className="text-xs text-[var(--text-muted)]">
-            Structured executive risk memo for this change.
-          </div>
+          <CardTitle>Revenue impact report</CardTitle>
+          <CardDescription>Executive-ready business impact, failure modes, and safeguards for this change.</CardDescription>
         </div>
         <Button
           type="button"
@@ -113,7 +111,8 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
         >
           {generating ? "Generating..." : report ? "Regenerate" : "Generate Report"}
         </Button>
-      </div>
+      </CardHeader>
+      <CardBody className="space-y-4">
 
       {loading ? <div className="text-sm text-[var(--text-muted)]">Loading...</div> : null}
       {error ? <div className="text-sm text-[var(--danger)]">{error}</div> : null}
@@ -123,18 +122,16 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
 
       {!loading && report ? (
         <div className="space-y-4">
-          <div className="rounded border border-[var(--border)] p-3">
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-semibold">{report.risk.riskLevel}</span>
-              <span>{report.risk.riskScore}/100</span>
-              <span>{report.risk.confidenceScore}% confidence</span>
+              <Badge variant="warning">{report.risk.riskLevel}</Badge>
+              <Badge variant="secondary">{report.risk.riskScore}/100</Badge>
+              <Badge variant="outline">{report.risk.confidenceScore}% confidence</Badge>
               {data?.stale ? (
-                <span className="rounded border border-yellow-600 px-2 py-0.5 text-xs">
-                  stale
-                </span>
+                <Badge variant="warning">Needs refresh</Badge>
               ) : null}
               {data?.generated_by === "RULES_ONLY" ? (
-                <span className="rounded border px-2 py-0.5 text-xs">Generated using baseline risk rules</span>
+                <Badge variant="outline">Baseline rules</Badge>
               ) : null}
             </div>
             <div className="mt-2 text-xs text-[var(--text-muted)]">
@@ -142,7 +139,7 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
             </div>
           </div>
 
-          <div className="rounded border border-[var(--border)] p-3">
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
             <div className="text-sm font-semibold">Executive Summary</div>
             <div className="mt-2 text-sm">
               <div><strong>Why this matters:</strong> {report.executiveSummary.whyThisMatters}</div>
@@ -152,17 +149,17 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded border border-[var(--border)] p-3">
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
               <div className="text-sm font-semibold">Business Summary</div>
               <div className="text-sm">{report.summary.businessSummary}</div>
             </div>
-            <div className="rounded border border-[var(--border)] p-3">
+            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
               <div className="text-sm font-semibold">Technical Summary</div>
               <div className="text-sm">{report.summary.technicalSummary}</div>
             </div>
           </div>
 
-          <div className="rounded border border-[var(--border)] p-3 text-sm">
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 text-sm">
             <div className="font-semibold">Impact Overview</div>
             <div>Areas: {report.impact.revenueImpactAreas.join(", ") || "—"}</div>
             <div>Customer impact: {report.impact.customerImpactLevel}</div>
@@ -171,7 +168,7 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
             <div>Operational impact: {report.impact.operationalImpact ? "Yes" : "No"}</div>
           </div>
 
-          <div className="rounded border border-[var(--border)] p-3 text-sm">
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 text-sm">
             <div className="font-semibold">Systems</div>
             <div>Primary: {report.systems.primarySystems.join(", ") || "—"}</div>
             <div>Secondary: {report.systems.secondarySystems.join(", ") || "—"}</div>
@@ -188,7 +185,7 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
             <SafeguardsList title="Recommended Safeguards" items={report.recommendedSafeguards} />
           </div>
 
-          <div className="rounded border border-[var(--border)] p-3">
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
             <div className="text-sm font-semibold">Required Approvals</div>
             {report.requiredApprovals.length === 0 ? (
               <div className="text-sm text-[var(--text-muted)]">None</div>
@@ -206,6 +203,7 @@ export function RevenueImpactCard({ changeId }: { changeId: string }) {
           <HistoricalSignalsList items={report.historicalSignals} />
         </div>
       ) : null}
-    </div>
+      </CardBody>
+    </Card>
   );
 }

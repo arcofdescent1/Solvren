@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@/ui";
+
 type Blocker = {
   code: string;
   title: string;
@@ -8,25 +10,16 @@ type Blocker = {
 };
 
 export function CoordinationBlockersList({ items }: { items: Blocker[] }) {
-  if (!items.length) {
-    return <div className="text-sm text-[var(--text-muted)]">No coordination blockers.</div>;
-  }
+  if (!items.length) return <div className="text-sm text-[var(--text-muted)]">No blockers are preventing review.</div>;
   return (
     <div className="space-y-2">
       {items.map((b) => (
-        <div key={`${b.code}:${b.description}`} className="rounded border border-[var(--border)] bg-white p-3 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">{b.title}</span>
-            <span
-              className={`text-xs rounded border px-1.5 py-0.5 ${
-                b.severity === "ERROR" ? "border-red-400 text-red-700" : "border-yellow-500 text-yellow-700"
-              }`}
-            >
-              {b.severity}
-            </span>
+        <div key={`${b.code}:${b.description}`} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold">{b.title}</span>
+            <Badge variant={b.severity === "ERROR" ? "danger" : "warning"}>{b.severity === "ERROR" ? "Blocking" : "Warning"}</Badge>
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-1">{b.code}</div>
-          <div className="text-sm mt-1">{b.description}</div>
+          <div className="mt-1 text-sm text-[var(--text-muted)]">{b.description}</div>
         </div>
       ))}
     </div>

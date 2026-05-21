@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Input, NativeSelect } from "@/ui";
+import { Button, Card, CardBody, CardDescription, CardHeader, CardTitle, Input, NativeSelect } from "@/ui";
 import { formatRevenueSurface, normalizeRevenueSurface, REVENUE_SURFACES } from "@/lib/revenue/surfaces";
 
 function fmtMoney(n: number) {
@@ -77,16 +77,17 @@ export function RevenueExposureCard(props: {
   }
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <div className="text-lg font-semibold">Revenue exposure</div>
-          <div className="text-sm text-[var(--text-muted)]">Add money context so risk becomes executive-relevant.</div>
+          <CardTitle>Revenue exposure</CardTitle>
+          <CardDescription>Add money and customer context so leaders can understand the business risk.</CardDescription>
         </div>
         <Button onClick={save} disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </Button>
-      </div>
+      </CardHeader>
+      <CardBody>
 
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         <label className="text-sm">
@@ -153,6 +154,7 @@ export function RevenueExposureCard(props: {
       </div>
 
       {err ? <div className="mt-3 text-sm text-[var(--danger)]">{err}</div> : null}
-    </div>
+      </CardBody>
+    </Card>
   );
 }
