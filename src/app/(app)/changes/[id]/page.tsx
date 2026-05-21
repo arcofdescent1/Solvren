@@ -2,7 +2,17 @@ import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Badge, PageHeader, Card, CardBody, SectionHeader } from "@/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  PageHeaderV2,
+  SectionHeader,
+} from "@/ui";
 import ChangeAssessmentPanel from "@/components/ChangeAssessmentPanel";
 import { RevenueExposureCard } from "@/components/changes/RevenueExposureCard";
 import { MitigationsPanel } from "@/components/changes/MitigationsPanel";
@@ -80,7 +90,7 @@ export default async function ChangeDetailPage({
   if (ceErr || !change)
     return (
       <div className="space-y-4">
-        <PageHeader
+        <PageHeaderV2
           breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes", href: "/changes" }]}
           title="Change not found"
         />
@@ -99,7 +109,7 @@ export default async function ChangeDetailPage({
   if (!allowed) {
     return (
       <div className="space-y-4">
-        <PageHeader
+        <PageHeaderV2
           breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes", href: "/changes" }]}
           title="Access denied"
         />
@@ -241,7 +251,6 @@ export default async function ChangeDetailPage({
   const approvedCount = (approvals ?? []).filter((a: { decision: string }) => a.decision === "APPROVED").length;
   const totalApprovalCount = approvals?.length ?? 0;
   const approvalTargetCount = Math.max(totalApprovalCount, requiredApprovalAreas.length);
-  const evidenceCompleteCount = requiredEvidence.length - missingEvidenceKinds.length;
   const revenueAtRisk = (change as { revenue_at_risk?: number | null }).revenue_at_risk ?? null;
   const estimatedMrr = (change as { estimated_mrr_affected?: number | null }).estimated_mrr_affected ?? null;
   const isOwner = change.created_by === currentUserId;
@@ -261,63 +270,47 @@ export default async function ChangeDetailPage({
           : change.status === "APPROVED"
             ? "Monitor release and outcomes"
             : "Review current status";
+  const executiveDecision = change.status === "APPROVED"
+    ? "Approved. Monitor the release and confirm outcomes."
+    : change.status === "REJECTED"
+      ? "Not approved. Review the concerns before moving forward."
+      : pendingApprovalCount > 0
+        ? "Needs executive or functional approval before shipping."
+        : missingEvidenceKinds.length > 0
+          ? "Not ready yet. Required proof is missing."
+          : "Ready for review. No required evidence is currently missing.";
+  const protectionStatus = missingEvidenceKinds.length > 0
+    ? `${missingEvidenceKinds.length} proof item${missingEvidenceKinds.length === 1 ? "" : "s"} needed`
+    : "Proof is complete";
+  const approvalStatus = approvalTargetCount === 0
+    ? "No approval lanes required"
+    : `${approvedCount} of ${approvalTargetCount} approvals complete`;
+  const customerImpact = (change as { percent_customer_base_affected?: number | null }).percent_customer_base_affected;
+  const visibleRevenueSurface = (change as { revenue_surface?: string | null }).revenue_surface ?? (change as { domain?: string }).domain ?? "Revenue systems";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5">
-      <PageHeader
+    <div className="mx-auto max-w-7xl space-y-6">
+      <PageHeaderV2
         breadcrumbs={[
           { label: "Home", href: "/home" },
           { label: "Changes", href: "/changes" },
-          { label: change.title ?? "Change", href: `/changes/${id}` },
+          { label: change.title ?? "Change" },
         ]}
         title={change.title ?? "Untitled change"}
-        description={
-          <span className="text-sm flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-                change.status === "DRAFT"
-                  ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
-                  : change.status === "READY"
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
-                    : change.status === "IN_REVIEW"
-                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200"
-                      : change.status === "APPROVED"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200"
-                        : change.status === "REJECTED"
-                          ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-              }`}
-            >
-              {change.status === "DRAFT" ? "Draft" : change.status === "READY" ? "Ready" : change.status === "IN_REVIEW" ? "In Review" : change.status === "APPROVED" ? "Approved" : change.status === "REJECTED" ? "Rejected" : (change.status ?? "-")}
-            </span>
-            {change.change_type && <span>&bull; {change.change_type}</span>}
-            {(change as { domain?: string }).domain && (
-              <>
-                <span className="inline-flex items-center rounded border border-current/30 px-1.5 py-0.5 text-xs font-medium">
-                  Domain: {(change as { domain: string }).domain}
-                </span>
-              </>
-            )}
-            {(change as { is_restricted?: boolean | null }).is_restricted ? (
-              <span className="inline-flex items-center rounded border border-[var(--danger)] px-1.5 py-0.5 text-xs font-semibold text-[var(--danger)]">
-                Restricted
-              </span>
-            ) : null}
-          </span>
-        }
+        description="A plain-English decision record for a revenue-sensitive change."
       />
 
-      <Card className="sticky top-[calc(var(--topbar-height)+0.75rem)] z-20 border-[var(--primary)]/15 bg-[color:color-mix(in_oklab,var(--bg-surface)_96%,var(--bg-app))] shadow-md">
+      <Card className="sticky top-[calc(var(--topbar-height)+0.75rem)] z-20 border-[var(--primary)]/20 bg-[color:color-mix(in_oklab,var(--bg-surface)_96%,var(--bg-app))] shadow-md">
         <CardBody className="py-3">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <nav className="flex flex-wrap gap-1 text-sm" aria-label="Change workspace sections">
+            <nav className="flex flex-wrap gap-1 text-sm" aria-label="Change decision sections">
               {[
-                { label: "Overview", href: "#overview" },
-                { label: "Impact", href: "#impact" },
-                { label: "Evidence", href: "#evidence" },
+                { label: "Decision", href: "#decision" },
+                { label: "Revenue impact", href: "#impact" },
+                { label: "Proof", href: "#proof" },
                 { label: "Approvals", href: "#approvals" },
-                { label: "Timeline", href: "#timeline" },
-                { label: "System details", href: "#system-details" },
+                { label: "Activity", href: "#activity" },
+                { label: "System record", href: "#system-details" },
               ].map((item) => (
                 <a
                   key={item.href}
@@ -330,358 +323,281 @@ export default async function ChangeDetailPage({
             </nav>
             <div className="flex flex-wrap items-center gap-2">
               {(change.status === "DRAFT" || change.status === "READY") && (
-                <Link
-                  href={`/changes/${id}/intake?step=review`}
-                  className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-4 text-sm font-semibold text-[var(--text)] transition-colors hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
-                >
-                  Guided intake
-                </Link>
+                <Button asChild variant="secondary" size="md">
+                  <Link href={`/changes/${id}/intake?step=review`}>Guided intake</Link>
+                </Button>
               )}
-              <PredictionBadge changeId={id} />
-              <LinkIncidentButton
-                changeEventId={change.id}
-                orgId={change.org_id}
-              />
+              <LinkIncidentButton changeEventId={change.id} orgId={change.org_id} />
               <SubmitForReviewButton changeEventId={id} status={change.status} />
-              <RunSlaTickButton />
-              <a
-                href={`/api/changes/${id}/approval-packet`}
-                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
-                download
-              >
-                Packet (MD)
-              </a>
-              <a
-                href={`/api/changes/${id}/approval-packet?format=pdf`}
-                className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 text-sm font-semibold text-[var(--primary)] hover:border-[var(--primary)]/40"
-                download
-              >
-                Packet (PDF)
-              </a>
+              <Button asChild variant="outline" size="md">
+                <a href={`/api/changes/${id}/approval-packet?format=pdf`} download>
+                  Proof packet
+                </a>
+              </Button>
             </div>
           </div>
         </CardBody>
       </Card>
 
-      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-      <Card id="overview" className="scroll-mt-24 border-[var(--primary)]/20 bg-[var(--bg-surface)] shadow-sm">
-        <CardBody>
-          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={statusTone(change.status)}>{statusLabel(change.status)}</Badge>
-                {assessment?.risk_bucket ? <Badge variant="outline">Risk: {assessment.risk_bucket}</Badge> : null}
-                {(change as { domain?: string }).domain ? <Badge variant="outline">{(change as { domain: string }).domain}</Badge> : null}
-              </div>
-              <h2 className="mt-3 text-xl font-semibold tracking-normal">Decision workspace</h2>
-              <p className="mt-1 text-sm font-semibold text-[var(--primary)]">Next step: {primaryNextStep}</p>
-              <p className="mt-2 max-w-3xl text-sm text-[var(--text-muted)]">
-                Use this workspace to decide whether the change is ready, what revenue is exposed, whether evidence is complete, and who still needs to act.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Revenue at risk</p>
-                <p className="mt-1 text-lg font-semibold">{formatMoney(revenueAtRisk ?? estimatedMrr)}</p>
-              </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Approvals</p>
-                <p className="mt-1 text-lg font-semibold">
-                  {approvalTargetCount === 0 ? "None required" : `${approvedCount}/${approvalTargetCount}`}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Evidence</p>
-                <p className="mt-1 text-lg font-semibold">{requiredEvidence.length === 0 ? "None required" : `${evidenceCompleteCount}/${requiredEvidence.length}`}</p>
-              </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Pending reviews</p>
-                <p className="mt-1 text-lg font-semibold">{pendingApprovalCount}</p>
-              </div>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
-      <Card className="border-[var(--primary)]/20">
-        <CardBody>
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Executive proof packet</p>
-              <h2 className="mt-1 text-lg font-semibold">Board-ready evidence for the decision</h2>
-              <p className="mt-1 max-w-3xl text-sm text-[var(--text-muted)]">
-                This packet summarizes revenue exposure, decision status, evidence, readiness, risks, mitigations, incidents, and delivery history in a format leaders can review outside the product.
-              </p>
-              <div className="mt-3 grid gap-2 text-sm md:grid-cols-3">
-                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                  <p className="text-xs text-[var(--text-muted)]">Decision</p>
-                  <p className="font-semibold">{primaryNextStep}</p>
+      <section id="decision" className="scroll-mt-28 space-y-4">
+        <Card className="border-[var(--primary)]/25">
+          <CardBody className="p-0">
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(340px,0.8fr)]">
+              <div className="space-y-5 p-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={statusTone(change.status)}>{statusLabel(change.status)}</Badge>
+                  {assessment?.risk_bucket ? <Badge variant="outline">{assessment.risk_bucket} attention</Badge> : null}
+                  {(change as { is_restricted?: boolean | null }).is_restricted ? <Badge variant="danger">Restricted</Badge> : null}
                 </div>
-                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                  <p className="text-xs text-[var(--text-muted)]">Methodology</p>
-                  <p className="font-semibold">Evidence + exposure + approvals</p>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Executive decision brief</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal text-[var(--text)]">{executiveDecision}</h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
+                    This page summarizes the business risk, proof, ownership, and next action so leaders can decide quickly without reading implementation details.
+                  </p>
                 </div>
-                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                  <p className="text-xs text-[var(--text-muted)]">Confidence</p>
-                  <p className="font-semibold">{missingEvidenceKinds.length === 0 ? "Evidence complete" : "Evidence needed"}</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+                    <p className="text-xs font-medium text-[var(--text-muted)]">Money at risk</p>
+                    <p className="mt-2 text-2xl font-semibold">{formatMoney(revenueAtRisk ?? estimatedMrr)}</p>
+                  </div>
+                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+                    <p className="text-xs font-medium text-[var(--text-muted)]">Approval progress</p>
+                    <p className="mt-2 text-lg font-semibold">{approvalStatus}</p>
+                  </div>
+                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+                    <p className="text-xs font-medium text-[var(--text-muted)]">Proof status</p>
+                    <p className="mt-2 text-lg font-semibold">{protectionStatus}</p>
+                  </div>
                 </div>
               </div>
+
+              <aside className="border-t border-[var(--border)] bg-[var(--card-cap-bg)] p-6 lg:border-l lg:border-t-0">
+                <h3 className="text-base font-semibold">What needs to happen next</h3>
+                <p className="mt-2 text-sm text-[var(--text-muted)]">{primaryNextStep}</p>
+                <div className="mt-5 space-y-3 text-sm">
+                  <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-3">
+                    <span className="text-[var(--text-muted)]">Revenue area</span>
+                    <span className="text-right font-semibold">{visibleRevenueSurface}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-3">
+                    <span className="text-[var(--text-muted)]">Customers affected</span>
+                    <span className="text-right font-semibold">{customerImpact == null ? "Not estimated" : `${customerImpact}%`}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-3">
+                    <span className="text-[var(--text-muted)]">Open reviews</span>
+                    <span className="text-right font-semibold">{pendingApprovalCount}</span>
+                  </div>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <PredictionBadge changeId={id} />
+                  <RunSlaTickButton />
+                </div>
+              </aside>
             </div>
-            <div className="flex flex-wrap gap-2 lg:flex-col">
-              <a
-                href={`/api/changes/${id}/approval-packet?format=pdf`}
-                className="rounded-[var(--radius-md)] border border-[var(--primary)] bg-[var(--primary)] px-3 py-2 text-sm font-semibold text-white hover:opacity-90"
-                download
-              >
-                Download PDF
-              </a>
-              <a
-                href={`/api/changes/${id}/approval-packet?format=md`}
-                className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--primary)] hover:bg-[var(--bg-surface-2)]"
-                download
-              >
-                Download Markdown
-              </a>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-      </div>
+          </CardBody>
+        </Card>
+      </section>
 
-      <Card className="scroll-mt-24">
-        <CardBody>
-          <div className="mb-4 border-b border-[var(--border)] pb-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Readiness</p>
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
-              These checks explain whether the change can be submitted or approved, and what still blocks progress.
-            </p>
-          </div>
-          <SlaBadge
-            dueAt={change.due_at ?? null}
-            slaStatus={change.sla_status ?? null}
-            escalatedAt={change.escalated_at ?? null}
-          />
-          <ReadyStatusBanner changeId={id} />
-          <GovernanceRulesBanner
-            orgId={orgId}
-            changeType={(change as { change_type?: string }).change_type}
-            impactAmount={(change as { estimated_mrr_affected?: number }).estimated_mrr_affected}
-            domain={(change as { domain?: string }).domain}
-            riskBucket={assessment?.risk_bucket ?? null}
-          />
-          {change.last_notified_at && (
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              Last notified: {new Date(change.last_notified_at).toLocaleString()}
-            </p>
-          )}
-          {assessment?.risk_bucket && (
-            <p className="mt-2 text-xs text-[var(--text-muted)]">
-              {requiredEvidence.length === 0
-                ? "Evidence: none required"
-                : missingEvidenceKinds.length === 0
-                  ? `Evidence: ${requiredEvidence.length}/${requiredEvidence.length} complete`
-                  : `Evidence: ${requiredEvidence.length - missingEvidenceKinds.length}/${requiredEvidence.length} attached`}
-            </p>
-          )}
-        </CardBody>
-      </Card>
-
-      <div id="sla" className="scroll-mt-24">
-        <SectionHeader
-          title="Workflow status"
-          helper="SLA, due-date, and governance timing for this change."
-          className="mb-3"
-        />
-        <SlaTimeline changeId={id} />
-      </div>
-
-      {(requiredEvidence.length > 0 ||
-        requiredApprovalAreas.length > 0 ||
-        (change as { domain?: string }).domain) && (
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.45fr)]">
         <Card>
-          <CardBody>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-              Governance
-            </h2>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-            <span>
-              <strong>Domain:</strong>{" "}
-              {(change as { domain?: string }).domain ?? "REVENUE"}
-            </span>
-            {requiredEvidence.length > 0 && (
-              <span>
-                <strong>Evidence:</strong>{" "}
-                {requiredEvidence.length - missingEvidenceKinds.length}/
-                {requiredEvidence.length} complete
-                {missingEvidenceKinds.length > 0 &&
-                  ` (Missing: ${missingEvidenceKinds.map((k) => EVIDENCE_KIND_LABEL[k as keyof typeof EVIDENCE_KIND_LABEL] ?? k).join(", ")})`}
-              </span>
-            )}
-            {requiredEvidence.length === 0 && bucket && (
-              <span>
-                <strong>Evidence:</strong> none required
-              </span>
-            )}
-            {requiredApprovalAreas.length > 0 && (
-              <span>
-                <strong>Approvals:</strong>{" "}
-                {requiredApprovalAreas.length - missingApprovalAreas.length}/
-                {requiredApprovalAreas.length} assigned
-                {missingApprovalAreas.length > 0 &&
-                  ` (Missing: ${missingApprovalAreas.join(", ")})`}
-              </span>
-            )}
-          </div>
+          <CardHeader>
+            <CardTitle>Can this safely move forward?</CardTitle>
+            <CardDescription>Solvren checks that the right proof and decisions are in place before the change ships.</CardDescription>
+          </CardHeader>
+          <CardBody className="space-y-4">
+            <SlaBadge dueAt={change.due_at ?? null} slaStatus={change.sla_status ?? null} escalatedAt={change.escalated_at ?? null} />
+            <ReadyStatusBanner changeId={id} />
+            <GovernanceRulesBanner
+              orgId={orgId}
+              changeType={(change as { change_type?: string }).change_type}
+              impactAmount={(change as { estimated_mrr_affected?: number }).estimated_mrr_affected}
+              domain={(change as { domain?: string }).domain}
+              riskBucket={assessment?.risk_bucket ?? null}
+            />
           </CardBody>
         </Card>
-      )}
 
-      <section className="space-y-3">
-        <SectionHeader
-          title="Related risks"
-          helper="Incidents and detected issues linked to this change."
-        />
-        <IncidentsPanel changeEventId={change.id} />
-
-      <Card>
-        <CardBody>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-2">
-            Linked issues
-          </h2>
-          {linkedIssues.length > 0 ? (
-            <ul className="space-y-2">
-              {linkedIssues.map((li) => (
-                <li key={li.id} className="flex items-center gap-2 text-sm">
-                  <span className="inline-flex rounded border border-[var(--border)] px-1.5 py-0.5 text-xs font-medium">
-                    {li.link_type}
-                  </span>
-                  <Link
-                    href={`/issues/${li.id}`}
-                    className="font-mono text-[var(--primary)] hover:underline"
-                  >
-                    {li.issue_key}
-                  </Link>
-                  <span className="text-[var(--text-muted)]">-</span>
-                  <span>{li.title}</span>
-                  <span className="text-[var(--text-muted)]">({li.status})</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-[var(--text-muted)]">No linked issues.</p>
-          )}
-          <div className="mt-2">
-            <LinkIssueButton changeId={id} />
-          </div>
-        </CardBody>
-      </Card>
-      </section>
-
-      <section id="impact" className="scroll-mt-24 space-y-3">
-        <SectionHeader
-          title="Business impact"
-          helper="Revenue exposure, mitigation plan, impact report, and risk assessment."
-        />
-      <RevenueExposureCard
-        changeId={id}
-        initial={{
-          estimatedMrrAffected: (change as { estimated_mrr_affected?: number | null }).estimated_mrr_affected ?? null,
-          percentCustomerBaseAffected: (change as { percent_customer_base_affected?: number | null }).percent_customer_base_affected ?? null,
-          revenueSurface: (change as { revenue_surface?: string | null }).revenue_surface ?? null,
-          revenue: {
-            revenueAtRisk: (change as { revenue_at_risk?: number | null }).revenue_at_risk ?? undefined,
-            exposureMultiplier: (change as { revenue_exposure_multiplier?: number | null }).revenue_exposure_multiplier ?? undefined,
-            explanation: (change as { revenue_exposure_explanation?: Record<string, unknown> | null }).revenue_exposure_explanation ?? undefined,
-          },
-        }}
-      />
-
-      <MitigationsPanel changeId={id} />
-      <RevenueImpactReportPanel changeId={id} />
-      <ReportSuggestionsPanel changeId={id} />
-
-      <ChangeAssessmentPanel
-        changeEventId={id}
-        signals={(signals ?? []) as Parameters<typeof ChangeAssessmentPanel>[0]["signals"]}
-        assessment={assessment}
-      />
-      </section>
-
-      <section id="evidence" className="scroll-mt-24 space-y-3">
-        <SectionHeader
-          title="Evidence and routing"
-          helper="What reviewers need before they can approve confidently."
-        />
-      <CoordinationAutopilotCard changeId={id} />
-      <EvidenceChecklist changeId={id} />
-
-      <EvidencePanel
-        changeEventId={id}
-        orgId={change.org_id}
-        riskBucket={(assessment?.risk_bucket ?? null) as Parameters<typeof EvidencePanel>[0]["riskBucket"]}
-        requiredEvidenceKinds={requiredEvidence as EvidenceKind[]}
-        requiredEvidenceKindsOverride={undefined}
-        evidence={(evidence ?? []) as Parameters<typeof EvidencePanel>[0]["evidence"]}
-        missingEvidenceSuggestions={assessment?.missing_evidence_suggestions as Parameters<typeof EvidencePanel>[0]["missingEvidenceSuggestions"]}
-      />
-
-      {assessment?.report_md && (
-        <Card id="checklist">
-          <CardBody>
-            <h2 className="font-semibold">Checklist (generated)</h2>
-            <pre className="mt-2 text-sm whitespace-pre-wrap text-[var(--text)]">{assessment.report_md}</pre>
+        <Card>
+          <CardHeader>
+            <CardTitle>Board-ready packet</CardTitle>
+            <CardDescription>A shareable record of the decision, risk, proof, approvals, and delivery history.</CardDescription>
+          </CardHeader>
+          <CardBody className="space-y-3">
+            <Button asChild className="w-full">
+              <a href={`/api/changes/${id}/approval-packet?format=pdf`} download>Download PDF</a>
+            </Button>
+            <Button asChild variant="secondary" className="w-full">
+              <a href={`/api/changes/${id}/approval-packet?format=md`} download>Download Markdown</a>
+            </Button>
+            <p className="text-xs leading-5 text-[var(--text-muted)]">
+              Use this outside Solvren for leadership review, board prep, or change-approval evidence.
+            </p>
           </CardBody>
         </Card>
-      )}
       </section>
 
-      <section id="approvals" className="scroll-mt-24 space-y-3">
-        <SectionHeader
-          title="Approvals"
-          helper="Who needs to decide and which approval lanes are still pending."
+      <section id="impact" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="Revenue impact" helper="The business context a leader needs before approving or escalating." />
+        <RevenueExposureCard
+          changeId={id}
+          initial={{
+            estimatedMrrAffected: (change as { estimated_mrr_affected?: number | null }).estimated_mrr_affected ?? null,
+            percentCustomerBaseAffected: (change as { percent_customer_base_affected?: number | null }).percent_customer_base_affected ?? null,
+            revenueSurface: (change as { revenue_surface?: string | null }).revenue_surface ?? null,
+            revenue: {
+              revenueAtRisk: (change as { revenue_at_risk?: number | null }).revenue_at_risk ?? undefined,
+              exposureMultiplier: (change as { revenue_exposure_multiplier?: number | null }).revenue_exposure_multiplier ?? undefined,
+              explanation: (change as { revenue_exposure_explanation?: Record<string, unknown> | null }).revenue_exposure_explanation ?? undefined,
+            },
+          }}
         />
+        <MitigationsPanel changeId={id} />
+        <RevenueImpactReportPanel changeId={id} />
+        <ReportSuggestionsPanel changeId={id} />
+        <ChangeAssessmentPanel
+          changeEventId={id}
+          signals={(signals ?? []) as Parameters<typeof ChangeAssessmentPanel>[0]["signals"]}
+          assessment={assessment}
+        />
+      </section>
+
+      <section id="proof" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="Proof before approval" helper="The evidence and coordination plan reviewers need to make a confident decision." />
+        <CoordinationAutopilotCard changeId={id} />
+        <EvidenceChecklist changeId={id} />
+        <EvidencePanel
+          changeEventId={id}
+          orgId={change.org_id}
+          riskBucket={(assessment?.risk_bucket ?? null) as Parameters<typeof EvidencePanel>[0]["riskBucket"]}
+          requiredEvidenceKinds={requiredEvidence as EvidenceKind[]}
+          requiredEvidenceKindsOverride={undefined}
+          evidence={(evidence ?? []) as Parameters<typeof EvidencePanel>[0]["evidence"]}
+          missingEvidenceSuggestions={assessment?.missing_evidence_suggestions as Parameters<typeof EvidencePanel>[0]["missingEvidenceSuggestions"]}
+        />
+        {assessment?.report_md && (
+          <Card id="checklist">
+            <CardHeader>
+              <CardTitle>Generated reviewer checklist</CardTitle>
+              <CardDescription>Additional review notes created from the current assessment.</CardDescription>
+            </CardHeader>
+            <CardBody>
+              <pre className="whitespace-pre-wrap text-sm text-[var(--text)]">{assessment.report_md}</pre>
+            </CardBody>
+          </Card>
+        )}
+      </section>
+
+      <section id="approvals" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="People who need to decide" helper="Approvers, missing decision lanes, and who still needs to act." />
         {(requiredApprovalAreas.length > 0 || (approvals && approvals.length > 0)) ? (
           <ApprovalsPanel
-          approvals={(approvals ?? []) as Parameters<typeof ApprovalsPanel>[0]["approvals"]}
+            approvals={(approvals ?? []) as Parameters<typeof ApprovalsPanel>[0]["approvals"]}
             currentUserId={currentUserId}
             requiredApprovalAreas={requiredApprovalAreas}
           />
         ) : (
           <Card>
             <CardBody>
-              <p className="text-sm text-[var(--text-muted)]">
-                No approval lanes are required or assigned yet for this change.
-              </p>
+              <p className="text-sm text-[var(--text-muted)]">No approvals are required or assigned yet for this change.</p>
             </CardBody>
           </Card>
         )}
       </section>
 
-      <section id="timeline" className="scroll-mt-24 space-y-3">
-        <SectionHeader
-          title="Timeline"
-          helper="Important change events, review activity, and workflow history."
-        />
-        <ChangeTimeline changeId={id} />
+      <section id="activity" className="scroll-mt-28 space-y-4">
+        <SectionHeader title="Activity and related risks" helper="Incidents, linked issues, and the history of this change." />
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.6fr)]">
+          <div className="space-y-4">
+            <IncidentsPanel changeEventId={change.id} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Linked issues</CardTitle>
+                <CardDescription>Connected follow-up work that may affect this decision.</CardDescription>
+              </CardHeader>
+              <CardBody>
+                {linkedIssues.length > 0 ? (
+                  <ul className="space-y-2">
+                    {linkedIssues.map((li) => (
+                      <li key={li.id} className="flex flex-wrap items-center gap-2 text-sm">
+                        <Badge variant="outline">{li.link_type}</Badge>
+                        <Link href={`/issues/${li.id}`} className="font-mono text-[var(--primary)] hover:underline">
+                          {li.issue_key}
+                        </Link>
+                        <span>{li.title}</span>
+                        <span className="text-[var(--text-muted)]">({li.status})</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-[var(--text-muted)]">No linked issues.</p>
+                )}
+                <div className="mt-3">
+                  <LinkIssueButton changeId={id} />
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+          <div id="timeline" className="scroll-mt-28">
+            <ChangeTimeline changeId={id} />
+          </div>
+        </div>
       </section>
 
-      <RestrictedAccessPanel
-        changeId={id}
-        isRestricted={Boolean((change as { is_restricted?: boolean | null }).is_restricted)}
-      />
+      <section className="space-y-4">
+        <SectionHeader title="Operational record" helper="Detailed controls remain available for operators and auditors." />
+        <div id="sla" className="scroll-mt-28">
+          <SlaTimeline changeId={id} />
+        </div>
+        {(requiredEvidence.length > 0 || requiredApprovalAreas.length > 0 || (change as { domain?: string }).domain) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Review rules</CardTitle>
+              <CardDescription>The configured proof and approval requirements for this change.</CardDescription>
+            </CardHeader>
+            <CardBody>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                <span><strong>Revenue area:</strong> {(change as { domain?: string }).domain ?? "Revenue"}</span>
+                <span>
+                  <strong>Proof:</strong>{" "}
+                  {requiredEvidence.length === 0
+                    ? "None required"
+                    : `${requiredEvidence.length - missingEvidenceKinds.length}/${requiredEvidence.length} complete`}
+                </span>
+                <span>
+                  <strong>Approvals:</strong>{" "}
+                  {requiredApprovalAreas.length === 0
+                    ? "None required"
+                    : `${requiredApprovalAreas.length - missingApprovalAreas.length}/${requiredApprovalAreas.length} assigned`}
+                </span>
+              </div>
+              {missingEvidenceKinds.length > 0 ? (
+                <p className="mt-2 text-sm text-[var(--text-muted)]">
+                  Missing proof: {missingEvidenceKinds.map((k) => EVIDENCE_KIND_LABEL[k as keyof typeof EVIDENCE_KIND_LABEL] ?? k).join(", ")}
+                </p>
+              ) : null}
+              {missingApprovalAreas.length > 0 ? (
+                <p className="mt-1 text-sm text-[var(--text-muted)]">Missing approvers: {missingApprovalAreas.join(", ")}</p>
+              ) : null}
+            </CardBody>
+          </Card>
+        )}
+        <RestrictedAccessPanel
+          changeId={id}
+          isRestricted={Boolean((change as { is_restricted?: boolean | null }).is_restricted)}
+        />
+      </section>
 
-      <details id="system-details" className="scroll-mt-24 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm">
+      <details id="system-details" className="scroll-mt-28 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm">
         <summary className="cursor-pointer px-[var(--card-spacer-x)] py-[var(--card-spacer-y)] font-semibold">
-          System health, audit, and risk internals
+          System record and audit details
           <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
-            Delivery logs, audit trail, signal provenance, and scoring details.
+            Delivery logs, audit trail, source signals, and scoring details.
           </span>
         </summary>
         <div className="space-y-6 border-t border-[var(--border)] p-[var(--card-spacer-x)]">
           <DeliveryPanel deliveries={deliveries ?? []} />
-
-      <AuditPanel changeId={id} initialRows={(auditRows ?? undefined) as AuditRow[] | undefined} />
-
+          <AuditPanel changeId={id} initialRows={(auditRows ?? undefined) as AuditRow[] | undefined} />
           <SignalCorrelationPanel />
 
           {((change as { risk_explanation?: unknown }).risk_explanation != null ||
@@ -697,29 +613,25 @@ export default async function ChangeDetailPage({
           )}
 
           <Card>
+            <CardHeader>
+              <CardTitle>Source signals</CardTitle>
+              <CardDescription>Low-level inputs used by the Solvren assessment engine.</CardDescription>
+            </CardHeader>
             <CardBody>
-              <h2 className="font-semibold">Deterministic signals</h2>
-              <div className="mt-2 space-y-2">
-            {deterministicSignals.map((s) => (
-              <div key={s.id} className="rounded-[var(--radius-sb)] border border-[var(--border)] p-2 text-sm">
-              <div className="flex justify-between gap-3">
-                <span className="font-mono">{s.signal_key}</span>
-                <span className="opacity-70 text-xs">
-                  +{s.contribution ?? 0} (w={s.weight_at_time ?? 0}) &bull; {s.source}
-                </span>
-              </div>
-              <div className="opacity-80">
-                value:{" "}
-                {s.value_type === "BOOLEAN"
-                  ? String(s.value_bool)
-                  : String(s.value_num)}
-                {" | "}
-                {s.category}
-              </div>
-            </div>
-          ))}
+              <div className="space-y-2">
+                {deterministicSignals.map((s) => (
+                  <div key={s.id} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 text-sm">
+                    <div className="flex justify-between gap-3">
+                      <span className="font-mono">{s.signal_key}</span>
+                      <span className="text-xs text-[var(--text-muted)]">+{s.contribution ?? 0} (w={s.weight_at_time ?? 0})</span>
+                    </div>
+                    <div className="mt-1 text-[var(--text-muted)]">
+                      value: {s.value_type === "BOOLEAN" ? String(s.value_bool) : String(s.value_num)} | {s.category} | {s.source}
+                    </div>
+                  </div>
+                ))}
                 {deterministicSignals.length === 0 && (
-                  <p className="text-sm text-[var(--text-muted)]">No deterministic signals yet.</p>
+                  <p className="text-sm text-[var(--text-muted)]">No source signals yet.</p>
                 )}
               </div>
             </CardBody>
