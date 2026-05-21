@@ -1,10 +1,7 @@
 "use client";
 
-/**
- * Phase 9 — Automation pause banner (§16.4).
- */
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/ui/primitives/badge";
+import { Badge, Button, Container } from "@/ui";
 
 export type PauseInfo = {
   id: string;
@@ -43,22 +40,22 @@ export function AutomationPauseBanner({ orgId: _orgId, onDismiss }: Props) {
   if (pauses.length === 0) return null;
 
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[color:var(--rg-warning)]/30 bg-[color:var(--rg-warning)]/5 px-4 py-2">
-      <div className="flex items-center gap-2">
-        <Badge variant="warning">AUTOMATION PAUSED</Badge>
-        <span className="text-sm text-[color:var(--rg-text)]">
-          {pauses.length} active pause(s): {pauses.map((p) => p.reason).join("; ")}
-        </span>
-      </div>
-      {onDismiss && (
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="text-xs text-[color:var(--rg-text-muted)] hover:underline"
-        >
-          Dismiss
-        </button>
-      )}
-    </div>
+    <section className="border-b border-[var(--border)] bg-[var(--bg-surface)]">
+      <Container className="py-3">
+        <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-[var(--warning)] bg-[var(--bg-surface-2)] px-4 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Badge variant="warning">Automation paused</Badge>
+            <p className="text-sm text-[var(--text)]">
+              {pauses.length} active pause{pauses.length === 1 ? "" : "s"}: {pauses.map((p) => p.reason).join("; ")}
+            </p>
+          </div>
+          {onDismiss && (
+            <Button type="button" variant="ghost" size="sm" onClick={onDismiss}>
+              Dismiss
+            </Button>
+          )}
+        </div>
+      </Container>
+    </section>
   );
 }

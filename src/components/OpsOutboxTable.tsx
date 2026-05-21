@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/ui";
-import { DataTable, TD, TH, TR } from "@/components/ui/DataTable";
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui";
 
 type Row = {
   id: string;
@@ -32,51 +31,38 @@ export default function OpsOutboxTable(props: { rows: Row[] }) {
     }
   }
 
-  if (rows.length === 0) {
-    return (
-      <p className="text-[13px] text-[color:var(--rg-muted)]">None 🎉</p>
-    );
-  }
+  if (rows.length === 0) return <p className="text-sm text-[var(--text-muted)]">None</p>;
 
   return (
-    <div className="rounded-[var(--rg-radius)] border border-[color:var(--rg-border)] bg-[color:var(--rg-panel)] overflow-hidden">
-      <DataTable>
-        <thead className="bg-[color:var(--rg-panel-2)]">
-          <tr>
-            <TH>Channel</TH>
-            <TH>Template</TH>
-            <TH>Attempts</TH>
-            <TH>Last error</TH>
-            <TH />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <TR key={r.id}>
-              <TD>{r.channel}</TD>
-              <TD>{r.template_key}</TD>
-              <TD>{r.attempt_count ?? 0}</TD>
-              <TD className="max-w-[420px]">
-                <span
-                  className="block text-[12px] text-[color:var(--rg-muted)] truncate"
-                  title={r.last_error ?? ""}
-                >
-                  {r.last_error ?? ""}
-                </span>
-              </TD>
-              <TD className="text-right">
-                <Button
-                  size="sm"
-                  onClick={() => void retry(r.id)}
-                  disabled={busyId === r.id}
-                >
-                  {busyId === r.id ? "Retrying…" : "Retry"}
-                </Button>
-              </TD>
-            </TR>
-          ))}
-        </tbody>
-      </DataTable>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Channel</TableHead>
+          <TableHead>Template</TableHead>
+          <TableHead>Attempts</TableHead>
+          <TableHead>Last error</TableHead>
+          <TableHead />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((r) => (
+          <TableRow key={r.id}>
+            <TableCell>{r.channel}</TableCell>
+            <TableCell>{r.template_key}</TableCell>
+            <TableCell>{r.attempt_count ?? 0}</TableCell>
+            <TableCell className="max-w-[420px]">
+              <span className="block truncate text-xs text-[var(--text-muted)]" title={r.last_error ?? ""}>
+                {r.last_error ?? ""}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button size="sm" onClick={() => void retry(r.id)} disabled={busyId === r.id}>
+                {busyId === r.id ? "Retrying..." : "Retry"}
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
