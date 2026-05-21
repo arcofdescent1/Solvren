@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/ui";
 
 type Mitigation = {
   signalKey: string;
@@ -53,11 +54,12 @@ export function MitigationsPanel(props: {
   }, [props.changeId]);
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm">
-      <div className="text-lg font-semibold">Safeguard recommendations</div>
-      <div className="text-sm text-[var(--text-muted)]">
-        Practical steps reviewers can ask for before approving this change.
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Safeguard recommendations</CardTitle>
+        <CardDescription>Practical steps reviewers can ask for before approving this change.</CardDescription>
+      </CardHeader>
+      <CardBody>
 
       {loading ? <div className="mt-3 text-sm text-[var(--text-muted)]">Loading...</div> : null}
       {err ? <div className="mt-3 text-sm text-[var(--danger)]">{err}</div> : null}
@@ -82,6 +84,7 @@ export function MitigationsPanel(props: {
           </div>
         ))}
       </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 }

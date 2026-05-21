@@ -1,9 +1,8 @@
 "use client";
 
-import { Button } from "@/ui";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Badge, Button, Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/ui";
 import { postPhase3Interaction } from "@/components/onboarding/phase3/postPhase3Interaction";
 
 type Approval = {
@@ -16,6 +15,18 @@ type Approval = {
 };
 
 type MsgKind = "info" | "warning" | "error";
+
+function decisionVariant(decision: Approval["decision"]): "success" | "danger" | "warning" {
+  if (decision === "APPROVED") return "success";
+  if (decision === "REJECTED") return "danger";
+  return "warning";
+}
+
+function decisionLabel(decision: Approval["decision"]) {
+  if (decision === "APPROVED") return "Approved";
+  if (decision === "REJECTED") return "Rejected";
+  return "Waiting";
+}
 
 export default function ApprovalsPanel({
   approvals,
@@ -38,10 +49,7 @@ export default function ApprovalsPanel({
     return requiredApprovalAreas.filter((a) => !present.has(a));
   })();
 
-  async function decide(
-    approvalId: string,
-    decision: "APPROVED" | "REJECTED"
-  ) {
+  async function decide(approvalId: string, decision: "APPROVED" | "REJECTED") {
     setMsg(null);
     setMsgKind("info");
     setMissingEvidenceKinds([]);
@@ -56,10 +64,8 @@ export default function ApprovalsPanel({
     const json = (await resp.json().catch(() => ({}))) as {
       error?: string;
       message?: string;
-      code?: string;
       missingEvidence?: string[];
       warning?: string;
-      nextStatus?: string;
       missingEvidenceKinds?: string[];
     };
 
@@ -68,7 +74,7 @@ export default function ApprovalsPanel({
     if (!resp.ok) {
       const missing = json?.missingEvidence ?? json?.missingEvidenceKinds ?? [];
       setMissingEvidenceKinds(missing);
-      setMsg(json?.message ?? json?.error ?? "Failed.");
+      setMsg(json?.message ?? json?.error ?? "Decision could not be saved.");
       setMsgKind("error");
       if (missing.length > 0) {
         document.getElementById("evidence-checklist")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -81,17 +87,14 @@ export default function ApprovalsPanel({
       setMsgKind("warning");
       setMissingEvidenceKinds(json?.missingEvidenceKinds ?? []);
       if (json?.missingEvidenceKinds?.length) {
-        document
-          .getElementById("evidence-panel")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("evidence-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } else {
-      setMsg(decision === "APPROVED" ? "Approved." : "Rejected.");
+      setMsg(decision === "APPROVED" ? "Approval recorded." : "Rejection recorded.");
       setMsgKind("info");
     }
 
     postPhase3Interaction({ type: "approval_decision", refType: "approval", refId: approvalId });
-
     router.refresh();
     window.dispatchEvent(new CustomEvent("timeline:refresh"));
   }
@@ -104,87 +107,84 @@ export default function ApprovalsPanel({
   }
 
   return (
-    <div className="border rounded p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Approvals</h2>
-        <Button
-          type="button"
-          className="text-xs underline opacity-70"
-          onClick={() => setMsg(null)}
-          disabled={!msg}
-        >
-          Dismiss
-        </Button>
-      </div>
-      {missingApprovalAreas.length > 0 && (
-        <div className="text-sm border rounded p-2 border-yellow-300 bg-yellow-50">
-          Governance requires approvals that haven&apos;t been created yet:{" "}
-          <b>{missingApprovalAreas.join(", ")}</b>. Re-run checklist generation
-          to sync approval lanes.
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-4">
+        <div>
+          <CardTitle>Decision owners</CardTitle>
+          <CardDescription>Who still needs to approve, reject, or unblock this change.</CardDescription>
         </div>
-      )}
-      {msg && (
-        <div
-          className={`text-sm border rounded p-2 ${
-            msgKind === "warning"
-              ? "border-yellow-300 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-950/30"
-              : msgKind === "error"
-                ? "border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-950/30"
-                : "border-gray-200 bg-gray-50 dark:border-[var(--border)] dark:bg-[var(--bg-surface)]"
-          }`}
-        >
-          {msg}
-          {missingEvidenceKinds.length > 0 && (
-            <div className="mt-2 text-xs">
-              Missing: {missingEvidenceKinds.join(", ")}
-            </div>
-          )}
-          {(msgKind === "warning" || msgKind === "error") && missingEvidenceKinds.length > 0 && (
-            <Button
-              type="button"
-              variant="link"
-              onClick={scrollToEvidence}
-              className="mt-2 text-xs font-medium"
-            >
-              Go to Evidence Checklist
-            </Button>
-          )}
-        </div>
-      )}
-      <div className="space-y-2">
-        {approvals.map((a) => {
-          const isAssigned = a.approver_user_id === currentUserId;
-          return (
-            <div key={a.id} className="border rounded p-3 text-sm space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-semibold">{a.approval_area}</div>
-                <div className="text-xs opacity-70">{a.decision}</div>
+        {msg ? (
+          <Button type="button" variant="ghost" size="sm" onClick={() => setMsg(null)}>
+            Dismiss
+          </Button>
+        ) : null}
+      </CardHeader>
+
+      <CardBody className="space-y-4">
+        {missingApprovalAreas.length > 0 ? (
+          <div className="rounded-[var(--radius-md)] border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-100">
+            Add decision owners for: <strong>{missingApprovalAreas.join(", ")}</strong>.
+          </div>
+        ) : null}
+
+        {msg ? (
+          <div
+            className={`rounded-[var(--radius-md)] border p-3 text-sm ${
+              msgKind === "warning"
+                ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-100"
+                : msgKind === "error"
+                  ? "border-red-300 bg-red-50 text-red-950 dark:border-red-700 dark:bg-red-950/30 dark:text-red-100"
+                  : "border-[var(--border)] bg-[var(--bg-surface-2)] text-[var(--text)]"
+            }`}
+          >
+            <div>{msg}</div>
+            {missingEvidenceKinds.length > 0 ? (
+              <div className="mt-2">
+                Missing proof: {missingEvidenceKinds.join(", ")}
+                <Button type="button" variant="link" onClick={scrollToEvidence} className="ml-2 h-auto p-0 text-sm">
+                  Go to proof
+                </Button>
               </div>
-              {isAssigned && a.decision === "PENDING" && (
-                <div className="flex gap-2">
-                  <Button
-                    className="px-3 py-1 rounded bg-black text-white text-xs disabled:opacity-60"
-                    disabled={busyId === a.id}
-                    onClick={() => decide(a.id, "APPROVED")}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    className="px-3 py-1 rounded border text-xs disabled:opacity-60"
-                    disabled={busyId === a.id}
-                    onClick={() => decide(a.id, "REJECTED")}
-                  >
-                    Reject
-                  </Button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {approvals.length === 0 ? (
+          <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm text-[var(--text-muted)]">
+            No decision owners have been assigned yet.
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {approvals.map((a) => {
+              const isAssigned = a.approver_user_id === currentUserId;
+              return (
+                <div key={a.id} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="text-sm font-semibold">{a.approval_area}</div>
+                      {a.comment ? <p className="mt-1 text-sm text-[var(--text-muted)]">{a.comment}</p> : null}
+                      {a.decided_at ? <p className="mt-1 text-xs text-[var(--text-muted)]">Decided {new Date(a.decided_at).toLocaleString()}</p> : null}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={decisionVariant(a.decision)}>{decisionLabel(a.decision)}</Badge>
+                      {isAssigned && a.decision === "PENDING" ? (
+                        <>
+                          <Button size="sm" disabled={busyId === a.id} onClick={() => decide(a.id, "APPROVED")}>
+                            Approve
+                          </Button>
+                          <Button size="sm" variant="outline" disabled={busyId === a.id} onClick={() => decide(a.id, "REJECTED")}>
+                            Reject
+                          </Button>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
-              )}
-              {a.comment && (
-                <div className="text-xs opacity-80">Comment: {a.comment}</div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+              );
+            })}
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }

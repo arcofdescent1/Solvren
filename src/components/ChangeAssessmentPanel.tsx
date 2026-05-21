@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/ui";
+import { Button, Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/ui";
 import { mitigationForCategory, prettyCategory } from "@/services/risk/mitigations";
 
 type SignalRow = {
@@ -171,30 +171,31 @@ export default function ChangeAssessmentPanel({
   }
 
   return (
-    <div className="space-y-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <h2 className="font-semibold">Review assessment</h2>
-          <p className="text-sm text-[var(--text-muted)]">
+          <CardTitle>Reviewer insight</CardTitle>
+          <CardDescription>
             Status: {assessment?.status ?? "-"} - Review level: {assessment?.risk_bucket ?? "Not assessed"}
-          </p>
+          </CardDescription>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button onClick={recompute} disabled={loading}>
-            {loading ? "Working..." : "Refresh assessment"}
+            {loading ? "Working..." : "Refresh insight"}
           </Button>
           <Button onClick={runPassA} disabled={loading} variant="secondary">
-            {loading ? "Working..." : "Refresh AI review"}
+            {loading ? "Working..." : "Refresh review"}
           </Button>
           <Button onClick={generateChecklist} disabled={loading} variant="secondary">
-            {loading ? "Working..." : "Generate checklist"}
+            {loading ? "Working..." : "Generate proof list"}
           </Button>
           <Button onClick={submitForReview} disabled={loading} variant="secondary">
             {loading ? "Working..." : "Submit for review"}
           </Button>
         </div>
-      </div>
+      </CardHeader>
+      <CardBody className="space-y-4">
 
       {msg && <div className="rounded-[var(--radius-md)] border border-[var(--border)] p-2 text-sm">{msg}</div>}
 
@@ -240,8 +241,8 @@ export default function ChangeAssessmentPanel({
         )}
       </div>
 
-      <details className="rounded-[var(--radius-md)] border border-[var(--border)] p-3">
-        <summary className="cursor-pointer font-semibold">Technical factor breakdown</summary>
+      <details className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+        <summary className="cursor-pointer font-semibold">Detailed factor breakdown</summary>
         <div className="mt-3 space-y-3">
           {breakdown.length === 0 ? (
             <p className="text-sm text-[var(--text-muted)]">No contributing factors to break down.</p>
@@ -327,6 +328,7 @@ export default function ChangeAssessmentPanel({
           })()
         )}
       </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 }
