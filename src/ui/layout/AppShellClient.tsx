@@ -10,7 +10,6 @@ import type { OrgMembership } from "@/lib/org/activeOrg";
 import { AppFooter } from "@/components/footer/AppFooter";
 import { Phase3AdoptionBanner } from "@/components/onboarding/phase3/Phase3AdoptionBanner";
 import { Phase4EnterpriseBanner } from "@/components/onboarding/phase4/Phase4EnterpriseBanner";
-import { DemoOrgBanner } from "@/components/demo/DemoOrgBanner";
 
 export type AppShellClientProps = {
   user?: { id: string; email?: string } | null;
@@ -41,7 +40,6 @@ function AppShellInner({
   needsReviewCount,
   phase3Banner,
   phase4Banner,
-  isDemoOrg,
   children,
 }: AppShellClientProps) {
   const { sidebarOpen, setSidebarOpen } = useLayout();
@@ -62,7 +60,6 @@ function AppShellInner({
         sidebarOpen={sidebarOpen}
         onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
       />
-      {isDemoOrg ? <DemoOrgBanner /> : null}
       {phase3Banner?.show ? (
         <Phase3AdoptionBanner phase3Status={phase3Banner.phase3Status} eligible={phase3Banner.eligible} />
       ) : phase4Banner?.show ? (

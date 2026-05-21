@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Badge, Button, Container } from "@/ui";
 
 export function Phase4EnterpriseBanner(props: {
   phase4Status: string | null;
@@ -12,21 +13,25 @@ export function Phase4EnterpriseBanner(props: {
   if (phase4Status === "COMPLETED" || phase4Status === "SKIPPED") return null;
 
   return (
-    <div className="border-b border-[color:var(--rg-border)] bg-[color:var(--rg-surface-elevated)] px-4 py-2 text-sm">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-        <p className="text-[color:var(--rg-text)]">
-          <span className="font-medium">Enterprise expansion &amp; renewal readiness</span>
-          {cadenceReminder
-            ? ` — executive weekly cadence is below ${executiveTarget} consecutive qualifying weeks (current streak: ${executiveStreak}).`
-            : " — grow footprint, deepen integrations, and reinforce renewal proof."}
-        </p>
-        <Link
-          href="/onboarding/enterprise"
-          className="shrink-0 rounded-md bg-[color:var(--rg-primary)] px-3 py-1.5 text-xs font-medium text-[color:var(--rg-primary-fg)] hover:opacity-90"
-        >
-          Open expansion center
-        </Link>
-      </div>
-    </div>
+    <section className="border-b border-[var(--border)] bg-[var(--bg-surface)]">
+      <Container className="py-3">
+        <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-4 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Badge variant={cadenceReminder ? "warning" : "success"}>
+              {cadenceReminder ? "Needs cadence" : "Expansion ready"}
+            </Badge>
+            <p className="text-sm text-[var(--text)]">
+              <span className="font-semibold">Enterprise expansion and renewal readiness</span>
+              {cadenceReminder
+                ? ` - executive weekly cadence is below ${executiveTarget} qualifying weeks; current streak is ${executiveStreak}.`
+                : " - grow footprint, deepen integrations, and reinforce renewal proof."}
+            </p>
+          </div>
+          <Button asChild size="sm">
+            <Link href="/onboarding/enterprise">Open expansion center</Link>
+          </Button>
+        </div>
+      </Container>
+    </section>
   );
 }

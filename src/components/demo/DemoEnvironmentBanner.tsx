@@ -1,12 +1,7 @@
 "use client";
 
-/**
- * Phase 8 — Demo environment banner.
- * Always visible in demo orgs. Shows DEMO badge, scenario name, reset button.
- */
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/ui/primitives/button";
+import { Badge, Button } from "@/ui";
 
 export type DemoStatus = {
   orgId: string;
@@ -46,9 +41,7 @@ export function DemoEnvironmentBanner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scenarioKey: status.scenarioKey, resetMode: "full" }),
       });
-      if (res.ok) {
-        await fetchStatus();
-      }
+      if (res.ok) await fetchStatus();
     } finally {
       setResetting(false);
     }
@@ -61,22 +54,31 @@ export function DemoEnvironmentBanner() {
     : "Demo";
 
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[color:var(--rg-border)] bg-[color:var(--rg-panel-2)] px-4 py-2">
-      <div className="flex items-center gap-2">
-        <Badge tone="warning">DEMO</Badge>
-        <span className="text-sm text-[color:var(--rg-text-muted)]">
-          {scenarioName}
-          {status.seedVersion && ` @ ${status.seedVersion}`}
-        </span>
-      </div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleReset}
-        disabled={resetting}
+    <div className="px-4 pt-4">
+      <div
+        className="mx-auto flex max-w-7xl flex-col gap-3 rounded-[var(--radius-lg)] border border-[var(--primary)]/20 bg-[color:color-mix(in_oklab,var(--bg-surface)_96%,var(--bg-app))] px-4 py-3 shadow-[var(--shadow-sm)] sm:flex-row sm:items-center sm:justify-between"
+        role="status"
       >
-        {resetting ? "Resetting…" : "Reset Demo"}
-      </Button>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Badge variant="warning">Demo</Badge>
+          <span className="truncate text-sm font-semibold text-[var(--text)]">{scenarioName}</span>
+          {status.seedVersion ? (
+            <span className="text-xs text-[var(--text-muted)]">Seed {status.seedVersion}</span>
+          ) : null}
+          <span className="hidden text-xs text-[var(--text-muted)] md:inline">
+            Synthetic workspace for guided product walkthroughs.
+          </span>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleReset}
+          disabled={resetting}
+          className="h-9 self-start sm:self-auto"
+        >
+          {resetting ? "Resetting..." : "Reset demo"}
+        </Button>
+      </div>
     </div>
   );
 }
