@@ -19,7 +19,7 @@ function riskBadge(bucket: string) {
 }
 
 function formatMoney(n: number) {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "-";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -28,7 +28,7 @@ function formatMoney(n: number) {
 }
 
 function formatJson(val: unknown): string {
-  if (val == null) return "—";
+  if (val == null) return "-";
   if (typeof val === "object") return JSON.stringify(val, null, 2);
   return String(val);
 }
@@ -76,8 +76,8 @@ export default async function RiskEventDetailPage({
         <PageHeader
           breadcrumbs={[
             { label: "Overview", href: "/dashboard" },
-            { label: "Revenue Risks", href: "/dashboard/executive-risk" },
-            { label: "Revenue Risk Detected" },
+            { label: "Problems", href: "/dashboard/executive-risk" },
+            { label: "Problem detected" },
           ]}
           title="Event not found"
         />
@@ -85,7 +85,7 @@ export default async function RiskEventDetailPage({
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">The requested risk event could not be found.</p>
             <Link href="/dashboard/executive-risk" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Back to Revenue Risks
+              Back to Problems
             </Link>
           </CardBody>
         </Card>
@@ -109,8 +109,8 @@ export default async function RiskEventDetailPage({
         <PageHeader
           breadcrumbs={[
             { label: "Overview", href: "/dashboard" },
-            { label: "Revenue Risks", href: "/dashboard/executive-risk" },
-            { label: "Revenue Risk Detected" },
+            { label: "Problems", href: "/dashboard/executive-risk" },
+            { label: "Problem detected" },
           ]}
           title="Access denied"
         />
@@ -118,7 +118,7 @@ export default async function RiskEventDetailPage({
           <CardBody>
             <p className="text-sm text-[var(--text-muted)]">You do not have access to this event.</p>
             <Link href="/dashboard/executive-risk" className="mt-2 block text-sm font-semibold text-[var(--primary)] hover:underline">
-              ← Back to Revenue Risks
+              Back to Problems
             </Link>
           </CardBody>
         </Card>
@@ -201,8 +201,8 @@ export default async function RiskEventDetailPage({
       <PageHeader
         breadcrumbs={[
           { label: "Overview", href: "/dashboard" },
-          { label: "Revenue Risks", href: "/dashboard/executive-risk" },
-          { label: "Revenue Risk Detected" },
+          { label: "Problems", href: "/dashboard/executive-risk" },
+          { label: "Problem detected" },
         ]}
         title={`${row.provider.charAt(0).toUpperCase() + row.provider.slice(1)} ${row.object} — ${row.risk_type.replace(/_/g, " ")}`}
         description={row.object_id}
@@ -212,7 +212,7 @@ export default async function RiskEventDetailPage({
               href={`/changes/${row.change_event_id}`}
               className="text-sm font-semibold text-[var(--primary)] hover:underline"
             >
-              View Change →
+              View change
             </Link>
           ) : null
         }
@@ -238,7 +238,7 @@ export default async function RiskEventDetailPage({
               </div>
               <div>
                 <dt className="text-[var(--text-muted)]">Field</dt>
-                <dd>{row.field ?? "—"}</dd>
+                <dd>{row.field ?? "-"}</dd>
               </div>
               <div>
                 <dt className="text-[var(--text-muted)]">Old Value</dt>
@@ -262,14 +262,14 @@ export default async function RiskEventDetailPage({
               </div>
               <div>
                 <dt className="text-[var(--text-muted)]">Actor</dt>
-                <dd>{row.actor ?? "—"}</dd>
+                <dd>{row.actor ?? "-"}</dd>
               </div>
               <div>
                 <dt className="text-[var(--text-muted)]">Approved At</dt>
                 <dd>
                   {row.approved_at
                     ? new Date(row.approved_at).toLocaleString()
-                    : "—"}
+                    : "-"}
                 </dd>
               </div>
             </dl>
@@ -351,7 +351,7 @@ export default async function RiskEventDetailPage({
                 <ul className="mt-1 space-y-1 text-sm">
                   {changeEvidence.map((e, i) => (
                     <li key={i}>
-                      {e.label || e.kind}: {(e as { status?: string }).status ?? "—"}
+                      {e.label || e.kind}: {(e as { status?: string }).status ?? "-"}
                     </li>
                   ))}
                 </ul>
@@ -381,3 +381,4 @@ export default async function RiskEventDetailPage({
     </div>
   );
 }
+

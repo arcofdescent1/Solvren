@@ -153,15 +153,15 @@ export function GuidedOnboardingWizard() {
   }, [integrations]);
 
   if (!data) {
-    return <p className="text-sm text-[color:var(--rg-text-muted)]">Loading onboarding…</p>;
+    return <p className="text-sm text-[var(--text-muted)]">Loading onboarding…</p>;
   }
 
   if (guidedStatus === "COMPLETED" || guidedStatus === "SKIPPED") {
     return (
       <Card>
         <CardBody className="space-y-4">
-          <h2 className="text-lg font-semibold text-[color:var(--rg-text)]">You&apos;re ready</h2>
-          <p className="text-sm text-[color:var(--rg-text-muted)]">
+          <h2 className="text-lg font-semibold text-[var(--text)]">You&apos;re ready</h2>
+          <p className="text-sm text-[var(--text-muted)]">
             Guided setup is complete. Continue to your dashboard — you may still see activation prompts until live signals
             catch up.
           </p>
@@ -196,8 +196,8 @@ export function GuidedOnboardingWizard() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-      <aside className="space-y-4 rounded-lg border border-[color:var(--rg-border)] p-4 lg:sticky lg:top-24 lg:self-start">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--rg-text-muted)]">Guided setup</p>
+      <aside className="space-y-4 rounded-lg border border-[var(--border)] p-4 lg:sticky lg:top-24 lg:self-start">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Guided setup</p>
         <ul className="space-y-2 text-sm">
           {(
             [
@@ -211,15 +211,15 @@ export function GuidedOnboardingWizard() {
           ).map((k) => (
             <li
               key={k}
-              className={k === step ? "font-semibold text-[color:var(--rg-text)]" : "text-[color:var(--rg-text-muted)]"}
+              className={k === step ? "font-semibold text-[var(--text)]" : "text-[var(--text-muted)]"}
             >
               {k.replace(/_/g, " ")}
             </li>
           ))}
         </ul>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--rg-border)]">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
           <div
-            className="h-full bg-[color:var(--rg-primary)] transition-all"
+            className="h-full bg-[var(--primary)] transition-all"
             style={{
               width: `${data.guided?.guidedPercentComplete ?? data.guidedPercentComplete ?? 0}%`,
             }}
@@ -228,16 +228,16 @@ export function GuidedOnboardingWizard() {
       </aside>
 
       <div className="space-y-6">
-        {error && <p className="text-sm text-[color:var(--rg-danger)]">{error}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         {step === "welcome" && (
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="text-xl font-semibold text-[color:var(--rg-text)]">Welcome to Solvren</h2>
-              <p className="text-sm text-[color:var(--rg-text-muted)]">
+              <h2 className="text-xl font-semibold text-[var(--text)]">Welcome to Solvren</h2>
+              <p className="text-sm text-[var(--text-muted)]">
                 Connect your systems, surface your biggest operational and revenue risks, and get to first value fast.
               </p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-[color:var(--rg-text)]">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--text)]">
                 <li>Find what is breaking</li>
                 <li>Quantify what it is costing</li>
                 <li>Route the right action quickly</li>
@@ -258,12 +258,12 @@ export function GuidedOnboardingWizard() {
         {step === "business_context" && (
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="text-xl font-semibold text-[color:var(--rg-text)]">Tell us about your business</h2>
+              <h2 className="text-xl font-semibold text-[var(--text)]">Tell us about your business</h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm">
-                  <span className="mb-1 block text-[color:var(--rg-text-muted)]">Company size</span>
+                  <span className="mb-1 block text-[var(--text-muted)]">Company size</span>
                   <select
-                    className="w-full rounded border border-[color:var(--rg-border)] bg-transparent px-2 py-2 text-sm"
+                    className="w-full rounded border border-[var(--border)] bg-transparent px-2 py-2 text-sm"
                     value={biz.companySize}
                     onChange={(e) => setBiz((b) => ({ ...b, companySize: e.target.value }))}
                   >
@@ -276,9 +276,9 @@ export function GuidedOnboardingWizard() {
                   </select>
                 </label>
                 <label className="text-sm">
-                  <span className="mb-1 block text-[color:var(--rg-text-muted)]">Industry</span>
+                  <span className="mb-1 block text-[var(--text-muted)]">Industry</span>
                   <select
-                    className="w-full rounded border border-[color:var(--rg-border)] bg-transparent px-2 py-2 text-sm"
+                    className="w-full rounded border border-[var(--border)] bg-transparent px-2 py-2 text-sm"
                     value={biz.industry}
                     onChange={(e) => setBiz((b) => ({ ...b, industry: e.target.value }))}
                   >
@@ -291,9 +291,9 @@ export function GuidedOnboardingWizard() {
                   </select>
                 </label>
                 <label className="text-sm sm:col-span-2">
-                  <span className="mb-1 block text-[color:var(--rg-text-muted)]">Primary goal</span>
+                  <span className="mb-1 block text-[var(--text-muted)]">Primary goal</span>
                   <select
-                    className="w-full rounded border border-[color:var(--rg-border)] bg-transparent px-2 py-2 text-sm"
+                    className="w-full rounded border border-[var(--border)] bg-transparent px-2 py-2 text-sm"
                     value={biz.primaryGoal}
                     onChange={(e) => setBiz((b) => ({ ...b, primaryGoal: e.target.value }))}
                   >
@@ -326,21 +326,21 @@ export function GuidedOnboardingWizard() {
         {step === "integrations" && (
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="text-xl font-semibold text-[color:var(--rg-text)]">Connect your systems</h2>
-              <p className="text-sm text-[color:var(--rg-text-muted)]">
+              <h2 className="text-xl font-semibold text-[var(--text)]">Connect your systems</h2>
+              <p className="text-sm text-[var(--text-muted)]">
                 Connect at least one CRM or payment system so Solvren can run a meaningful first scan.
               </p>
               <div className="grid gap-3 md:grid-cols-2">
                 {integrations.map((c) => (
-                  <div key={c.provider} className="rounded-lg border border-[color:var(--rg-border)] p-4">
+                  <div key={c.provider} className="rounded-lg border border-[var(--border)] p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium text-[color:var(--rg-text)]">{c.label}</p>
-                        <p className="text-xs text-[color:var(--rg-text-muted)]">{c.category}</p>
+                        <p className="font-medium text-[var(--text)]">{c.label}</p>
+                        <p className="text-xs text-[var(--text-muted)]">{c.category}</p>
                       </div>
-                      <span className="rounded-full bg-[color:var(--rg-border)] px-2 py-0.5 text-xs">{c.status}</span>
+                      <span className="rounded-full bg-[var(--border)] px-2 py-0.5 text-xs">{c.status}</span>
                     </div>
-                    <p className="mt-2 text-xs text-[color:var(--rg-text-muted)]">{c.valueSummary}</p>
+                    <p className="mt-2 text-xs text-[var(--text-muted)]">{c.valueSummary}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         size="sm"
@@ -394,7 +394,7 @@ export function GuidedOnboardingWizard() {
                 Continue
               </Button>
               {!crmOrPaymentOk && (
-                <p className="text-xs text-[color:var(--rg-text-muted)]">
+                <p className="text-xs text-[var(--text-muted)]">
                   Connect at least one CRM or payment system to continue.
                 </p>
               )}
@@ -405,8 +405,8 @@ export function GuidedOnboardingWizard() {
         {step === "use_cases" && (
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="text-xl font-semibold text-[color:var(--rg-text)]">Priority areas</h2>
-              <p className="text-sm text-[color:var(--rg-text-muted)]">
+              <h2 className="text-xl font-semibold text-[var(--text)]">Priority areas</h2>
+              <p className="text-sm text-[var(--text-muted)]">
                 Select 1–3 priority areas to focus your first scan. You can choose up to 5 if needed.
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -424,10 +424,10 @@ export function GuidedOnboardingWizard() {
                         });
                       }}
                       className={`rounded-lg border p-3 text-left text-sm transition ${
-                        on ? "border-[color:var(--rg-primary)] bg-[color:var(--rg-primary)]/10" : "border-[color:var(--rg-border)]"
+                        on ? "border-[var(--primary)] bg-[var(--primary)]/10" : "border-[var(--border)]"
                       }`}
                     >
-                      <span className="font-medium text-[color:var(--rg-text)]">{USE_CASE_LABELS[k] ?? k}</span>
+                      <span className="font-medium text-[var(--text)]">{USE_CASE_LABELS[k] ?? k}</span>
                     </button>
                   );
                 })}
@@ -448,8 +448,8 @@ export function GuidedOnboardingWizard() {
         {step === "baseline_scan" && (
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="text-xl font-semibold text-[color:var(--rg-text)]">Baseline scan</h2>
-              <p className="text-sm text-[color:var(--rg-text-muted)]">
+              <h2 className="text-xl font-semibold text-[var(--text)]">Baseline scan</h2>
+              <p className="text-sm text-[var(--text-muted)]">
                 We&apos;ll read your connected systems and estimate where revenue or reliability is most at risk.
               </p>
               {!scanId && (
@@ -468,12 +468,12 @@ export function GuidedOnboardingWizard() {
                 </Button>
               )}
               {scanId && (
-                <ul className="space-y-2 text-sm text-[color:var(--rg-text-muted)]">
+                <ul className="space-y-2 text-sm text-[var(--text-muted)]">
                   <li>Status: {scanStatus ?? "…"}</li>
                   <li>Connecting systems…</li>
                   <li>Detecting issues…</li>
                   {scanStatus === "FAILED" && (
-                    <li className="text-[color:var(--rg-danger)]">
+                    <li className="text-[var(--danger)]">
                       Scan failed.{" "}
                       <button
                         type="button"
@@ -497,26 +497,26 @@ export function GuidedOnboardingWizard() {
         {step === "results" && data.guided?.firstInsightSummary && (
           <Card>
             <CardBody className="space-y-4">
-              <h2 className="text-xl font-semibold text-[color:var(--rg-text)]">First insights</h2>
+              <h2 className="text-xl font-semibold text-[var(--text)]">First insights</h2>
               {data.guided.firstInsightSummary.sourceMode === "SIMULATED" && (
-                <p className="rounded-md border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] px-3 py-2 text-xs text-[color:var(--rg-text-muted)]">
+                <p className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-xs text-[var(--text-muted)]">
                   Preview estimate based on your selected systems and setup inputs.
                 </p>
               )}
-              <p className="text-3xl font-semibold text-[color:var(--rg-text)]">
+              <p className="text-3xl font-semibold text-[var(--text)]">
                 ${Number(data.guided.firstInsightSummary.estimatedRevenueAtRisk ?? 0).toLocaleString()}
               </p>
-              <p className="text-sm text-[color:var(--rg-text-muted)]">Estimated revenue at risk (directional)</p>
-              <p className="text-sm text-[color:var(--rg-text)]">
+              <p className="text-sm text-[var(--text-muted)]">Estimated revenue at risk (directional)</p>
+              <p className="text-sm text-[var(--text)]">
                 Issues flagged: {data.guided.firstInsightSummary.issueCount ?? "—"}
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {data.guided.firstInsightSummary.findings &&
                   Object.entries(data.guided.firstInsightSummary.findings).map(([k, v]) => (
-                    <div key={k} className="rounded border border-[color:var(--rg-border)] p-3 text-sm">
-                      <p className="font-medium text-[color:var(--rg-text)]">{USE_CASE_LABELS[k] ?? k}</p>
-                      <p className="text-[color:var(--rg-text-muted)]">Count: {v.count ?? "—"}</p>
-                      <p className="text-[color:var(--rg-text-muted)]">
+                    <div key={k} className="rounded border border-[var(--border)] p-3 text-sm">
+                      <p className="font-medium text-[var(--text)]">{USE_CASE_LABELS[k] ?? k}</p>
+                      <p className="text-[var(--text-muted)]">Count: {v.count ?? "—"}</p>
+                      <p className="text-[var(--text-muted)]">
                         Est. impact: ${Number(v.estimatedImpact ?? 0).toLocaleString()}
                       </p>
                     </div>

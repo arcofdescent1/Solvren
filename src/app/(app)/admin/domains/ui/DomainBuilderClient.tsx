@@ -169,12 +169,12 @@ export default function DomainBuilderClient() {
     });
   }
 
-  if (loading) return <div className="text-sm text-[color:var(--rg-muted)]">Loading…</div>;
+  if (loading) return <div className="text-sm text-[var(--text-muted)]">Loading…</div>;
 
   return (
     <div className="space-y-4">
       {err ? (
-        <div className="rounded-[var(--rg-radius)] border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-[var(--radius-lg)] border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {err}
         </div>
       ) : null}
@@ -201,7 +201,7 @@ export default function DomainBuilderClient() {
             ))}
           </NativeSelect>
 
-          <div className="text-sm text-[color:var(--rg-muted)]">
+          <div className="text-sm text-[var(--text-muted)]">
             {domainsMap.get(selectedDomain)?.name ?? ""} —{" "}
             {domainsMap.get(selectedDomain)?.description ?? ""}
           </div>
@@ -262,7 +262,7 @@ export default function DomainBuilderClient() {
       <Card>
         <CardHeader>
           <CardTitle>SLA Policies</CardTitle>
-          <div className="mt-1 text-sm text-[color:var(--rg-muted)]">
+          <div className="mt-1 text-sm text-[var(--text-muted)]">
             Per-domain SLA templates (orgs choose one per domain).
           </div>
         </CardHeader>
@@ -328,19 +328,19 @@ export default function DomainBuilderClient() {
         </div>
 
         <div className="mt-4">
-          <div className="overflow-auto rounded-[var(--rg-radius)] border border-[color:var(--rg-border-strong)] bg-[color:var(--rg-panel)]">
+          <div className="overflow-auto rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)]">
             <Table className="min-w-[850px] w-full text-sm">
-              <thead className="bg-[color:var(--rg-panel-2)]">
+              <thead className="bg-[var(--bg-surface-2)]">
                 <tr className="text-left">
-                  <th className="p-3 text-[12px] font-semibold text-[color:var(--rg-muted)]">Policy</th>
-                  <th className="p-3 text-[12px] font-semibold text-[color:var(--rg-muted)]">Due hours</th>
-                  <th className="p-3 text-[12px] font-semibold text-[color:var(--rg-muted)]">Due soon</th>
-                  <th className="p-3 text-[12px] font-semibold text-[color:var(--rg-muted)]">Escalation</th>
+                  <th className="p-3 text-[12px] font-semibold text-[var(--text-muted)]">Policy</th>
+                  <th className="p-3 text-[12px] font-semibold text-[var(--text-muted)]">Due hours</th>
+                  <th className="p-3 text-[12px] font-semibold text-[var(--text-muted)]">Due soon</th>
+                  <th className="p-3 text-[12px] font-semibold text-[var(--text-muted)]">Escalation</th>
                 </tr>
               </thead>
               <tbody>
                 {slaForDomain.map((p) => (
-                  <tr key={p.policy_key} className="border-t border-[color:var(--rg-border-strong)] hover:bg-[color:var(--rg-panel-2)] transition">
+                  <tr key={p.policy_key} className="border-t border-[var(--border)] hover:bg-[var(--bg-surface-2)] transition">
                     <td className="p-3 font-semibold">{p.policy_key}</td>
                     <td className="p-3">{p.due_hours}</td>
                     <td className="p-3">{p.due_soon_hours}</td>
@@ -349,7 +349,7 @@ export default function DomainBuilderClient() {
                 ))}
                 {!slaForDomain.length ? (
                   <tr>
-                    <td className="p-3 text-[color:var(--rg-muted)]" colSpan={4}>
+                    <td className="p-3 text-[var(--text-muted)]" colSpan={4}>
                       No SLA policies for this domain yet.
                     </td>
                   </tr>

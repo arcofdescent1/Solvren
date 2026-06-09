@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardBody } from "@/ui";
+import { Button, Card, CardBody, NativeSelect, Textarea } from "@/ui";
 
 type LifecycleEvent = {
   eventType: string;
@@ -24,13 +24,13 @@ type LifecycleData = {
 
 const STATE_LABELS: Record<string, string> = {
   DETECTED: "Detected",
-  IMPACT_ESTIMATED: "Impact Estimated",
-  ACTION_PLANNED: "Action Planned",
-  ACTION_EXECUTED: "Action Executed",
-  VERIFICATION_PENDING: "Verification Pending",
-  VERIFIED_SUCCESS: "Verified Success",
-  VERIFIED_FAILURE: "Verified Failure",
-  NO_ACTION_TAKEN: "No Action Taken",
+  IMPACT_ESTIMATED: "Impact estimated",
+  ACTION_PLANNED: "Action planned",
+  ACTION_EXECUTED: "Action taken",
+  VERIFICATION_PENDING: "Checking result",
+  VERIFIED_SUCCESS: "Solved",
+  VERIFIED_FAILURE: "Still needs work",
+  NO_ACTION_TAKEN: "No action taken",
   CLOSED: "Closed",
 };
 
@@ -90,7 +90,7 @@ export function IssueLifecyclePanel({
         expectedLifecycleVersion: data.lifecycleVersion,
         terminalClassification: {
           classificationType: closePayload.classificationType,
-          outcomeSummary: closePayload.outcomeSummary || "Issue closed",
+          outcomeSummary: closePayload.outcomeSummary || "Problem closed",
           outcomePayload: {},
         },
       }),
@@ -123,7 +123,7 @@ export function IssueLifecyclePanel({
     const json = await res.json();
     setSubmitting(false);
     if (!res.ok) {
-      setError(json.error || "Failed to record no-action");
+      setError(json.error || "Failed to record no action");
       return;
     }
     setNoActionModal(false);
@@ -158,8 +158,8 @@ export function IssueLifecyclePanel({
     return (
       <Card>
         <CardBody>
-          <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Lifecycle</h3>
-          <p className="text-sm text-[var(--text-muted)]">Loading…</p>
+          <h3 className="mb-2 text-sm font-medium text-[var(--text-muted)]">Problem status</h3>
+          <p className="text-sm text-[var(--text-muted)]">Loading...</p>
         </CardBody>
       </Card>
     );
@@ -169,8 +169,8 @@ export function IssueLifecyclePanel({
     return (
       <Card>
         <CardBody>
-          <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Lifecycle</h3>
-          <p className="text-sm text-[var(--text-muted)]">Could not load lifecycle data.</p>
+          <h3 className="mb-2 text-sm font-medium text-[var(--text-muted)]">Problem status</h3>
+          <p className="text-sm text-[var(--text-muted)]">Could not load status data.</p>
         </CardBody>
       </Card>
     );
@@ -178,150 +178,168 @@ export function IssueLifecyclePanel({
 
   return (
     <Card>
-      <CardBody>
-        <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Lifecycle</h3>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="rounded bg-[var(--primary-muted)] px-2 py-0.5 text-sm font-medium text-[var(--primary)]">
-            {STATE_LABELS[data.currentState] ?? data.currentState}
-          </span>
-          {data.reopenCount > 0 && (
-            <span className="text-xs text-[var(--text-muted)]">Reopened {data.reopenCount}x</span>
-          )}
+      <CardBody className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Problem status</p>
+          <h3 className="mt-1 text-lg font-semibold text-[var(--text)]">Where this stands now</h3>
         </div>
 
-        {missingRequirements.length > 0 && (
-          <div className="mb-3 p-2 rounded bg-amber-500/10 border border-amber-500/30">
-            <p className="text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">Missing requirements</p>
-            <ul className="text-xs text-[var(--text-muted)] list-disc list-inside">
-              {missingRequirements.map((m, i) => (
-                <li key={i}>{m}</li>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-[var(--radius-md)] bg-[var(--primary-muted)] px-2.5 py-1 text-sm font-semibold text-[var(--primary)]">
+            {STATE_LABELS[data.currentState] ?? data.currentState}
+          </span>
+          {data.reopenCount > 0 ? (
+            <span className="text-xs text-[var(--text-muted)]">Reopened {data.reopenCount}x</span>
+          ) : null}
+        </div>
+
+        {missingRequirements.length > 0 ? (
+          <div className="rounded-[var(--radius-lg)] border border-amber-500/30 bg-amber-500/10 p-3">
+            <p className="mb-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+              Needed before this can be closed
+            </p>
+            <ul className="list-inside list-disc text-xs text-[var(--text-muted)]">
+              {missingRequirements.map((requirement) => (
+                <li key={requirement}>{requirement}</li>
               ))}
             </ul>
           </div>
-        )}
+        ) : null}
 
-        {error && (
-          <p className="text-sm text-red-600 dark:text-red-400 mb-2">{error}</p>
-        )}
+        {error ? (
+          <p className="rounded-[var(--radius-md)] border border-[var(--danger)]/30 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">
+            {error}
+          </p>
+        ) : null}
 
-        <div className="flex flex-wrap gap-2 mb-4">
-          {canClose && (
-            <button
-              onClick={() => setCloseModal(true)}
-              className="text-sm px-3 py-1.5 rounded bg-[var(--success)] text-white hover:opacity-90"
-            >
-              Close issue
-            </button>
-          )}
-          {canNoAction && (
-            <button
-              onClick={() => setNoActionModal(true)}
-              className="text-sm px-3 py-1.5 rounded border border-[var(--border)] hover:bg-[var(--bg-muted)]"
-            >
+        <div className="flex flex-wrap gap-2">
+          {canClose ? (
+            <Button onClick={() => setCloseModal(true)} className="bg-[var(--success)] hover:brightness-95">
+              Close problem
+            </Button>
+          ) : null}
+          {canNoAction ? (
+            <Button variant="secondary" onClick={() => setNoActionModal(true)}>
               No action
-            </button>
-          )}
-          {canReopen && (
-            <button
-              onClick={handleReopen}
-              disabled={submitting}
-              className="text-sm px-3 py-1.5 rounded border border-[var(--border)] hover:bg-[var(--bg-muted)] disabled:opacity-50"
-            >
-              {submitting ? "Reopening…" : "Reopen"}
-            </button>
-          )}
+            </Button>
+          ) : null}
+          {canReopen ? (
+            <Button variant="secondary" onClick={handleReopen} disabled={submitting}>
+              {submitting ? "Reopening..." : "Reopen"}
+            </Button>
+          ) : null}
         </div>
 
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-[var(--text-muted)]">Event timeline</p>
-          {(data.events ?? []).slice(0, 10).map((e, i) => (
-            <div key={i} className="flex items-start gap-2 text-xs">
-              <span className="text-[var(--text-muted)] shrink-0">
-                {new Date(e.createdAt).toLocaleString()}
-              </span>
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Recent activity</p>
+          {(data.events ?? []).slice(0, 10).map((event, index) => (
+            <div
+              key={`${event.createdAt}-${index}`}
+              className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] px-3 py-2 text-xs"
+            >
+              <span className="shrink-0 text-[var(--text-muted)]">{new Date(event.createdAt).toLocaleString()}</span>
               <span>
-                {e.eventType.replace(/_/g, " ")}
-                {e.toState && (
-                  <span className="text-[var(--text-muted)]">
-                    {" → "}{STATE_LABELS[e.toState] ?? e.toState}
-                  </span>
-                )}
-                <span className="text-[var(--text-muted)]"> ({e.actorType})</span>
+                {event.eventType.replace(/_/g, " ")}
+                {event.toState ? (
+                  <span className="text-[var(--text-muted)]"> {" -> "}{STATE_LABELS[event.toState] ?? event.toState}</span>
+                ) : null}
+                <span className="text-[var(--text-muted)]"> ({event.actorType})</span>
               </span>
             </div>
           ))}
         </div>
 
-        {closeModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => !submitting && setCloseModal(false)}>
-            <div className="bg-[var(--bg)] rounded-lg shadow-xl p-4 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-              <h4 className="font-medium mb-3">Close issue</h4>
-              <div className="space-y-2 mb-4">
+        {closeModal ? (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={() => !submitting && setCloseModal(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-lg)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h4 className="mb-3 text-lg font-semibold">Close problem</h4>
+              <div className="mb-4 space-y-2">
                 <label className="block text-sm text-[var(--text-muted)]">Classification</label>
-                <select
+                <NativeSelect
                   value={closePayload.classificationType}
-                  onChange={(e) => setClosePayload((p) => ({ ...p, classificationType: e.target.value as typeof p.classificationType }))}
-                  className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-sm"
+                  onChange={(event) =>
+                    setClosePayload((payload) => ({
+                      ...payload,
+                      classificationType: event.target.value as typeof payload.classificationType,
+                    }))
+                  }
+                  className="w-full"
                 >
-                  <option value="resolved_success">Resolved success</option>
-                  <option value="resolved_failure">Resolved failure</option>
-                  <option value="no_action_closed">No action closed</option>
-                </select>
+                  <option value="resolved_success">Solved</option>
+                  <option value="resolved_failure">Still needs work</option>
+                  <option value="no_action_closed">No action needed</option>
+                </NativeSelect>
                 <label className="block text-sm text-[var(--text-muted)]">Outcome summary</label>
-                <textarea
+                <Textarea
                   value={closePayload.outcomeSummary}
-                  onChange={(e) => setClosePayload((p) => ({ ...p, outcomeSummary: e.target.value }))}
-                  placeholder="Brief summary of the outcome"
-                  className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-sm min-h-[60px]"
+                  onChange={(event) => setClosePayload((payload) => ({ ...payload, outcomeSummary: event.target.value }))}
+                  placeholder="Brief summary of what happened"
+                  className="min-h-[80px]"
                 />
               </div>
-              <div className="flex gap-2 justify-end">
-                <button onClick={() => !submitting && setCloseModal(false)} className="px-3 py-1.5 rounded border border-[var(--border)] text-sm">Cancel</button>
-                <button onClick={handleClose} disabled={submitting} className="px-3 py-1.5 rounded bg-[var(--success)] text-white text-sm disabled:opacity-50">
-                  {submitting ? "Closing…" : "Close"}
-                </button>
+              <div className="flex justify-end gap-2">
+                <Button variant="secondary" onClick={() => !submitting && setCloseModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleClose} disabled={submitting} className="bg-[var(--success)] hover:brightness-95">
+                  {submitting ? "Closing..." : "Close"}
+                </Button>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {noActionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => !submitting && setNoActionModal(false)}>
-            <div className="bg-[var(--bg)] rounded-lg shadow-xl p-4 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-              <h4 className="font-medium mb-3">Record no action</h4>
-              <div className="space-y-2 mb-4">
+        {noActionModal ? (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={() => !submitting && setNoActionModal(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-lg)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h4 className="mb-3 text-lg font-semibold">Record no action</h4>
+              <div className="mb-4 space-y-2">
                 <label className="block text-sm text-[var(--text-muted)]">Reason</label>
-                <select
+                <NativeSelect
                   value={noActionPayload.reason}
-                  onChange={(e) => setNoActionPayload((p) => ({ ...p, reason: e.target.value }))}
-                  className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-sm"
+                  onChange={(event) => setNoActionPayload((payload) => ({ ...payload, reason: event.target.value }))}
+                  className="w-full"
                 >
                   <option value="false_positive">False positive</option>
-                  <option value="duplicate_of_existing_issue">Duplicate of existing issue</option>
+                  <option value="duplicate_of_existing_issue">Duplicate of existing problem</option>
                   <option value="accepted_business_risk">Accepted business risk</option>
-                  <option value="insufficient_permissions">Insufficient permissions</option>
-                  <option value="external_blocker_unresolvable">External blocker unresolvable</option>
+                  <option value="insufficient_permissions">Missing access</option>
+                  <option value="external_blocker_unresolvable">External blocker</option>
                   <option value="customer_declined_action">Customer declined action</option>
                   <option value="informational_only">Informational only</option>
-                  <option value="test_or_demo_artifact">Test or demo artifact</option>
-                </select>
+                  <option value="test_or_demo_artifact">Test or demo data</option>
+                </NativeSelect>
                 <label className="block text-sm text-[var(--text-muted)]">Notes</label>
-                <textarea
+                <Textarea
                   value={noActionPayload.notes}
-                  onChange={(e) => setNoActionPayload((p) => ({ ...p, notes: e.target.value }))}
+                  onChange={(event) => setNoActionPayload((payload) => ({ ...payload, notes: event.target.value }))}
                   placeholder="Optional notes"
-                  className="w-full rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-sm min-h-[60px]"
+                  className="min-h-[80px]"
                 />
               </div>
-              <div className="flex gap-2 justify-end">
-                <button onClick={() => !submitting && setNoActionModal(false)} className="px-3 py-1.5 rounded border border-[var(--border)] text-sm">Cancel</button>
-                <button onClick={handleNoAction} disabled={submitting} className="px-3 py-1.5 rounded bg-[var(--primary)] text-white text-sm disabled:opacity-50">
-                  {submitting ? "Submitting…" : "Submit"}
-                </button>
+              <div className="flex justify-end gap-2">
+                <Button variant="secondary" onClick={() => !submitting && setNoActionModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleNoAction} disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit"}
+                </Button>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </CardBody>
     </Card>
   );

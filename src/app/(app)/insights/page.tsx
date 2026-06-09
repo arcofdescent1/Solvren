@@ -1,21 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  ArrowRight,
+  BadgeCheck,
+  Banknote,
+  Clock3,
+  FileText,
+  ShieldCheck,
+  Siren,
+  TrendingDown,
+} from "lucide-react";
+import {
+  Badge,
+  Button,
   Card,
   CardBody,
   EmptyState,
   Grid,
+  PageActionBar,
   PageHeaderV2,
   SectionHeader,
   Stack,
 } from "@/ui";
-import { PageHelpDrawer, MetricHelpTooltip } from "@/components/help";
 import { trackAppEvent } from "@/lib/appAnalytics";
 import type { RoiSummaryResponse } from "@/features/roi/types";
 import { REVENUE_PROTECTION_PLAYBOOKS } from "@/lib/product/revenueProtectionPlaybooks";
+import { PRODUCT_TERMS } from "@/config/productLanguage";
 
 type RevenueSummary = {
   revenueAtRisk30d?: number;
@@ -26,7 +39,6 @@ type RevenueSummary = {
 };
 
 type ImpactSummary = {
-  orgId?: string;
   totalRevenueAtRisk?: number;
   openIssueCount?: number;
   impactedIssueCount?: number;
@@ -35,12 +47,6 @@ type ImpactSummary = {
 
 type ExecutiveSummary = {
   topDrivers?: Array<{ signalKey: string; count: number }>;
-  byRevenueSurface?: Array<{
-    surface: string;
-    critical: number;
-    high: number;
-    mrrAffected: number;
-  }>;
 };
 
 type BySystemResponse = {
@@ -55,40 +61,82 @@ type PendingTasksResponse = {
   tasks?: Array<{ id: string; status?: string }>;
 };
 
-function toNumber(v: unknown): number {
-  const n = typeof v === "number" ? v : Number(v);
+function toNumber(value: unknown): number {
+  const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) ? n : 0;
 }
 
-function formatMoney(n: number) {
+function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(n);
+  }).format(value);
 }
 
 function driverBucket(label: string) {
-  const l = label.toLowerCase();
-  if (l.includes("billing")) return "Billing";
-  if (l.includes("checkout")) return "Checkout";
-  if (l.includes("renew")) return "Subscription / renewals";
-  if (l.includes("price") || l.includes("promo")) return "Pricing / promotions";
-  if (l.includes("entitle") || l.includes("access")) return "Entitlements / access";
-  if (l.includes("integrat")) return "Integrations";
-  if (l.includes("approval") || l.includes("review")) return "Review / approval gaps";
-  return "Monitoring / coverage gaps";
+  const value = label.toLowerCase();
+  if (value.includes("billing")) return "Billing";
+  if (value.includes("checkout")) return "Checkout";
+  if (value.includes("renew")) return "Renewals";
+  if (value.includes("price") || value.includes("promo")) return "Pricing";
+  if (value.includes("entitle") || value.includes("access")) return "Access";
+  if (value.includes("integrat")) return "Integrations";
+  if (value.includes("approval") || value.includes("review")) return "Decision delays";
+  return "Coverage gaps";
 }
 
 function coverageBucket(systemKey: string) {
-  const k = systemKey.toLowerCase();
-  if (k.includes("billing")) return "Billing";
-  if (k.includes("checkout")) return "Checkout";
-  if (k.includes("subscription") || k.includes("renew")) return "Subscription / renewals";
-  if (k.includes("pricing") || k.includes("promo")) return "Pricing / promotions";
-  if (k.includes("approval") || k.includes("review")) return "Review / approval gaps";
-  if (k.includes("integration")) return "Integrations";
-  return "Monitoring / coverage gaps";
+  const value = systemKey.toLowerCase();
+  if (value.includes("billing")) return "Billing";
+  if (value.includes("checkout")) return "Checkout";
+  if (value.includes("subscription") || value.includes("renew")) return "Renewals";
+  if (value.includes("pricing") || value.includes("promo")) return "Pricing";
+  if (value.includes("approval") || value.includes("review")) return "Decision delays";
+  if (value.includes("integration")) return "Integrations";
+  return "Coverage gaps";
+}
+
+function confidenceText(value?: string) {
+  return (value ?? "estimated").replaceAll("_", " ");
+}
+
+function ProofMetric({
+  label,
+  value,
+  helper,
+  icon: Icon,
+  tone = "primary",
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  icon: typeof ShieldCheck;
+  tone?: "primary" | "success" | "warning";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "bg-[var(--success)]/10 text-[var(--success)]"
+      : tone === "warning"
+        ? "bg-[var(--warning)]/15 text-[var(--warning)]"
+        : "bg-[var(--primary)]/10 text-[var(--primary)]";
+
+  return (
+    <Card className="h-full shadow-sm">
+      <CardBody>
+        <Stack gap={3}>
+          <div className={`flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] ${toneClass}`}>
+            <Icon className="h-5 w-5" aria-hidden />
+          </div>
+          <div>
+            <p className="text-sm text-[var(--text-muted)]">{label}</p>
+            <p className="mt-1 text-2xl font-semibold text-[var(--text)]">{value}</p>
+          </div>
+          <p className="text-sm leading-6 text-[var(--text-muted)]">{helper}</p>
+        </Stack>
+      </CardBody>
+    </Card>
+  );
 }
 
 export default function InsightsLandingPage() {
@@ -142,54 +190,63 @@ export default function InsightsLandingPage() {
   }, [range]);
 
   useEffect(() => {
-    trackAppEvent("roi_section_view", { page: "insights", range });
+    trackAppEvent("proof_page_view", { page: "proof", range });
   }, [range]);
 
   const issueExposure = Math.max(0, toNumber(impact?.totalRevenueAtRisk));
   const changeExposure = Math.max(0, toNumber(revenue?.revenueAtRisk30d));
-  const coverageGapBase = (bySystem?.bySystem ?? [])
-    .filter((s) => s.systemKey === "unknown")
-    .reduce((acc, s) => acc + toNumber(s.revenueAtRisk), 0);
-  const systemGapExposure = Math.max(0, coverageGapBase);
+  const systemGapExposure = Math.max(
+    0,
+    (bySystem?.bySystem ?? [])
+      .filter((system) => system.systemKey === "unknown")
+      .reduce((acc, system) => acc + toNumber(system.revenueAtRisk), 0)
+  );
   const exposure = issueExposure + changeExposure + systemGapExposure;
+  const roiData = roi && roi.ok ? roi : null;
 
   const trend = revenue?.trend ?? [];
-  const trendSlice = range === "7d" ? trend.slice(-7) : trend.slice(-30);
+  const trendSlice = range === "7d" ? trend.slice(-7) : range === "90d" ? trend.slice(-90) : trend.slice(-30);
   const prev = trendSlice.length > 1 ? toNumber(trendSlice[0]?.revenueAtRisk) : 0;
   const latest = trendSlice.length > 0 ? toNumber(trendSlice[trendSlice.length - 1]?.revenueAtRisk) : 0;
   const changePct = prev > 0 ? ((latest - prev) / prev) * 100 : 0;
-  const direction = changePct > 5 ? "Increasing" : changePct < -5 ? "Decreasing" : "Stable";
+  const trendLabel = changePct < -5 ? "Risk is decreasing" : changePct > 5 ? "Risk is increasing" : "Risk is stable";
+
+  const protectedRevenue = roiData?.metrics.prevented.displayValue ?? formatMoney(Math.max(0, exposure - latest));
+  const risksPrevented = roiData?.metrics.prevented.displayValue ?? "0";
+  const decisionsAccelerated = roiData?.metrics.governed.displayValue ?? `${(revenue?.criticalPending ?? []).length}`;
+  const incidentsAvoided = roiData?.metrics.resolved.displayValue ?? `${Math.max(0, toNumber(impact?.impactedIssueCount))}`;
+  const pendingExecution = (pendingTasks?.tasks ?? []).length;
 
   const driverRows = useMemo(() => {
     const contribution = new Map<string, number>();
 
-    for (const s of revenue?.topSurfaces ?? []) {
-      const label = driverBucket(s.surface);
-      contribution.set(label, (contribution.get(label) ?? 0) + toNumber(s.revenueAtRisk));
+    for (const surface of revenue?.topSurfaces ?? []) {
+      const label = driverBucket(surface.surface);
+      contribution.set(label, (contribution.get(label) ?? 0) + toNumber(surface.revenueAtRisk));
     }
 
-    for (const s of bySystem?.bySystem ?? []) {
-      const label = coverageBucket(s.systemKey);
-      contribution.set(label, (contribution.get(label) ?? 0) + toNumber(s.revenueAtRisk));
+    for (const system of bySystem?.bySystem ?? []) {
+      const label = coverageBucket(system.systemKey);
+      contribution.set(label, (contribution.get(label) ?? 0) + toNumber(system.revenueAtRisk));
     }
 
     const countByBucket = new Map<string, number>();
-    for (const d of executive?.topDrivers ?? []) {
-      const label = driverBucket(d.signalKey);
-      countByBucket.set(label, (countByBucket.get(label) ?? 0) + toNumber(d.count));
+    for (const driver of executive?.topDrivers ?? []) {
+      const label = driverBucket(driver.signalKey);
+      countByBucket.set(label, (countByBucket.get(label) ?? 0) + toNumber(driver.count));
     }
 
     return Array.from(contribution.entries())
       .map(([label, value]) => ({
         label,
         contribution: Math.max(0, Math.round(value)),
-        trend: (countByBucket.get(label) ?? 0) >= 2 ? "up" : "stable",
+        status: (countByBucket.get(label) ?? 0) >= 2 ? "Needs attention" : "Stable",
         href:
-          label === "Review / approval gaps"
+          label === "Decision delays"
             ? "/settings/policies"
-            : label === "Integrations" || label === "Monitoring / coverage gaps"
+            : label === "Integrations" || label === "Coverage gaps"
               ? "/integrations"
-              : label === "Checkout" || label === "Billing" || label === "Pricing / promotions"
+              : label === "Checkout" || label === "Billing" || label === "Pricing"
                 ? "/changes?view=all&impact=high"
                 : "/issues?severity=high",
       }))
@@ -199,317 +256,314 @@ export default function InsightsLandingPage() {
 
   const coveredSystems = Math.max(
     0,
-    (bySystem?.bySystem ?? []).filter((s) => s.systemKey !== "unknown" && s.issueCount > 0).length
+    (bySystem?.bySystem ?? []).filter((system) => system.systemKey !== "unknown" && system.issueCount > 0).length
   );
-  const uncoveredSystems = Math.max(
-    0,
-    (bySystem?.bySystem ?? []).filter((s) => s.systemKey === "unknown").length
-  );
-  const partialSystems = Math.max(0, Math.min(coveredSystems, Math.round(coveredSystems * 0.25)));
-
-  const resolvedIssues = Math.max(
-    0,
-    toNumber(impact?.openIssueCount) - toNumber(impact?.impactedIssueCount)
-  );
-  const reviewedChanges = (revenue?.criticalPending ?? []).length;
-  const pendingExecution = (pendingTasks?.tasks ?? []).length;
-  const overdueReduction = Math.max(0, 6 - (revenue?.overdue ?? []).length);
+  const uncoveredSystems = Math.max(0, (bySystem?.bySystem ?? []).filter((system) => system.systemKey === "unknown").length);
 
   return (
-    <Stack gap={6}>
+    <Stack gap={8}>
       <PageHeaderV2
-        breadcrumbs={[{ label: "Insights" }]}
-        title="Insights"
-        description="Understand revenue exposure, exposure drivers, trends, and the impact of actions across your systems."
-        helper="Use this page to understand where your business is at risk and how it is changing over time."
-        helpTrigger={<PageHelpDrawer page="insights" />}
+        breadcrumbs={[{ label: PRODUCT_TERMS.proof.title }]}
+        title={PRODUCT_TERMS.proof.title}
+        description="Board-ready proof of the revenue Solvren protected, the risks it prevented, and the decisions it helped move faster."
+        helper="Use this page to answer: what value did Solvren protect, where did it help, and where should leaders act next?"
       />
 
-      <Card className="border-[var(--primary)]/20 shadow-sm">
-        <CardBody>
-          <SectionHeader
-            title="Revenue protection loop"
-            helper="The operating model Solvren runs for every revenue-impacting change and detected risk."
-            action={
-              <Link href="/actions" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-                Open Work Queue
+      <PageActionBar
+        ariaLabel="Proof sections"
+        items={[
+          { label: "Value", href: "#value" },
+          { label: "Stories", href: "#stories" },
+          { label: "Packets", href: "#packets" },
+          { label: "Drivers", href: "#drivers" },
+          { label: "Coverage", href: "#coverage" },
+        ]}
+        actions={
+          <>
+            <Button asChild size="md">
+              <Link href="/insights/roi">
+                Open full proof view
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
-            }
-          />
-          <div className="mt-3 grid gap-3 md:grid-cols-5">
-            {[
-              ["Detect", "Find risky changes, failing revenue workflows, and coverage gaps."],
-              ["Quantify", "Translate technical activity into dollars, customers, urgency, and confidence."],
-              ["Route", "Send the right decision to the right owner with the evidence attached."],
-              ["Act", "Approve, defer, request evidence, assign, retry, or remediate from one queue."],
-              ["Prove", "Verify outcomes and build the board-ready revenue-protected story."],
-            ].map(([title, body], index) => (
-              <div key={title} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">{index + 1}</p>
-                <p className="mt-1 font-semibold">{title}</p>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">{body}</p>
-              </div>
-            ))}
-          </div>
-        </CardBody>
-      </Card>
+            </Button>
+            <Button asChild variant="secondary" size="md">
+              <Link href="/outcomes/value-stories">Value stories</Link>
+            </Button>
+          </>
+        }
+      />
 
-      <Card className="shadow-sm">
-        <CardBody>
-          <SectionHeader
-            title="Current exposure"
-            helper={
-              loading
-                ? "Loading latest exposure..."
-                : `As of ${impact?.asOf ? new Date(impact.asOf).toLocaleString() : "now"}`
-            }
-          />
-          {loading ? (
-            <p className="text-sm text-[var(--text-muted)]">Loading...</p>
-          ) : exposure <= 0 ? (
-            <EmptyState
-              variant="still_building"
-              title="Exposure data is still building"
-              body="As Solvren monitors more systems and changes, this view will become more accurate."
+      <section id="value" className="scroll-mt-28 rounded-[var(--radius-xl)] border border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_8%,var(--bg-surface)),var(--bg-surface)_52%,color-mix(in_oklab,var(--success)_7%,var(--bg-surface)))] p-5 shadow-sm sm:p-7">
+        <Stack gap={6}>
+          <div className="max-w-4xl">
+            <Badge variant="outline">{loading ? "Building proof" : `Updated ${impact?.asOf ? new Date(impact.asOf).toLocaleDateString() : "today"}`}</Badge>
+            <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight text-[var(--text)]">
+              Solvren turns risk work into a credible value story.
+            </h2>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-[var(--text-muted)]">
+              Leaders get the answer without decoding logs: what was at risk, what action happened, what value was protected, and what proof backs it up.
+            </p>
+          </div>
+
+          <Grid cols={1} gap={3} className="md:grid-cols-2 xl:grid-cols-4">
+            <ProofMetric
+              icon={Banknote}
+              tone="success"
+              label="Revenue protected"
+              value={protectedRevenue}
+              helper={roiData?.metrics.prevented.valueStatement ?? "Estimated protected value based on prevented or resolved exposure."}
             />
-          ) : (
-            <div className="space-y-2">
-              <p className="text-3xl font-bold">{`~${formatMoney(exposure)} estimated`}</p>
-              <p className="text-sm">
-                {direction} over the past {range === "7d" ? "7 days" : "30 days"}
-              </p>
-              <p className="text-sm text-[var(--text-muted)]">
-                Based on direct issue and change exposure, plus unresolved unknown-system risk.
-              </p>
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      <Grid cols={3} gap={4}>
-        <Card>
-          <CardBody>
-            <p className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)]">
-              Issues contribution{" "}
-              <MetricHelpTooltip metricKey="linked_to_issues" page="insights" section="breakdown" />
-            </p>
-            <p className="text-xl font-semibold">{formatMoney(issueExposure)}</p>
-            <p className="text-xs text-[var(--text-muted)]">{impact?.openIssueCount ?? 0} open issues</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)]">
-              Changes contribution{" "}
-              <MetricHelpTooltip metricKey="high_impact" page="insights" section="breakdown" />
-            </p>
-            <p className="text-xl font-semibold">{formatMoney(changeExposure)}</p>
-            <p className="text-xs text-[var(--text-muted)]">
-              {(revenue?.criticalPending ?? []).length} high-impact in flight
-            </p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <p className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)]">
-              System gaps contribution{" "}
-              <MetricHelpTooltip metricKey="detection_coverage" page="insights" section="breakdown" />
-            </p>
-            <p className="text-xl font-semibold">{formatMoney(systemGapExposure)}</p>
-            <p className="text-xs text-[var(--text-muted)]">Unknown-system and coverage gaps</p>
-          </CardBody>
-        </Card>
-      </Grid>
-
-      <Card>
-        <CardBody>
-          <SectionHeader
-            title="Exposure trend"
-            helper="Shows how estimated exposure is changing over time based on active issues and changes."
-            action={
-              <div className="flex gap-2 text-sm">
-                <Link
-                  href="/insights?range=7d"
-                  className={range === "7d" ? "font-semibold text-[var(--primary)]" : "text-[var(--text-muted)]"}
-                >
-                  7d
-                </Link>
-                <Link
-                  href="/insights?range=30d"
-                  className={range === "30d" ? "font-semibold text-[var(--primary)]" : "text-[var(--text-muted)]"}
-                >
-                  30d
-                </Link>
-                <Link
-                  href="/insights?range=90d"
-                  className={range === "90d" ? "font-semibold text-[var(--primary)]" : "text-[var(--text-muted)]"}
-                >
-                  90d
-                </Link>
-              </div>
-            }
-          />
-          <div className="mt-3 space-y-2">
-            {trendSlice.map((r) => (
-              <div key={r.day} className="flex items-center gap-3">
-                <div className="w-24 text-xs text-[var(--text-muted)]">{r.day}</div>
-                <div className="h-2 flex-1 rounded-full bg-[var(--bg-surface-2)]">
-                  <div
-                    className="h-2 rounded-full bg-[var(--primary)]"
-                    style={{
-                      width: `${Math.max(3, Math.round((toNumber(r.revenueAtRisk) / (latest || 1)) * 100))}%`,
-                    }}
-                  />
-                </div>
-                <div className="w-28 text-right text-xs font-semibold">{formatMoney(toNumber(r.revenueAtRisk))}</div>
-              </div>
-            ))}
-          </div>
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardBody>
-          <SectionHeader
-            title="Impact and outcomes"
-            helper="How Solvren is helping reduce risk and improve outcomes over time."
-            action={
-              <Link
-                href={`/insights/roi?range=${range}`}
-                className="text-sm font-semibold text-[var(--primary)] hover:underline"
-              >
-                Open full ROI view
-              </Link>
-            }
-          />
-          <Grid cols={4} gap={3}>
-            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Potential issues prevented</p>
-                <p className="text-xl font-semibold">{roi?.metrics?.prevented?.displayValue ?? "0"}</p>
-                <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.prevented?.confidence ?? "estimated").replaceAll("_", " ")}</p>
-            </div>
-            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Issues resolved</p>
-                <p className="text-xl font-semibold">{roi?.metrics?.resolved?.displayValue ?? "0"}</p>
-                <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.resolved?.confidence ?? "observed").replaceAll("_", " ")}</p>
-            </div>
-            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">High-risk changes reviewed</p>
-                <p className="text-xl font-semibold">{roi?.metrics?.governed?.displayValue ?? "0 (0%)"}</p>
-                <p className="text-xs text-[var(--text-muted)]">{(roi?.metrics?.governed?.confidence ?? "observed").replaceAll("_", " ")}</p>
-            </div>
-            <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
-                <p className="text-xs text-[var(--text-muted)]">Risk trend improvement</p>
-                <p className="text-xl font-semibold capitalize">{(roi?.impactSummary?.trend ?? "stable").replaceAll("_", " ")}</p>
-                <p className="text-xs text-[var(--text-muted)]">{roi?.metrics?.trend?.displayValue ?? "0%"} estimated</p>
-            </div>
+            <ProofMetric
+              icon={ShieldCheck}
+              label="Risks prevented"
+              value={risksPrevented}
+              helper={confidenceText(roiData?.metrics.prevented.confidence)}
+            />
+            <ProofMetric
+              icon={Clock3}
+              tone="warning"
+              label="Decisions accelerated"
+              value={decisionsAccelerated}
+              helper={roiData?.metrics.governed.valueStatement ?? "High-impact decisions reviewed before drift becomes loss."}
+            />
+            <ProofMetric
+              icon={Siren}
+              label="Incidents avoided"
+              value={incidentsAvoided}
+              helper={roiData?.metrics.resolved.valueStatement ?? "Issues resolved or prevented before business impact expanded."}
+            />
           </Grid>
-          {!roi || !roi.ok ? (
-            <p className="mt-3 text-xs text-[var(--text-muted)]">
-              Impact data is building. As Solvren monitors more activity, this view will show how risk and outcomes are improving over time.
-            </p>
-          ) : null}
-        </CardBody>
-      </Card>
 
-      <Card>
-        <CardBody>
-          <SectionHeader
-            title="Top exposure drivers"
-            helper="What is actually causing exposure right now."
-            action={
-              <Link href="/insights/risk-drivers" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-                Open exposure drivers
+          <Stack direction="row" gap={2} className="flex-wrap">
+            <Button asChild>
+              <Link href="/insights/roi">
+                Review proof details
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
-            }
-          />
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
-            {driverRows.map((d) => (
-              <Link key={d.label + d.href} href={d.href} className="rounded-md border p-3 hover:bg-[var(--table-row-hover)]">
-                <p className="text-sm font-semibold">{d.label}</p>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {formatMoney(d.contribution)} contribution - trend {d.trend}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </CardBody>
-      </Card>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/outcomes/value-stories">Open value stories</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/changes?view=all">Find decision packets</Link>
+            </Button>
+          </Stack>
+        </Stack>
+      </section>
 
-      <Grid cols={2} gap={4}>
-        <Card>
-          <CardBody>
-            <SectionHeader title="What is being done" helper="How response is progressing against active risk." />
-            <ul className="mt-2 space-y-1 text-sm">
-              <li>{impact?.impactedIssueCount ?? 0} issues actively worked</li>
-              <li>{(revenue?.criticalPending ?? []).length} high-impact changes under review</li>
-              <li>{pendingExecution} non-terminal execution tasks in progress</li>
-              <li>{(revenue?.overdue ?? []).length} overdue follow-ups</li>
-            </ul>
-            <Link href="/actions" className="mt-3 inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
-              Open Work Queue
-            </Link>
-          </CardBody>
-        </Card>
-        <Card>
+      <Grid cols={1} gap={4} className="xl:grid-cols-[1.05fr_0.95fr]">
+        <Card className="shadow-sm">
           <CardBody>
             <SectionHeader
-              title="Coverage and gaps"
-              helper="Where Solvren has meaningful protection vs where coverage is incomplete."
+              title="Current risk picture"
+              helper="The exposure Solvren is still watching, so leaders know what remains at stake."
+              action={
+                <div className="flex gap-2 text-sm">
+                  {(["7d", "30d", "90d"] as const).map((value) => (
+                    <Link
+                      key={value}
+                      href={`/insights?range=${value}`}
+                      className={range === value ? "font-semibold text-[var(--primary)]" : "text-[var(--text-muted)]"}
+                    >
+                      {value}
+                    </Link>
+                  ))}
+                </div>
+              }
             />
-            <ul className="mt-2 space-y-1 text-sm">
-              <li>Covered systems: {coveredSystems}</li>
-              <li>Partially covered systems: {partialSystems}</li>
-              <li>Not covered systems: {uncoveredSystems}</li>
-            </ul>
-            <Link href="/integrations" className="mt-3 inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
-              Improve coverage
-            </Link>
+            {loading ? (
+              <p className="mt-3 text-sm text-[var(--text-muted)]">Loading proof data...</p>
+            ) : exposure <= 0 ? (
+              <EmptyState
+                variant="still_building"
+                title="Proof data is still building"
+                body="As Solvren watches more systems and decisions, this area will show protected value and remaining exposure."
+              />
+            ) : (
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="text-sm text-[var(--text-muted)]">Remaining exposure</p>
+                  <p className="mt-1 text-3xl font-semibold">{formatMoney(exposure)}</p>
+                  <p className="mt-1 text-sm text-[var(--text-muted)]">{trendLabel} over the selected window.</p>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    ["Problems", issueExposure],
+                    ["Decisions", changeExposure],
+                    ["Coverage gaps", systemGapExposure],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex items-center gap-3">
+                      <div className="w-28 text-xs text-[var(--text-muted)]">{label}</div>
+                      <div className="h-2 flex-1 rounded-full bg-[var(--bg-surface-2)]">
+                        <div
+                          className="h-2 rounded-full bg-[var(--primary)]"
+                          style={{ width: `${Math.max(4, Math.round((Number(value) / (exposure || 1)) * 100))}%` }}
+                        />
+                      </div>
+                      <div className="w-28 text-right text-xs font-semibold">{formatMoney(Number(value))}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardBody>
+            <SectionHeader title="Proof trend" helper="Directional proof without over-claiming precision." />
+            <div className="mt-4 space-y-2">
+              {trendSlice.length === 0 ? (
+                <EmptyState
+                  variant="still_building"
+                  title="Trend is building"
+                  body="Trend data appears once Solvren has enough observations."
+                />
+              ) : (
+                trendSlice.slice(-12).map((row) => (
+                  <div key={row.day} className="flex items-center gap-3">
+                    <div className="w-24 text-xs text-[var(--text-muted)]">{row.day}</div>
+                    <div className="h-2 flex-1 rounded-full bg-[var(--bg-surface-2)]">
+                      <div
+                        className="h-2 rounded-full bg-[var(--success)]"
+                        style={{ width: `${Math.max(4, Math.round((toNumber(row.revenueAtRisk) / (latest || 1)) * 100))}%` }}
+                      />
+                    </div>
+                    <div className="w-28 text-right text-xs font-semibold">{formatMoney(toNumber(row.revenueAtRisk))}</div>
+                  </div>
+                ))
+              )}
+            </div>
           </CardBody>
         </Card>
       </Grid>
 
-      <Card>
-        <CardBody>
-          <SectionHeader
-            title="Executive proof plays"
-            helper="Fast paths that make the platform valuable to CIOs, engineering leaders, finance, and CEOs."
-          />
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
-            {REVENUE_PROTECTION_PLAYBOOKS.slice(0, 3).map((play) => (
-              <Link key={play.title} href={play.href} className="rounded-[var(--radius-md)] border border-[var(--border)] p-4 transition hover:border-[var(--primary)]/40 hover:bg-[var(--table-row-hover)]">
-                <p className="font-semibold">{play.title}</p>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{play.buyer}</p>
-                <p className="mt-1 text-sm text-[var(--text-muted)]">{play.outcome}</p>
-              </Link>
-            ))}
-          </div>
-        </CardBody>
-      </Card>
+      <section id="stories" className="scroll-mt-28 space-y-3">
+        <SectionHeader
+          title="Value stories"
+          helper="Concrete examples leaders can use in QBRs, board prep, and operating reviews."
+          action={
+            <Button asChild variant="secondary" size="sm">
+              <Link href="/outcomes/value-stories">View all stories</Link>
+            </Button>
+          }
+        />
+        <Grid cols={1} gap={3} className="md:grid-cols-3">
+          {REVENUE_PROTECTION_PLAYBOOKS.slice(0, 3).map((playbook) => (
+            <Link
+              key={playbook.title}
+              href={playbook.href}
+              className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm transition hover:border-[var(--primary)]/40 hover:shadow-md"
+            >
+              <p className="font-semibold text-[var(--text)]">{playbook.title}</p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">{playbook.buyer}</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{playbook.outcome}</p>
+            </Link>
+          ))}
+        </Grid>
+      </section>
 
-      <Card>
-        <CardBody>
-          <SectionHeader title="Impact over time" helper="Directional proof of value without over-claiming precision." />
-          <div className="mt-2 grid gap-3 md:grid-cols-4">
-            <div>
-              <p className="text-xs text-[var(--text-muted)]">Resolved issues</p>
-              <p className="text-xl font-semibold">{resolvedIssues}</p>
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-muted)]">Reviewed high-impact changes</p>
-              <p className="text-xl font-semibold">{reviewedChanges}</p>
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-muted)]">Execution tasks in progress</p>
-              <p className="text-xl font-semibold">{pendingExecution}</p>
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-muted)]">Overdue high-risk reduction</p>
-              <p className="text-xl font-semibold">{overdueReduction}</p>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+      <section id="packets" className="scroll-mt-28">
+        <Card className="shadow-sm">
+          <CardBody>
+            <Stack direction="row" justify="between" gap={4} className="flex-wrap">
+              <div className="max-w-2xl">
+                <SectionHeader
+                  title="Board-ready proof packets"
+                  helper="Exportable decision and value records that make Solvren credible outside the product."
+                />
+                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+                  Proof packets combine business context, decision status, evidence, approvals, delivery history, and outcomes so a CEO or board member can review the story without opening the operational workflow.
+                </p>
+              </div>
+              <div className="grid min-w-[18rem] gap-2">
+                <Button asChild>
+                  <Link href="/changes?view=all">
+                    Decision proof packets
+                    <FileText className="h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/outcomes">Executive outcomes</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/insights/roi">ROI proof view</Link>
+                </Button>
+              </div>
+            </Stack>
+          </CardBody>
+        </Card>
+      </section>
+
+      <section id="drivers" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="Where value is created" helper="The workstreams most responsible for protected value and remaining exposure." />
+        <Grid cols={1} gap={3} className="md:grid-cols-2 xl:grid-cols-3">
+          {driverRows.length === 0 ? (
+            <Card>
+              <CardBody>
+                <EmptyState
+                  variant="still_building"
+                  title="Drivers are building"
+                  body="Solvren will show value drivers once enough protected-value signals exist."
+                />
+              </CardBody>
+            </Card>
+          ) : (
+            driverRows.map((driver) => (
+              <Link
+                key={driver.label + driver.href}
+                href={driver.href}
+                className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm transition hover:border-[var(--primary)]/40 hover:shadow-md"
+              >
+                <Stack direction="row" justify="between" align="start" gap={3}>
+                  <div>
+                    <p className="font-semibold text-[var(--text)]">{driver.label}</p>
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">{formatMoney(driver.contribution)} at stake</p>
+                  </div>
+                  <Badge variant={driver.status === "Needs attention" ? "warning" : "secondary"}>{driver.status}</Badge>
+                </Stack>
+              </Link>
+            ))
+          )}
+        </Grid>
+      </section>
+
+      <section id="coverage" className="scroll-mt-28">
+        <Grid cols={1} gap={4} className="lg:grid-cols-3">
+          <Card className="shadow-sm">
+            <CardBody>
+              <ProofMetric
+                icon={BadgeCheck}
+                tone="success"
+                label="Coverage active"
+                value={`${coveredSystems}`}
+                helper="Connected areas producing useful proof signals."
+              />
+            </CardBody>
+          </Card>
+          <Card className="shadow-sm">
+            <CardBody>
+              <ProofMetric
+                icon={TrendingDown}
+                label="Work in motion"
+                value={`${pendingExecution}`}
+                helper="Open follow-up tasks tied to active revenue protection."
+              />
+            </CardBody>
+          </Card>
+          <Card className="shadow-sm">
+            <CardBody>
+              <ProofMetric
+                icon={FileText}
+                tone="warning"
+                label="Coverage gaps"
+                value={`${uncoveredSystems}`}
+                helper="Areas where connecting more systems would make the proof stronger."
+              />
+            </CardBody>
+          </Card>
+        </Grid>
+      </section>
     </Stack>
   );
 }

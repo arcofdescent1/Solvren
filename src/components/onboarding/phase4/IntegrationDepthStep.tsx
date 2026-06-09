@@ -10,22 +10,22 @@ export function IntegrationDepthStep() {
   }, []);
 
   return (
-    <div className="space-y-3 rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] p-4">
-      <h3 className="text-sm font-semibold text-[color:var(--rg-text)]">Increase integration depth</h3>
-      <p className="text-xs text-[color:var(--rg-text-muted)]">
+    <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+      <h3 className="text-sm font-semibold text-[var(--text)]">Increase integration depth</h3>
+      <p className="text-xs text-[var(--text-muted)]">
         Milestones use distinct connected integrations and enabled detector workflows. Connect more systems and turn on
         workflows that orchestrate revenue protection.
       </p>
       <div className="flex flex-wrap gap-2">
         <Link
           href="/integrations"
-          className="rounded-md border border-[color:var(--rg-border)] px-3 py-1.5 text-xs font-medium text-[color:var(--rg-text)] hover:bg-[color:var(--rg-surface-elevated)]"
+          className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)] hover:bg-[var(--bg-surface-2)]"
         >
           Integrations
         </Link>
         <Link
           href="/marketplace/integrations"
-          className="rounded-md border border-[color:var(--rg-border)] px-3 py-1.5 text-xs font-medium text-[color:var(--rg-text)] hover:bg-[color:var(--rg-surface-elevated)]"
+          className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)] hover:bg-[var(--bg-surface-2)]"
         >
           Marketplace
         </Link>

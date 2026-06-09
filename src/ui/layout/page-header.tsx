@@ -52,14 +52,14 @@ export function PageHeader({
             {title}
           </h1>
           {description ? (
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
+            <p className="mt-1 max-w-4xl text-sm leading-6 text-[var(--text-muted)]">
               {description}
             </p>
           ) : null}
           {tabs ? <div className="mt-3">{tabs}</div> : null}
         </div>
         {actionArea ? (
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end">
             {actionArea}
           </div>
         ) : null}

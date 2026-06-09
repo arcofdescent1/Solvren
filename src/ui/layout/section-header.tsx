@@ -10,11 +10,11 @@ type SectionHeaderProps = {
 export function SectionHeader({ title, helper, action, className }: SectionHeaderProps) {
   return (
     <div className={className ?? ""}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-[var(--text)]">{title}</h2>
         {action}
       </div>
-      {helper ? <p className="mt-1 text-sm text-[var(--text-muted)]">{helper}</p> : null}
+      {helper ? <p className="mt-1 max-w-4xl text-sm leading-6 text-[var(--text-muted)]">{helper}</p> : null}
     </div>
   );
 }

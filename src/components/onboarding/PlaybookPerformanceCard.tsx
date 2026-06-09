@@ -32,32 +32,32 @@ export function PlaybookPerformanceCard(props: Props) {
   return (
     <Link
       href={`/admin/autonomy/playbooks/${props.playbookKey}/performance`}
-      className="block rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-panel)] p-4 transition hover:border-[color:var(--rg-primary)]/30"
+      className="block rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4 transition hover:border-[var(--primary)]/30"
     >
       <div className="flex items-start justify-between">
-        <h4 className="text-sm font-semibold text-[color:var(--rg-text)]">{props.displayName}</h4>
+        <h4 className="text-sm font-semibold text-[var(--text)]">{props.displayName}</h4>
         <Badge variant={healthVariant}>{props.healthState}</Badge>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
         <div>
-          <span className="text-[color:var(--rg-text-muted)]">Score</span>
+          <span className="text-[var(--text-muted)]">Score</span>
           <p className="font-medium">{props.performanceScore}</p>
         </div>
         <div>
-          <span className="text-[color:var(--rg-text-muted)]">Runs</span>
+          <span className="text-[var(--text-muted)]">Runs</span>
           <p className="font-medium">{props.runCount}</p>
         </div>
         <div>
-          <span className="text-[color:var(--rg-text-muted)]">Recovered</span>
+          <span className="text-[var(--text-muted)]">Recovered</span>
           <p className="font-medium">${props.recoveredAmount.toLocaleString()}</p>
         </div>
         <div>
-          <span className="text-[color:var(--rg-text-muted)]">Avoided</span>
+          <span className="text-[var(--text-muted)]">Avoided</span>
           <p className="font-medium">${props.avoidedAmount.toLocaleString()}</p>
         </div>
       </div>
       {props.verificationSuccessRate != null && (
-        <p className="mt-2 text-xs text-[color:var(--rg-text-muted)]">
+        <p className="mt-2 text-xs text-[var(--text-muted)]">
           Verification: {(props.verificationSuccessRate * 100).toFixed(0)}%
         </p>
       )}

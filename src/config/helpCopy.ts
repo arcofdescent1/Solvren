@@ -1,9 +1,9 @@
 export const HELP_COPY = {
   sections: {
     todays_priorities:
-      "The most important items to review, resolve, or follow up on right now.",
+      "The few things most likely to protect revenue if handled now.",
     assigned_to_me:
-      "Work that currently needs your review, decision, or follow-up.",
+      "Decisions or follow-up that currently need you.",
     waiting_on_others:
       "Items moving forward, but currently blocked on another person, team, or system.",
     revenue_at_risk:
@@ -14,20 +14,20 @@ export const HELP_COPY = {
       "Important changes, detections, approvals, and follow-up activity from across Solvren.",
     go_next: "Choose the path that fits what you need to do.",
     changes_filters:
-      "Use filters to narrow to the items you can act on fastest. Advanced fields explain how Solvren determines each state.",
+      "Use filters to narrow to the items you can act on fastest. Advanced fields remain available when operators need deeper detail.",
   },
   whySurfaced: {
     overdue_assigned: "Surfaced because it is overdue and assigned to you.",
     awaiting_review: "Surfaced because it is awaiting your review.",
     linked_issue: "Surfaced because it is linked to an active issue.",
     missing_details:
-      "Surfaced because supporting details are still missing.",
+      "Surfaced because proof or supporting details are still missing.",
     delivery_problem:
       "Surfaced because delivery follow-up is still needed.",
   },
   workflowNext: {
     needs_details:
-      "Once supporting details are added, Solvren will reassess this item and move it through the normal workflow.",
+      "Once proof or supporting details are added, Solvren will reassess this item and move it forward.",
     delivery_issue:
       "When delivery succeeds, this item returns to on-track. If delivery keeps failing, it may require manual follow-up.",
     waiting_on_others:

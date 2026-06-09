@@ -46,7 +46,7 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
   }, [fetchData]);
 
   if (!data) {
-    return <p className="text-sm text-[color:var(--rg-text-muted)]">Loading…</p>;
+    return <p className="text-sm text-[var(--text-muted)]">Loading…</p>;
   }
 
   const healthVariant =
@@ -63,19 +63,19 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
           <Stack gap={4}>
             <Grid cols={2} gap={4}>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Performance Score</p>
+              <p className="text-xs text-[var(--text-muted)]">Performance Score</p>
               <p className="text-xl font-semibold">{data.performanceScore}</p>
             </div>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Recovered</p>
+              <p className="text-xs text-[var(--text-muted)]">Recovered</p>
               <p className="text-xl font-semibold">${data.recoveredAmount.toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Avoided</p>
+              <p className="text-xs text-[var(--text-muted)]">Avoided</p>
               <p className="text-xl font-semibold">${data.avoidedAmount.toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Runs</p>
+              <p className="text-xs text-[var(--text-muted)]">Runs</p>
               <p className="text-xl font-semibold">{data.runCount}</p>
             </div>
             </Grid>
@@ -89,19 +89,19 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
             <h3 className="text-sm font-semibold">Run Summary</h3>
             <Grid cols={2} gap={4}>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Success</p>
+              <p className="text-xs text-[var(--text-muted)]">Success</p>
               <p className="font-medium">{data.successCount}</p>
             </div>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Failure</p>
+              <p className="text-xs text-[var(--text-muted)]">Failure</p>
               <p className="font-medium">{data.failureCount}</p>
             </div>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Verification Rate</p>
+              <p className="text-xs text-[var(--text-muted)]">Verification Rate</p>
               <p className="font-medium">{data.verificationSuccessRate != null ? `${(data.verificationSuccessRate * 100).toFixed(0)}%` : "—"}</p>
             </div>
             <div>
-              <p className="text-xs text-[color:var(--rg-text-muted)]">Automation Rate</p>
+              <p className="text-xs text-[var(--text-muted)]">Automation Rate</p>
               <p className="font-medium">{data.automationRate != null ? `${(data.automationRate * 100).toFixed(0)}%` : "—"}</p>
             </div>
             </Grid>
@@ -116,7 +116,7 @@ export function PlaybookPerformanceDetailClient({ playbookKey }: Props) {
               <h3 className="text-sm font-semibold">Trend</h3>
               <Stack gap={2}>
               {data.trend.map((t, i) => (
-                <div key={i} className="flex items-center justify-between rounded border border-[color:var(--rg-border)] text-sm">
+                <div key={i} className="flex items-center justify-between rounded border border-[var(--border)] text-sm">
                   <span>{new Date(t.windowEnd).toLocaleDateString()}</span>
                   <span>Score: {t.performanceScore} | Recovered: ${t.recoveredAmount.toLocaleString()} | Runs: {t.runCount}</span>
                 </div>

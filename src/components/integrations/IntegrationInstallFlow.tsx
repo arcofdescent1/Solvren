@@ -1,9 +1,7 @@
 "use client";
 
-/**
- * Phase 1 — Install flow UX (§13.5): value → permissions → auth → callback → test → backfill.
- */
 import * as React from "react";
+import { Button, Card, CardBody } from "@/ui";
 import type { ConnectorManifest } from "@/modules/integrations/contracts";
 
 export type IntegrationInstallFlowProps = {
@@ -33,79 +31,80 @@ export function IntegrationInstallFlow({ manifest, orgId, onComplete: _onComplet
         return;
       }
       window.location.href = data.data.authUrl;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Network error");
+    } catch (errorValue) {
+      setError(errorValue instanceof Error ? errorValue.message : "Network error");
       setStep("permissions");
     }
   }, [manifest.provider, orgId]);
 
   return (
-    <div className="flex flex-col gap-6 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-6">
-      <div>
-        <h3 className="text-lg font-semibold text-[var(--text)]">{manifest.displayName} — Connect</h3>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{manifest.description}</p>
-      </div>
+    <Card>
+      <CardBody className="space-y-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Connect system</p>
+          <h3 className="mt-1 text-lg font-semibold text-[var(--text)]">{manifest.displayName}</h3>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{manifest.description}</p>
+        </div>
 
-      {step === "value" && (
-        <>
-          <div className="rounded-md bg-[var(--bg-muted)] p-4 text-sm text-[var(--text)]">
-            <p className="font-medium">What you get:</p>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-[var(--text-muted)]">
-              {manifest.capabilities.includes("read_objects") && <li>Read and sync key objects</li>}
-              {manifest.capabilities.includes("receive_events") && <li>Real-time events</li>}
-              {manifest.capabilities.includes("execute_actions") && <li>Outbound actions (e.g. create tasks, post to channels)</li>}
-              {manifest.capabilities.includes("health_checks") && <li>Connection health monitoring</li>}
-            </ul>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setStep("permissions")}
-              className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-fg)] hover:opacity-90"
-            >
-              Continue
-            </button>
-            {onCancel && (
-              <button type="button" onClick={onCancel} className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--bg-muted)]">
-                Cancel
-              </button>
-            )}
-          </div>
-        </>
-      )}
+        {step === "value" ? (
+          <>
+            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm text-[var(--text)]">
+              <p className="font-semibold">What Solvren will protect with this connection</p>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-[var(--text-muted)]">
+                {manifest.capabilities.includes("read_objects") ? <li>Sync the records needed to spot revenue risk</li> : null}
+                {manifest.capabilities.includes("receive_events") ? <li>Watch for events that need attention</li> : null}
+                {manifest.capabilities.includes("execute_actions") ? <li>Create tasks or updates when action is needed</li> : null}
+                {manifest.capabilities.includes("health_checks") ? <li>Confirm the connection is healthy over time</li> : null}
+              </ul>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={() => setStep("permissions")}>
+                Continue
+              </Button>
+              {onCancel ? (
+                <Button type="button" variant="secondary" onClick={onCancel}>
+                  Cancel
+                </Button>
+              ) : null}
+            </div>
+          </>
+        ) : null}
 
-      {step === "permissions" && (
-        <>
-          <div className="rounded-md bg-[var(--bg-muted)] p-4 text-sm">
-            <p className="font-medium text-[var(--text)]">Required permissions</p>
-            <p className="mt-1 text-[var(--text-muted)]">We will request the following scopes. You can revoke access anytime from your provider settings.</p>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-[var(--text-muted)]">
-              {manifest.requiredScopes.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-          </div>
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={startAuth}
-              className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-fg)] hover:opacity-90"
-            >
-              Connect with {manifest.displayName}
-            </button>
-            {onCancel && (
-              <button type="button" onClick={onCancel} className="rounded-md border border-[var(--border)] px-4 py-2 text-sm hover:bg-[var(--bg-muted)]">
-                Cancel
-              </button>
-            )}
-          </div>
-        </>
-      )}
+        {step === "permissions" ? (
+          <>
+            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4 text-sm">
+              <p className="font-semibold text-[var(--text)]">Access Solvren needs</p>
+              <p className="mt-1 text-[var(--text-muted)]">
+                Solvren asks only for the provider access needed to protect this workflow. Access can be revoked from the provider at any time.
+              </p>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-[var(--text-muted)]">
+                {manifest.requiredScopes.map((scope) => (
+                  <li key={scope}>{scope}</li>
+                ))}
+              </ul>
+            </div>
+            {error ? (
+              <p className="rounded-[var(--radius-md)] border border-[var(--danger)]/30 bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">
+                {error}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={startAuth}>
+                Connect {manifest.displayName}
+              </Button>
+              {onCancel ? (
+                <Button type="button" variant="secondary" onClick={onCancel}>
+                  Cancel
+                </Button>
+              ) : null}
+            </div>
+          </>
+        ) : null}
 
-      {step === "connecting" && (
-        <p className="text-sm text-[var(--text-muted)]">Redirecting to {manifest.displayName} to authorize…</p>
-      )}
-    </div>
+        {step === "connecting" ? (
+          <p className="text-sm text-[var(--text-muted)]">Redirecting to {manifest.displayName} to authorize...</p>
+        ) : null}
+      </CardBody>
+    </Card>
   );
 }

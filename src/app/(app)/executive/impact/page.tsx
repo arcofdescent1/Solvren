@@ -155,7 +155,11 @@ export default function ExecutiveImpactPage() {
               <SectionHeader title="Driver breakdown" helper="Click any driver to jump directly to the operational surface where action happens." />
               <div className="mt-3 space-y-2">
                 {rows.map((r) => (
-                  <Link key={r.label} href={r.href} className="block rounded-md border p-3 hover:bg-[var(--table-row-hover)]">
+                  <Link
+                    key={r.label}
+                    href={r.href}
+                    className="block rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[var(--shadow-sm)] transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]"
+                  >
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-semibold">{r.label}</p>

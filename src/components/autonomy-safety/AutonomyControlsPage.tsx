@@ -63,7 +63,7 @@ export function AutonomyControlsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-[color:var(--rg-text)]">Autonomy Controls</h1>
+      <h1 className="text-xl font-semibold text-[var(--text)]">Autonomy Controls</h1>
 
       <Card>
         <CardBody>
@@ -90,20 +90,20 @@ export function AutonomyControlsPage() {
         <CardBody>
           <h2 className="mb-4 text-sm font-semibold">Active Pause Controls</h2>
           {loading ? (
-            <p className="text-sm text-[color:var(--rg-text-muted)]">Loading…</p>
+            <p className="text-sm text-[var(--text-muted)]">Loading…</p>
           ) : pauses.length === 0 ? (
-            <p className="text-sm text-[color:var(--rg-text-muted)]">No active pauses</p>
+            <p className="text-sm text-[var(--text-muted)]">No active pauses</p>
           ) : (
             <ul className="space-y-2">
               {pauses.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between rounded border border-[color:var(--rg-border)] px-3 py-2"
+                  className="flex items-center justify-between rounded border border-[var(--border)] px-3 py-2"
                 >
                   <div>
                     <Badge variant="warning">{p.pauseType}</Badge>
                     <span className="ml-2 text-sm">{p.reason}</span>
-                    <span className="ml-2 text-xs text-[color:var(--rg-text-muted)]">
+                    <span className="ml-2 text-xs text-[var(--text-muted)]">
                       ({p.scopeType})
                     </span>
                   </div>
@@ -127,7 +127,7 @@ export function AutonomyControlsPage() {
       <Card>
         <CardBody>
           <h2 className="mb-4 text-sm font-semibold">Environment Ceilings</h2>
-          <p className="text-sm text-[color:var(--rg-text-muted)]">
+          <p className="text-sm text-[var(--text-muted)]">
             demo: SUGGEST_ONLY • sandbox: APPROVAL_REQUIRED • staging: BOUNDED_AUTO • production:
             FULL_AUTO
           </p>

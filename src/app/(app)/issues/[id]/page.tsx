@@ -1,16 +1,24 @@
-/**
- * Phase 0 — Issue detail with full panels.
- * Phase 1 Gap 1 — Entities, evidence, signals, lineage.
- */
 import { scopeActiveChangeEvents } from "@/lib/db/changeEventScope";
+import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getIssueDetail } from "@/modules/issues";
 import { getLatestAssessmentForIssue } from "@/modules/impact/persistence/impact-assessments.repository";
 import { getAccountsByOrg } from "@/modules/integrations/core/integrationAccountsRepo";
-import { Card, CardBody } from "@/ui";
 import {
-  IssueDetailHeader,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DecisionProblemBrief,
+  PageActionBar,
+  PageHeaderV2,
+  SectionHeader,
+} from "@/ui";
+import {
   IssueDetailNextAction,
   IssueSourcePanel,
   IssueLinksPanel,
@@ -26,6 +34,57 @@ import {
 } from "@/components/issues";
 import { IssueImpactSection } from "@/components/impact";
 import { Phase3IssueReviewedTracker } from "@/components/onboarding/phase3/Phase3IssueReviewedTracker";
+
+function formatMoney(value: number | null | undefined, currency = "USD") {
+  if (value == null || !Number.isFinite(Number(value))) return "Not estimated";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(Number(value));
+}
+
+function issueStatusLabel(status: string | null | undefined) {
+  if (status === "in_progress") return "In progress";
+  if (status === "open") return "Open";
+  if (status === "triaged") return "Triaged";
+  if (status === "detected") return "Detected";
+  if (status === "acknowledged") return "Acknowledged";
+  if (status === "assigned") return "Assigned";
+  if (status === "resolved") return "Resolved";
+  if (status === "verified") return "Verified";
+  if (status === "dismissed") return "Dismissed";
+  if (status === "reopened") return "Reopened";
+  return status ?? "Unknown";
+}
+
+function badgeTone(status: string | null | undefined): "secondary" | "success" | "warning" | "danger" | "outline" {
+  if (status === "resolved" || status === "verified") return "success";
+  if (status === "dismissed") return "secondary";
+  if (status === "in_progress" || status === "assigned" || status === "triaged") return "warning";
+  if (status === "reopened") return "danger";
+  return "outline";
+}
+
+function severityTone(severity: string | null | undefined): "secondary" | "success" | "warning" | "danger" | "outline" {
+  if (severity === "critical" || severity === "high") return "danger";
+  if (severity === "medium") return "warning";
+  if (severity === "low") return "secondary";
+  return "outline";
+}
+
+function nextStepForIssue(status: string, ownerUserId: string | null, ownerTeamKey: string | null) {
+  if (!ownerUserId && !ownerTeamKey && status !== "dismissed") return "Assign an owner.";
+  if (status === "open" || status === "detected") return "Confirm the problem and assign an owner.";
+  if (status === "triaged" || status === "acknowledged") return "Decide the action plan and start work.";
+  if (status === "assigned") return "Owner should start work and record the plan.";
+  if (status === "in_progress") return "Finish the fix and verify the outcome.";
+  if (status === "resolved") return "Verify that revenue risk has actually been removed.";
+  if (status === "verified") return "Capture the outcome and proof for leadership.";
+  if (status === "dismissed") return "No action is planned unless new evidence appears.";
+  if (status === "reopened") return "Reassign ownership and treat this as active again.";
+  return "Review the current status and choose the next action.";
+}
 
 export default async function IssueDetailPage({
   params,
@@ -177,23 +236,102 @@ export default async function IssueDetailPage({
       : null;
   const impactUnknown = !impact && issue.verification_status === "pending";
   const assessment = assessmentRow as { calculation_breakdown_json?: Record<string, unknown>; assumptions_snapshot_json?: Record<string, unknown>; confidence_explanation_json?: Record<string, unknown> } | null;
+  const moneyAtRisk = impact?.revenueAtRisk ?? impact?.directRealizedLoss ?? legacyImpactRow?.revenue_at_risk ?? null;
+  const ownerLabel = issue.owner_team_key ?? (issue.owner_user_id ? `User ${issue.owner_user_id.slice(0, 8)}` : "Unassigned");
+  const nextStep = nextStepForIssue(issue.status, issue.owner_user_id, issue.owner_team_key);
+  const proofStatus =
+    issue.verification_status === "passed"
+      ? "Verified"
+      : issue.verification_status === "failed"
+        ? "Verification failed"
+        : runs.length > 0
+          ? `${runs.length} verification run${runs.length === 1 ? "" : "s"}`
+          : evidence.length > 0
+            ? `${evidence.length} proof item${evidence.length === 1 ? "" : "s"}`
+            : "Proof needed";
+  const issueSummary = issue.summary ?? issue.description ?? "Solvren detected a revenue-relevant problem that needs ownership, action, and proof.";
+  const sourceLabel = issue.source_type.replaceAll("_", " ");
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <Phase3IssueReviewedTracker issueId={issueId} />
-      <IssueDetailHeader issue={issue} />
-      <Card className="border-[var(--primary)]/20 shadow-sm">
-        <CardBody>
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Investigation guide</p>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Start with the next action, owner, lifecycle, and business impact. Evidence, lineage, and source details are still available below for audit and deeper investigation.
-          </p>
-        </CardBody>
-      </Card>
-      <IssueDetailNextAction issue={issue as typeof issue & { approval_state?: string | null }} />
-      <div className="grid gap-4 md:grid-cols-2">
-        <IssueOwnerPanel issue={issue} />
-        <IssueLifecyclePanel issueId={issueId} />
+
+      <PageHeaderV2
+        breadcrumbs={[
+          { label: "Home", href: "/home" },
+          { label: "Problems", href: "/issues" },
+          { label: issue.issue_key },
+        ]}
+        title={issue.title}
+        description="A plain-English problem record for revenue risk, ownership, action, proof, and outcome."
+      />
+
+      <PageActionBar
+        ariaLabel="Problem sections"
+        items={[
+          { label: "Problem", href: "#problem" },
+          { label: "Next action", href: "#next-action" },
+          { label: "Impact", href: "#impact" },
+          { label: "Owner", href: "#owner" },
+          { label: "Proof", href: "#proof" },
+          { label: "Details", href: "#details" },
+        ]}
+        actions={
+          <>
+            <Button asChild size="md">
+              <Link href="#next-action">Review next action</Link>
+            </Button>
+            <Button asChild variant="secondary" size="md">
+              <Link href="#proof">See proof</Link>
+            </Button>
+          </>
+        }
+      />
+
+      <section id="problem" className="scroll-mt-28">
+        <DecisionProblemBrief
+          eyebrow="What happened"
+          title={issueSummary}
+          description="Solvren found a business problem that could affect revenue, customers, or delivery. This page shows why it matters, what should happen next, who owns it, and what proof exists."
+          badges={
+            <>
+              <Badge variant={badgeTone(issue.status)}>{issueStatusLabel(issue.status)}</Badge>
+              <Badge variant={severityTone(issue.severity)}>{issue.severity} severity</Badge>
+              <Badge variant="outline">{sourceLabel}</Badge>
+              {issue.domain_key ? <Badge variant="outline">{issue.domain_key}</Badge> : null}
+            </>
+          }
+          metrics={[
+            { label: "Why it matters", value: formatMoney(moneyAtRisk, impact?.currencyCode ?? "USD"), helper: "Current revenue exposure" },
+            { label: "Who owns it", value: ownerLabel },
+            { label: "What proof exists", value: proofStatus },
+          ]}
+          nextTitle="What should happen next"
+          nextBody={nextStep}
+          facts={[
+            { label: "Problem key", value: issue.issue_key },
+            { label: "Opened", value: new Date(issue.opened_at).toLocaleDateString() },
+            { label: "Verification", value: issue.verification_status.replaceAll("_", " ") },
+            { label: "Priority", value: issue.priority_score == null ? "Not scored" : Math.round(issue.priority_score) },
+          ]}
+          nextActions={
+            <Button asChild variant="secondary" size="sm">
+              <Link href="#next-action">Go to actions</Link>
+            </Button>
+          }
+        />
+      </section>
+
+      <section id="next-action" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="What should happen next" helper="One clear action path first. Deeper operator controls remain available here." />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.6fr)]">
+          <IssueDetailNextAction issue={issue as typeof issue & { approval_state?: string | null }} />
+          <IssueActionsPanel issueId={issueId} issueTitle={issue.title} orgId={membership.org_id} connectedProviders={connectedProviders} revenueAtRisk={impact?.revenueAtRisk} />
+        </div>
+      </section>
+
+      <section id="impact" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="Why it matters" helper="The business impact a leader needs before prioritizing the fix." />
         <IssueImpactSection
           impact={impact}
           impactUnknown={impactUnknown}
@@ -202,38 +340,58 @@ export default async function IssueDetailPage({
           assumptionsSnapshot={assessment?.assumptions_snapshot_json ?? null}
           confidenceExplanation={assessment?.confidence_explanation_json ?? null}
         />
-      </div>
-      <details className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm">
+      </section>
+
+      <section id="owner" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="Who owns it" helper="Owner, status, and recent activity so the problem does not drift." />
+        <div className="grid gap-4 md:grid-cols-2">
+          <IssueOwnerPanel issue={issue} />
+          <IssueLifecyclePanel issueId={issueId} />
+        </div>
+      </section>
+
+      <section id="proof" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="What proof exists" helper="Evidence, verification, and outcome records that show whether the problem is real and resolved." />
+        <div className="grid gap-4 md:grid-cols-2">
+          <IssueVerificationPanel verificationStatus={issue.verification_status} runs={runs} />
+          <IssueEvidencePanel evidence={evidence} evidenceJson={evidenceJson} detectorKey={issueRow.detector_key} />
+          <IssueOutcomePanel issueId={issueId} />
+          <IssueLinksPanel changes={changes} entities={entities} />
+        </div>
+      </section>
+
+      <details id="details" className="scroll-mt-28 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm">
         <summary className="cursor-pointer px-[var(--card-spacer-x)] py-[var(--card-spacer-y)] font-semibold">
-          Evidence, linked records, and source details
+          Details for operators and auditors
           <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
-            Full audit context for operators and reviewers.
+            Source records, lineage, and technical context.
           </span>
         </summary>
         <div className="space-y-4 border-t border-[var(--border)] p-[var(--card-spacer-x)]">
           <IssueSourcePanel issue={issue} evidenceJson={evidenceJson} />
-          <IssueLinksPanel changes={changes} entities={entities} />
-          <div className="grid gap-4 md:grid-cols-2">
-            <IssueEvidencePanel evidence={evidence} evidenceJson={evidenceJson} detectorKey={issueRow.detector_key} />
-            <IssueLineagePanel lineage={lineage} />
-          </div>
+          <IssueLineagePanel lineage={lineage} />
         </div>
       </details>
-      <div className="grid gap-4 md:grid-cols-2">
-        <IssueTimelinePanel history={history} />
-        <IssueVerificationPanel verificationStatus={issue.verification_status} runs={runs} />
-        <IssueActionsPanel issueId={issueId} issueTitle={issue.title} orgId={membership.org_id} connectedProviders={connectedProviders} revenueAtRisk={impact?.revenueAtRisk} />
-        <IssueOutcomePanel issueId={issueId} />
-      </div>
+
+      <section id="activity" className="scroll-mt-28 space-y-3">
+        <SectionHeader title="Activity" helper="Timeline and comments for the people working the problem." />
+        <div className="grid gap-4 md:grid-cols-2">
+          <IssueTimelinePanel history={history} />
+          <IssueCommentsPanel issueId={issueId} comments={comments} />
+        </div>
+      </section>
+
       {issue.description && (
         <Card>
+          <CardHeader>
+            <CardTitle>Original description</CardTitle>
+            <CardDescription>Raw context captured when the problem was created.</CardDescription>
+          </CardHeader>
           <CardBody>
-            <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Description</h3>
-            <p className="text-sm whitespace-pre-wrap">{issue.description}</p>
+            <p className="whitespace-pre-wrap text-sm leading-6">{issue.description}</p>
           </CardBody>
         </Card>
       )}
-      <IssueCommentsPanel issueId={issueId} comments={comments} />
     </div>
   );
 }

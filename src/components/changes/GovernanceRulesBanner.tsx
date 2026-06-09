@@ -35,7 +35,7 @@ export async function GovernanceRulesBanner({
     <Card className="border-[var(--primary)]/30 bg-[var(--primary)]/5">
       <CardBody className="py-3">
         <p className="text-sm font-medium text-[var(--text)]">
-          Governance rules applied — required approvers:
+          Decision rules applied - required approvers:
         </p>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           {required.map((r) => `${r.role}${r.minCount > 1 ? ` (×${r.minCount})` : ""}`).join(", ")}

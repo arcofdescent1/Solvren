@@ -70,8 +70,9 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
   return (
     <Stack gap={6} className="flex flex-col pb-10">
       <PageHeaderV2
-        title="Executive outcomes"
-        description="Revenue protected, incidents avoided, and value stories backed by evidence."
+        breadcrumbs={[{ label: "Proof", href: "/insights" }, { label: "Executive outcomes" }]}
+        title="Executive proof stories"
+        description="Revenue protected, incidents avoided, faster decisions, and value stories leaders can trust."
         actions={
           <button
             type="button"
@@ -105,7 +106,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
       {data && !data.disabled ? (
         <>
           <p className="text-xs text-[var(--text-muted)]">
-            Revenue figures use estimated monthly revenue at risk recorded on each change, then apply prevention confidence and duration factors.
+            Revenue figures are directional proof signals based on recorded revenue at risk, confidence, and observation windows.
           </p>
           <Grid cols={1} gap={4} className="sm:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -128,7 +129,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
             </Card>
             <Card>
               <CardBody>
-                <p className="text-xs font-medium uppercase text-[var(--text-muted)]">Approval hrs saved (MTD)</p>
+                <p className="text-xs font-medium uppercase text-[var(--text-muted)]">Decision hrs saved (MTD)</p>
                 <p className="text-2xl font-semibold tabular-nums">{data.approvalHoursSavedMonth}</p>
               </CardBody>
             </Card>
@@ -141,7 +142,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
           </Card>
 
           <SectionHeader
-            title="Top value stories"
+            title="Board-ready value stories"
             action={
               <Link href="/outcomes/value-stories" className="text-sm text-[var(--primary)] hover:underline">
                 View all
@@ -152,7 +153,7 @@ export function ExecutiveOutcomesDashboard({ orgId }: { orgId: string }) {
             <EmptyState
               variant="still_building"
               title="No finalized stories yet"
-              body="Run the outcomes process job after predictions resolve and observation windows complete."
+              body="Stories appear after Solvren observes a decision, verifies the result, and has enough proof to make the value credible."
             />
           ) : (
             <Stack gap={3}>

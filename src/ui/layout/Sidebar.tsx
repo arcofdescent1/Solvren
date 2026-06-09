@@ -66,7 +66,7 @@ export function Sidebar({ user, open = true }: SidebarProps) {
     >
       <nav className="flex flex-1 flex-col overflow-y-auto p-3">
         <p className="px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--sidenav-heading)]">
-          Daily work
+          Solvren
         </p>
         <div className="flex flex-col gap-0.5">
           {PRIMARY_APP_NAV.map((item) => {
@@ -94,11 +94,12 @@ export function Sidebar({ user, open = true }: SidebarProps) {
         </div>
         <div className="mt-5">
           <p className="px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--sidenav-heading)]">
-            Business impact
+            More
           </p>
           <div className="flex flex-col gap-0.5">
             {SECONDARY_APP_NAV.map((item) => {
               const active = pathname === item.href || pathname.startsWith(item.href + "/");
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -112,12 +113,15 @@ export function Sidebar({ user, open = true }: SidebarProps) {
                     })
                   }
                   className={cn(
-                    "rounded-[var(--radius-md)] px-3 py-1.5 text-sm transition-colors",
+                    "flex items-center gap-2 rounded-[var(--radius-md)] px-3 py-1.5 text-sm transition-colors",
                     active
                       ? "bg-[var(--primary)]/10 font-semibold text-[var(--sidenav-link-active)]"
                       : "text-[var(--sidenav-link)] hover:bg-[var(--bg-surface-2)] hover:text-[var(--sidenav-link-active)]"
                   )}
                 >
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center [&>svg]:h-4 [&>svg]:w-4">
+                    <Icon />
+                  </span>
                   {item.label}
                 </Link>
               );

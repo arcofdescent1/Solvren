@@ -50,18 +50,18 @@ export default function ExecutiveROIPage() {
       </Suspense>
       <Phase3ExecutiveTracker path="/executive/roi" />
       <PageHeaderV2
-        breadcrumbs={[{ label: "Insights", href: "/insights" }, { label: "ROI" }]}
-        title="Impact and outcomes"
-        description="Evidence-based value signals showing prevented risk, resolved impact, and process improvement."
-        helper="How Solvren is helping reduce risk and improve outcomes over time."
+        breadcrumbs={[{ label: "Proof", href: "/insights" }, { label: "Value detail" }]}
+        title="Value proof detail"
+        description="Traceable signals showing protected revenue, prevented risk, faster decisions, and resolved business impact."
+        helper="Use this deeper view when leaders want to understand exactly what backs the proof story."
         helpTrigger={<PageHelpDrawer page="insights" />}
       />
 
       <Card>
         <CardBody>
           <SectionHeader
-            title="Window"
-            helper="Compare against the previous equal window."
+            title="Proof window"
+            helper="Compare protected-value signals against the previous equal window."
             action={
               <div className="flex gap-2 text-sm">
                 {(["7d", "30d", "90d"] as const).map((r) => (
@@ -81,13 +81,13 @@ export default function ExecutiveROIPage() {
       </Card>
 
       {loading ? (
-        <Card><CardBody><p className="text-sm text-[var(--text-muted)]">Loading impact data...</p></CardBody></Card>
+        <Card><CardBody><p className="text-sm text-[var(--text-muted)]">Loading proof data...</p></CardBody></Card>
       ) : roiData ? (
         <>
           <Grid cols={2} gap={4}>
             {[
               {
-                heading: "Potential issues prevented",
+                heading: "Risks prevented",
                 metric: roiData.metrics.prevented,
                 key: "roi_prevented" as const,
               },
@@ -97,12 +97,12 @@ export default function ExecutiveROIPage() {
                 key: "roi_resolved" as const,
               },
               {
-                heading: "High-risk changes reviewed",
+                heading: "Decisions accelerated",
                 metric: roiData.metrics.governed,
                 key: "roi_governed" as const,
               },
               {
-                heading: "Risk trend improvement",
+                heading: "Risk reduced",
                 metric: roiData.metrics.trend,
                 key: "roi_trend" as const,
               },
@@ -129,7 +129,7 @@ export default function ExecutiveROIPage() {
                     <p className="text-xs text-[var(--text-muted)]">{confidenceLabel(item.metric.confidence)}</p>
                     <p className="text-sm">{item.metric.valueStatement}</p>
                     <p className="text-xs text-[var(--text-muted)]">
-                      How determined: {item.metric.howDetermined}
+                      Proof basis: {item.metric.howDetermined}
                     </p>
                   </Stack>
                 </CardBody>
@@ -139,7 +139,7 @@ export default function ExecutiveROIPage() {
 
           <Card className="shadow-sm">
             <CardBody>
-              <SectionHeader title="Operational efficiency" helper="Canonical operational KPI trend signals." />
+              <SectionHeader title="Operating improvements" helper="Signals that Solvren is making change and problem response faster." />
               <Grid cols={3} gap={3}>
                 {[roiData.kpis.overdueReduction, roiData.kpis.approvalLatencyTrend, roiData.kpis.issueResolutionTrend].map((kpi) => (
                   <Card key={kpi.key}>
@@ -156,12 +156,12 @@ export default function ExecutiveROIPage() {
 
           <Card>
             <CardBody>
-              <SectionHeader title="Value storytelling" helper="Traceable examples grounded in concrete evidence." />
+              <SectionHeader title="Value stories" helper="Traceable examples grounded in concrete proof." />
               {roiData.stories.length === 0 ? (
                 <EmptyState
                   variant="still_building"
-                  title="Impact data is building"
-                  body="As Solvren monitors more activity, this view will show how risk and outcomes are improving over time."
+                  title="Proof data is building"
+                  body="As Solvren monitors more activity, this view will show protected value and outcomes over time."
                 />
               ) : (
                 <Stack gap={2}>
@@ -184,7 +184,7 @@ export default function ExecutiveROIPage() {
                           object_id: story.entityId,
                         });
                       }}
-                      className="rounded-md border p-3 hover:bg-[var(--table-row-hover)]"
+                      className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 shadow-[var(--shadow-sm)] transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]"
                     >
                       <p className="font-semibold">{story.title}</p>
                       <p className="text-xs text-[var(--text-muted)]">{confidenceLabel(story.confidence)}</p>
@@ -199,7 +199,7 @@ export default function ExecutiveROIPage() {
 
           <Card>
             <CardBody>
-              <SectionHeader title="Trend status" helper="Compact current signal for executive scanability." />
+              <SectionHeader title="Proof trend" helper="Compact current signal for executive scanability." />
               <p className="text-lg font-semibold capitalize">{trendTone.replaceAll("_", " ")}</p>
               <p className="text-sm text-[var(--text-muted)]">
                 As of {new Date(roiData.asOf).toLocaleString()} based on current {roiData.range} compared with the previous equal window.
@@ -212,11 +212,11 @@ export default function ExecutiveROIPage() {
         <>
           <Card>
             <CardBody>
-              <SectionHeader title="Value storytelling" helper="Traceable examples grounded in concrete evidence." />
+              <SectionHeader title="Value stories" helper="Traceable examples grounded in concrete proof." />
               <EmptyState
                 variant="still_building"
-                title="Impact data is building"
-                body="As Solvren monitors more activity, this view will show how risk and outcomes are improving over time."
+                title="Proof data is building"
+                body="As Solvren monitors more activity, this view will show protected value and outcomes over time."
               />
             </CardBody>
           </Card>

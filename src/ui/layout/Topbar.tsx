@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, HelpCircle, Menu } from "lucide-react";
+import { Bell, CheckCircle2, HelpCircle, Menu, Settings } from "lucide-react";
 import { Button } from "@/ui/primitives/button";
 import { Badge } from "@/ui/primitives/badge";
 import { ThemeToggle } from "@/ui/theme/ThemeToggle";
@@ -76,7 +76,7 @@ export function Topbar({
       {/* Search - centered on desktop, hidden on mobile */}
       {user ? (
         <div className="hidden flex-1 max-w-xl lg:block">
-          <GlobalSearchBar placeholder="Search risks, changes, work, and reports..." />
+          <GlobalSearchBar placeholder="Search problems, decisions, proof, and setup..." />
         </div>
       ) : null}
 
@@ -96,11 +96,12 @@ export function Topbar({
                   destination: "/actions?view=assigned-to-me",
                 })
               }
-              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
-              aria-label={`Work Queue. ${myWorkCount} items need your attention.`}
+              className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--primary)] px-3 text-xs font-semibold text-[var(--primary-contrast)] shadow-sm transition-colors hover:bg-[var(--primary-hover)]"
+              aria-label={`Needs attention. ${myWorkCount} items need your attention.`}
             >
-              <span>Work Queue</span>
-              <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{myWorkCount}</Badge>
+              <CheckCircle2 className="h-4 w-4" aria-hidden />
+              <span>Needs attention</span>
+              <Badge variant="secondary" className="border-transparent bg-white/20 px-1.5 py-0 text-[10px] text-[var(--primary-contrast)]">{myWorkCount}</Badge>
             </Link>
             <Link
               href="/changes?view=needs-my-review"
@@ -110,9 +111,9 @@ export function Topbar({
                 })
               }
               className="inline-flex h-9 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] px-3 text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--bg-surface-2)]"
-              aria-label={`Review. ${needsReviewCount} approvals are pending your review.`}
+              aria-label={`Approvals. ${needsReviewCount} approvals are pending your review.`}
             >
-              <span>Review</span>
+              <span>Approvals</span>
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{needsReviewCount}</Badge>
             </Link>
             <Tooltip>
@@ -177,7 +178,7 @@ export function Topbar({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
-                    <span className="flex h-4 w-4 items-center justify-center">⚙</span>
+                    <Settings className="h-4 w-4" aria-hidden />
                     Account
                   </Link>
                 </DropdownMenuItem>
@@ -199,3 +200,4 @@ export function Topbar({
     </nav>
   );
 }
+

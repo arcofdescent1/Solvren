@@ -36,7 +36,7 @@ const SETTINGS_LINKS = [
   {
     title: "Policies & approvals",
     href: "/settings/policies",
-    description: "Configure approval rules, mappings, and governance behavior.",
+    description: "Configure which decisions need approval and proof.",
     group: "Workflow behavior",
     icon: ClipboardCheck,
   },
@@ -82,7 +82,7 @@ export default function SettingsLandingPage() {
   return (
     <Stack gap={6}>
       <PageHeaderV2
-        breadcrumbs={[{ label: "Settings" }]}
+        breadcrumbs={[{ label: "Setup", href: "/integrations" }, { label: "Organization setup" }]}
         title={PAGE_COPY.settings.title}
         description={PAGE_COPY.settings.description}
         helper={PAGE_COPY.settings.helper}
@@ -92,27 +92,27 @@ export default function SettingsLandingPage() {
       <Card className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_4%,var(--bg-surface)),var(--bg-surface)_72%)]">
         <CardBody className="grid gap-4 md:grid-cols-[1.2fr_2fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Recommended path</p>
-            <h2 className="mt-1 text-lg font-semibold">Configure Solvren from business controls to operations.</h2>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Advanced setup</p>
+            <h2 className="mt-1 text-lg font-semibold">Keep the simple setup journey first, then tune controls only when needed.</h2>
           </div>
           <div className="grid gap-3 text-sm md:grid-cols-3">
             <div>
-              <p className="font-semibold">1. Account</p>
+              <p className="font-semibold">1. Organization</p>
               <p className="text-[var(--text-muted)]">Set organization, access, and security defaults.</p>
             </div>
             <div>
-              <p className="font-semibold">2. Workflow</p>
+              <p className="font-semibold">2. Decisions</p>
               <p className="text-[var(--text-muted)]">Tune approvals, routing, and notifications.</p>
             </div>
             <div>
-              <p className="font-semibold">3. Operations</p>
-              <p className="text-[var(--text-muted)]">Use diagnostics when something needs deeper follow-up.</p>
+              <p className="font-semibold">3. Admin tools</p>
+              <p className="text-[var(--text-muted)]">Use diagnostics only when something needs deeper follow-up.</p>
             </div>
           </div>
         </CardBody>
       </Card>
 
-      <SectionHeader title="Settings categories" helper="Every control remains available, grouped by the job it supports." />
+      <SectionHeader title="Organization setup categories" helper="Every control remains available, grouped by the job it supports." />
 
       <Stack gap={4}>
         {SETTINGS_GROUPS.map((group) => {

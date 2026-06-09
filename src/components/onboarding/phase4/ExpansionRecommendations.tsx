@@ -18,14 +18,14 @@ export function ExpansionRecommendations() {
   if (items.length === 0) return null;
 
   return (
-    <div className="space-y-2 rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] p-4">
-      <h3 className="text-sm font-semibold text-[color:var(--rg-text)]">Expansion recommendations</h3>
+    <div className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+      <h3 className="text-sm font-semibold text-[var(--text)]">Expansion recommendations</h3>
       <ul className="space-y-2">
         {items.map((r) => (
-          <li key={r.id} className="rounded-md border border-[color:var(--rg-border)] p-3 text-xs">
-            <p className="font-medium text-[color:var(--rg-text)]">{r.title}</p>
-            <p className="mt-1 text-[color:var(--rg-text-muted)]">{r.description}</p>
-            <p className="mt-1 text-[color:var(--rg-text-muted)]">
+          <li key={r.id} className="rounded-md border border-[var(--border)] p-3 text-xs">
+            <p className="font-medium text-[var(--text)]">{r.title}</p>
+            <p className="mt-1 text-[var(--text-muted)]">{r.description}</p>
+            <p className="mt-1 text-[var(--text-muted)]">
               Gap: {r.gapType} · Confidence {(r.confidence * 100).toFixed(0)}%
             </p>
           </li>

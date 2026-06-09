@@ -80,7 +80,7 @@ type SavedView = {
 type BulkAction = "NUDGE_APPROVERS" | "RETRY_FAILED" | "MARK_DELIVERED";
 
 const SEGMENTS: Array<{ key: CanonicalView; label: string }> = [
-  { key: "all", label: "All changes" },
+  { key: "all", label: "All decisions" },
   { key: "needs-review", label: "For my decision" },
   { key: "needs-details", label: "Needs details" },
   { key: "overdue", label: "Overdue" },
@@ -363,15 +363,15 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
   return (
     <div className="space-y-4" data-testid={`changes-workspace-${resolvedView}`}>
       <PageHeaderV2
-        breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Changes" }]}
-        title="Changes"
-        description="A workspace for declaring, preparing, reviewing, and approving revenue-impacting changes."
+        breadcrumbs={[{ label: "Home", href: "/home" }, { label: "Decisions" }]}
+        title="Decisions"
+        description="Revenue-sensitive work that needs approval, proof, or follow-up before it moves forward."
         actions={
           <Link
             href="/intake/new"
             className="inline-flex h-9 items-center justify-center rounded-md bg-[var(--primary)] px-4 text-sm font-semibold text-[var(--primary-contrast)] shadow-sm transition-colors hover:opacity-90"
           >
-            Declare Revenue Change
+            Add decision
           </Link>
         }
         helpTrigger={<PageHelpDrawer page="changes" />}
@@ -381,20 +381,20 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
         <CardBody>
           <div className="grid gap-3 md:grid-cols-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Workflow</p>
-              <p className="mt-1 text-sm text-[var(--text-muted)]">Draft → Prepare → Review → Approve → Monitor</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">What this is</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">The decisions that can affect revenue.</p>
             </div>
             <div>
-              <p className="font-semibold">Submitters</p>
-              <p className="text-sm text-[var(--text-muted)]">Add context and evidence before review.</p>
+              <p className="font-semibold">Why it matters</p>
+              <p className="text-sm text-[var(--text-muted)]">Slow or under-informed decisions can create avoidable loss.</p>
             </div>
             <div>
-              <p className="font-semibold">Reviewers</p>
-              <p className="text-sm text-[var(--text-muted)]">Use impact, evidence, and approvals to decide quickly.</p>
+              <p className="font-semibold">What to do</p>
+              <p className="text-sm text-[var(--text-muted)]">Start with the recommended next item and approve, add proof, or follow up.</p>
             </div>
             <div>
-              <p className="font-semibold">Leaders</p>
-              <p className="text-sm text-[var(--text-muted)]">See what is blocked, overdue, or high impact.</p>
+              <p className="font-semibold">Where proof lives</p>
+              <p className="text-sm text-[var(--text-muted)]">Open any decision to see impact, owners, proof, and activity.</p>
             </div>
           </div>
         </CardBody>
@@ -435,7 +435,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
               <option value="high">High impact</option>
             </select>
             <span className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)]">
-              High impact logic
+              High impact
               <MetricHelpTooltip metricKey="high_impact" page="changes" section="filters" />
             </span>
             <select
@@ -462,8 +462,8 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
               aria-label="Filter by intake source"
             >
               <option value="">All intake sources</option>
-              <option value="NATIVE">Native integrations</option>
-              <option value="OTHER_LEGACY">Other / legacy</option>
+              <option value="NATIVE">Connected systems</option>
+              <option value="OTHER_LEGACY">Manually added</option>
             </select>
           </div>
 
@@ -630,7 +630,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
               }
               action={
                 <Link href="/intake/new" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-                  Declare a new revenue change
+                  Add a decision
                 </Link>
               }
             />
@@ -652,7 +652,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
                         }}
                       />
                     </th>
-                    <th className="px-2 py-2">Change</th>
+                    <th className="px-2 py-2">Decision</th>
                     <th className="px-2 py-2">Owner</th>
                     <th className="px-2 py-2">Pending reviews</th>
                     <th className="px-2 py-2">Due</th>
@@ -774,7 +774,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
 
           <aside className="fixed inset-y-0 right-0 z-30 hidden w-[420px] border-l border-[var(--border)] bg-[var(--bg-elevated)] p-4 shadow-xl lg:block">
             <div className="flex items-center justify-between">
-              <p className="text-xs uppercase text-[var(--text-muted)]">Change details</p>
+              <p className="text-xs uppercase text-[var(--text-muted)]">Decision details</p>
               <button onClick={() => setActiveRowId(null)} className="text-sm text-[var(--text-muted)]">
                 Close
               </button>
@@ -804,7 +804,7 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
                 </p>
               )}
               <Link href={`/changes/${activeRow.changeId}`} className="inline-block text-sm font-semibold text-[var(--primary)] hover:underline">
-                Open full change page
+                Open full decision page
               </Link>
             </div>
           </aside>
@@ -813,3 +813,4 @@ export default function ReviewsTable({ view, learnedRiskFilter, hasIncidentsFilt
     </div>
   );
 }
+

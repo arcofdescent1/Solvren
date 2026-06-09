@@ -178,8 +178,8 @@ export function SalesforceSetupWizard({ orgId, connected, isAdmin, config, initi
       {step === "rules" && (
         <Card>
           <CardBody className="space-y-4">
-            <h3 className="font-semibold text-lg">Step 4 — Governance rules</h3>
-            <p className="text-sm text-[var(--text-muted)]">Governance rules are configured in domain and approval settings.</p>
+            <h3 className="font-semibold text-lg">Step 4 - Decision rules</h3>
+            <p className="text-sm text-[var(--text-muted)]">Decision rules are configured in domain and approval settings.</p>
             <Button onClick={handleRulesNext}>Continue</Button>
           </CardBody>
         </Card>
@@ -188,7 +188,7 @@ export function SalesforceSetupWizard({ orgId, connected, isAdmin, config, initi
       {step === "validate" && (
         <Card>
           <CardBody className="space-y-4">
-            <h3 className="font-semibold text-lg">Step 5 — Validation</h3>
+            <h3 className="font-semibold text-lg">Step 5 - Validation</h3>
             {error && <p className="text-sm text-amber-600">{error}</p>}
             <Button onClick={handleValidate} disabled={loading}>
               {loading ? "Validating…" : "Test connection"}
@@ -213,3 +213,4 @@ export function SalesforceSetupWizard({ orgId, connected, isAdmin, config, initi
     </div>
   );
 }
+

@@ -10,6 +10,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  DecisionProblemBrief,
+  PageActionBar,
   PageHeaderV2,
   SectionHeader,
 } from "@/ui";
@@ -300,103 +302,66 @@ export default async function ChangeDetailPage({
         description="A plain-English decision record for a revenue-sensitive change."
       />
 
-      <Card className="sticky top-[calc(var(--topbar-height)+0.75rem)] z-20 border-[var(--primary)]/20 bg-[color:color-mix(in_oklab,var(--bg-surface)_96%,var(--bg-app))] shadow-md">
-        <CardBody className="py-3">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <nav className="flex flex-wrap gap-1 text-sm" aria-label="Change decision sections">
-              {[
-                { label: "Decision", href: "#decision" },
-                { label: "Revenue impact", href: "#impact" },
-                { label: "Proof", href: "#proof" },
-                { label: "Approvals", href: "#approvals" },
-                { label: "Activity", href: "#activity" },
-                { label: "System record", href: "#system-details" },
-              ].map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="inline-flex h-9 items-center rounded-[var(--radius-md)] px-3 font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-surface-2)] hover:text-[var(--primary)]"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-            <div className="flex flex-wrap items-center gap-2">
-              {(change.status === "DRAFT" || change.status === "READY") && (
-                <Button asChild variant="secondary" size="md">
-                  <Link href={`/changes/${id}/intake?step=review`}>Guided intake</Link>
-                </Button>
-              )}
-              <LinkIncidentButton changeEventId={change.id} orgId={change.org_id} />
-              <SubmitForReviewButton changeEventId={id} status={change.status} />
-              <Button asChild variant="outline" size="md">
-                <a href={`/api/changes/${id}/approval-packet?format=pdf`} download>
-                  Proof packet
-                </a>
+      <PageActionBar
+        ariaLabel="Change decision sections"
+        items={[
+          { label: "Decision", href: "#decision" },
+          { label: "Revenue impact", href: "#impact" },
+          { label: "Proof", href: "#proof" },
+          { label: "Approvals", href: "#approvals" },
+          { label: "Activity", href: "#activity" },
+          { label: "System record", href: "#system-details" },
+        ]}
+        actions={
+          <>
+            {(change.status === "DRAFT" || change.status === "READY") && (
+              <Button asChild variant="secondary" size="md">
+                <Link href={`/changes/${id}/intake?step=review`}>Guided intake</Link>
               </Button>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+            )}
+            <LinkIncidentButton changeEventId={change.id} orgId={change.org_id} />
+            <SubmitForReviewButton changeEventId={id} status={change.status} />
+            <Button asChild variant="outline" size="md">
+              <a href={`/api/changes/${id}/approval-packet?format=pdf`} download>
+                Proof packet
+              </a>
+            </Button>
+          </>
+        }
+      />
 
       <section id="decision" className="scroll-mt-28 space-y-4">
-        <Card className="border-[var(--primary)]/25">
-          <CardBody className="p-0">
-            <div className="grid gap-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(340px,0.8fr)]">
-              <div className="space-y-5 p-6">
-                <div className="flex flex-wrap items-center gap-2">
+        <DecisionProblemBrief
+          eyebrow="What happened"
+          title={executiveDecision}
+          description="A revenue-sensitive change needs a clear decision. Solvren summarizes the business risk, proof, ownership, and next action so leaders can decide without reading implementation details."
+          badges={
+            <>
                   <Badge variant={statusTone(change.status)}>{statusLabel(change.status)}</Badge>
                   {assessment?.risk_bucket ? <Badge variant="outline">{assessment.risk_bucket} attention</Badge> : null}
                   {(change as { is_restricted?: boolean | null }).is_restricted ? <Badge variant="danger">Restricted</Badge> : null}
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Executive decision brief</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-normal text-[var(--text)]">{executiveDecision}</h2>
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--text-muted)]">
-                    This page summarizes the business risk, proof, ownership, and next action so leaders can decide quickly without reading implementation details.
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
-                    <p className="text-xs font-medium text-[var(--text-muted)]">Money at risk</p>
-                    <p className="mt-2 text-2xl font-semibold">{formatMoney(revenueAtRisk ?? estimatedMrr)}</p>
-                  </div>
-                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
-                    <p className="text-xs font-medium text-[var(--text-muted)]">Approval progress</p>
-                    <p className="mt-2 text-lg font-semibold">{approvalStatus}</p>
-                  </div>
-                  <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
-                    <p className="text-xs font-medium text-[var(--text-muted)]">Proof status</p>
-                    <p className="mt-2 text-lg font-semibold">{protectionStatus}</p>
-                  </div>
-                </div>
-              </div>
-
-              <aside className="border-t border-[var(--border)] bg-[var(--card-cap-bg)] p-6 lg:border-l lg:border-t-0">
-                <h3 className="text-base font-semibold">What needs to happen next</h3>
-                <p className="mt-2 text-sm text-[var(--text-muted)]">{primaryNextStep}</p>
-                <div className="mt-5 space-y-3 text-sm">
-                  <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-3">
-                    <span className="text-[var(--text-muted)]">Revenue area</span>
-                    <span className="text-right font-semibold">{visibleRevenueSurface}</span>
-                  </div>
-                  <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-3">
-                    <span className="text-[var(--text-muted)]">Customers affected</span>
-                    <span className="text-right font-semibold">{customerImpact == null ? "Not estimated" : `${customerImpact}%`}</span>
-                  </div>
-                  <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-3">
-                    <span className="text-[var(--text-muted)]">Open reviews</span>
-                    <span className="text-right font-semibold">{pendingApprovalCount}</span>
-                  </div>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <PredictionBadge changeId={id} />
-                  <RunSlaTickButton />
-                </div>
-              </aside>
-            </div>
-          </CardBody>
-        </Card>
+            </>
+          }
+          metrics={[
+            { label: "Why it matters", value: formatMoney(revenueAtRisk ?? estimatedMrr), helper: "Current money at risk" },
+            { label: "Who needs to decide", value: approvalStatus },
+            { label: "What proof exists", value: protectionStatus },
+          ]}
+          nextTitle="What should happen next"
+          nextBody={primaryNextStep}
+          facts={[
+            { label: "Owner", value: isOwner ? "You created this" : "Change owner" },
+            { label: "Revenue area", value: visibleRevenueSurface },
+            { label: "Customers affected", value: customerImpact == null ? "Not estimated" : `${customerImpact}%` },
+            { label: "Open reviews", value: pendingApprovalCount },
+          ]}
+          nextActions={
+            <>
+              <PredictionBadge changeId={id} />
+              <RunSlaTickButton />
+            </>
+          }
+        />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.45fr)]">

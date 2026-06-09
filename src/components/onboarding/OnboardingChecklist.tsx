@@ -71,20 +71,20 @@ export function OnboardingChecklist() {
   return (
     <Card>
       <CardBody>
-        <h3 className="mb-3 text-sm font-semibold text-[color:var(--rg-text)]">Getting Started</h3>
-        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--rg-border)]">
+        <h3 className="mb-3 text-sm font-semibold text-[var(--text)]">Getting Started</h3>
+        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
           <div
-            className="h-full bg-[color:var(--rg-primary)] transition-all"
+            className="h-full bg-[var(--primary)] transition-all"
             style={{ width: `${percent}%` }}
           />
         </div>
-        <p className="mb-4 text-xs text-[color:var(--rg-text-muted)]">
+        <p className="mb-4 text-xs text-[var(--text-muted)]">
           {percent}% complete • {data.tracker?.onboardingStage ?? data.stage ?? data.onboardingState}
         </p>
         <ul className="space-y-2">
           {data.steps.map((step) => (
             <li key={step.stepKey} className="flex items-center justify-between gap-2 text-sm">
-              <span className={step.stepStatus === "COMPLETED" ? "text-[color:var(--rg-text-muted)] line-through" : ""}>
+              <span className={step.stepStatus === "COMPLETED" ? "text-[var(--text-muted)] line-through" : ""}>
                 {step.displayName}
               </span>
               <Badge
@@ -103,7 +103,7 @@ export function OnboardingChecklist() {
         </ul>
         <Link
           href="/onboarding"
-          className="mt-4 inline-block text-sm font-medium text-[color:var(--rg-primary)] hover:underline"
+          className="mt-4 inline-block text-sm font-medium text-[var(--primary)] hover:underline"
         >
           Continue setup →
         </Link>

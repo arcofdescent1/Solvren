@@ -1,6 +1,3 @@
-/**
- * Phase 1 Gap 1 — Evidence panel: rule matches, raw signals, explainability.
- */
 import { Card, CardBody } from "@/ui";
 
 type EvidenceItem = {
@@ -22,15 +19,15 @@ export function IssueEvidencePanel({
   const ruleMatches = evidence.filter((e) => e.evidenceType === "rule_match");
   const rawSignals = evidence.filter((e) => e.evidenceType === "raw_signal");
   const other = evidence.filter((e) => !["rule_match", "raw_signal"].includes(e.evidenceType));
-
-  const hasContent = ruleMatches.length > 0 || rawSignals.length > 0 || other.length > 0 || (evidenceJson && Object.keys(evidenceJson).length > 0);
+  const hasRawEvidence = Boolean(evidenceJson && Object.keys(evidenceJson).length > 0);
+  const hasContent = ruleMatches.length > 0 || rawSignals.length > 0 || other.length > 0 || hasRawEvidence;
 
   if (!hasContent) {
     return (
       <Card>
         <CardBody>
-          <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Evidence</h3>
-          <p className="text-sm text-[var(--text-muted)]">No structured evidence attached.</p>
+          <h3 className="mb-2 text-sm font-medium text-[var(--text-muted)]">Proof</h3>
+          <p className="text-sm text-[var(--text-muted)]">No structured proof attached yet.</p>
         </CardBody>
       </Card>
     );
@@ -39,62 +36,60 @@ export function IssueEvidencePanel({
   return (
     <Card>
       <CardBody>
-        <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Evidence</h3>
-        {detectorKey && (
-          <p className="text-xs text-[var(--text-muted)] mb-2">
-            Detector: <span className="font-mono">{detectorKey}</span>
+        <h3 className="mb-2 text-sm font-medium text-[var(--text-muted)]">Proof</h3>
+        {detectorKey ? (
+          <p className="mb-2 text-xs text-[var(--text-muted)]">
+            Detection rule: <span className="font-mono">{detectorKey}</span>
           </p>
-        )}
+        ) : null}
 
-        {ruleMatches.length > 0 && (
+        {ruleMatches.length > 0 ? (
           <div className="mb-3">
-            <p className="text-xs text-[var(--text-muted)] mb-1">Rule matches</p>
+            <p className="mb-1 text-xs text-[var(--text-muted)]">Rule matches</p>
             <ul className="space-y-1.5">
-              {ruleMatches.map((r, i) => (
-                <li key={`${r.evidenceKey}-${i}`} className="text-sm rounded bg-[var(--bg-surface-2)] p-2">
-                  <span className="font-medium">{formatEvidenceKey(r.evidenceKey)}</span>
-                  {r.payload.headline != null && (
-                    <p className="mt-0.5 text-[var(--text-muted)]">{String(r.payload.headline)}</p>
-                  )}
-                  {r.payload.threshold != null && (
-                    <p className="text-xs mt-0.5">
-                      {String(r.payload.threshold)}: {String(r.payload.actual)} (limit: {String(r.payload.limit ?? "—")})
+              {ruleMatches.map((rule, index) => (
+                <li key={`${rule.evidenceKey}-${index}`} className="rounded-[var(--radius-md)] bg-[var(--bg-surface-2)] p-2 text-sm">
+                  <span className="font-medium">{formatEvidenceKey(rule.evidenceKey)}</span>
+                  {rule.payload.headline != null ? (
+                    <p className="mt-0.5 text-[var(--text-muted)]">{String(rule.payload.headline)}</p>
+                  ) : null}
+                  {rule.payload.threshold != null ? (
+                    <p className="mt-0.5 text-xs">
+                      {String(rule.payload.threshold)}: {String(rule.payload.actual)} (limit: {String(rule.payload.limit ?? "-")})
                     </p>
-                  )}
+                  ) : null}
                 </li>
               ))}
             </ul>
           </div>
-        )}
+        ) : null}
 
-        {rawSignals.length > 0 && (
+        {rawSignals.length > 0 ? (
           <div className="mb-3">
-            <p className="text-xs text-[var(--text-muted)] mb-1">Signals</p>
+            <p className="mb-1 text-xs text-[var(--text-muted)]">Signals</p>
             <ul className="space-y-1 text-sm">
-              {rawSignals.map((s, i) => (
-                <li key={`${s.evidenceKey}-${i}`} className="font-mono text-xs">
-                  {s.payload.signalKey as string} @ {(s.payload.signalTime as string)?.slice?.(0, 19)}
+              {rawSignals.map((signal, index) => (
+                <li key={`${signal.evidenceKey}-${index}`} className="font-mono text-xs">
+                  {signal.payload.signalKey as string} @ {(signal.payload.signalTime as string)?.slice?.(0, 19)}
                 </li>
               ))}
             </ul>
           </div>
-        )}
+        ) : null}
 
-        {evidenceJson && Object.keys(evidenceJson).length > 0 && (
-          <div className="mt-2 pt-2 border-t border-[var(--border)]">
-            <p className="text-xs text-[var(--text-muted)] mb-1">Raw evidence</p>
-            <pre className="text-xs overflow-auto max-h-40 rounded bg-[var(--bg-surface-2)] p-2">
+        {hasRawEvidence ? (
+          <div className="mt-2 border-t border-[var(--border)] pt-2">
+            <p className="mb-1 text-xs text-[var(--text-muted)]">Raw proof</p>
+            <pre className="max-h-40 overflow-auto rounded-[var(--radius-md)] bg-[var(--bg-surface-2)] p-2 text-xs">
               {JSON.stringify(evidenceJson, null, 2)}
             </pre>
           </div>
-        )}
+        ) : null}
       </CardBody>
     </Card>
   );
 }
 
 function formatEvidenceKey(key: string): string {
-  return key
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }

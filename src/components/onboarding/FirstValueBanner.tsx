@@ -37,17 +37,17 @@ export function FirstValueBanner() {
   if (!reached) return null;
 
   return (
-    <div className="rounded-lg border border-[color:var(--rg-success)]/30 bg-[color:var(--rg-success)]/5 px-4 py-3">
+    <div className="rounded-lg border border-[var(--success)]/30 bg-[var(--success)]/5 px-4 py-3">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-[color:var(--rg-success)]">First value reached!</p>
-          <p className="text-xs text-[color:var(--rg-text-muted)]">
+          <p className="text-sm font-semibold text-[var(--success)]">First value reached!</p>
+          <p className="text-xs text-[var(--text-muted)]">
             You&apos;ve achieved your first meaningful outcome. View your timeline to see recovered revenue, avoided loss, and more.
           </p>
         </div>
         <Link
           href="/dashboard"
-          className="rounded bg-[color:var(--rg-success)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+          className="rounded bg-[var(--success)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
         >
           View Timeline
         </Link>

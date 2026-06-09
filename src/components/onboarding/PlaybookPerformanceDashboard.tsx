@@ -50,13 +50,13 @@ export function PlaybookPerformanceDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-[color:var(--rg-text)]">Playbook Performance</h2>
+        <h2 className="text-lg font-semibold text-[var(--text)]">Playbook Performance</h2>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setSortBy("recovered")}
             className={`rounded px-2 py-1 text-xs font-medium ${
-              sortBy === "recovered" ? "bg-[color:var(--rg-primary)]/20 text-[color:var(--rg-primary)]" : ""
+              sortBy === "recovered" ? "bg-[var(--primary)]/20 text-[var(--primary)]" : ""
             }`}
           >
             By value
@@ -65,7 +65,7 @@ export function PlaybookPerformanceDashboard() {
             type="button"
             onClick={() => setSortBy("score")}
             className={`rounded px-2 py-1 text-xs font-medium ${
-              sortBy === "score" ? "bg-[color:var(--rg-primary)]/20 text-[color:var(--rg-primary)]" : ""
+              sortBy === "score" ? "bg-[var(--primary)]/20 text-[var(--primary)]" : ""
             }`}
           >
             By score
@@ -74,7 +74,7 @@ export function PlaybookPerformanceDashboard() {
       </div>
 
       {sorted.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[color:var(--rg-border)] p-8 text-center text-sm text-[color:var(--rg-text-muted)]">
+        <div className="rounded-lg border border-dashed border-[var(--border)] p-8 text-center text-sm text-[var(--text-muted)]">
           No playbooks enabled yet. Enable a playbook to see performance here.
         </div>
       ) : (

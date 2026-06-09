@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import {
+  ArrowRight,
+  CheckCircle2,
+  CircleDollarSign,
+  ClipboardCheck,
+  Plug,
+  ShieldCheck,
+  TriangleAlert,
+} from "lucide-react";
+import {
   Badge,
   Button,
   Card,
@@ -22,14 +31,7 @@ import type {
   HomeRoleStats,
   HomeWorkItem,
 } from "@/features/home/presentation/types";
-import { HELP_COPY } from "@/config/helpCopy";
-import {
-  EmptyStateHelp,
-  MetricHelpTooltip,
-  PageHelpDrawer,
-  WhatHappensNextCallout,
-  WhySurfacedText,
-} from "@/components/help";
+import { PRODUCT_TERMS } from "@/config/productLanguage";
 import { Phase2ActivationSuccessCard } from "@/components/home/Phase2ActivationSuccessCard";
 import { REVENUE_PROTECTION_PLAYBOOKS } from "@/lib/product/revenueProtectionPlaybooks";
 
@@ -48,9 +50,23 @@ type Props = {
   activity: HomeActivityItem[];
   setupIncomplete: boolean;
   roiSignal: "improving" | "stable" | "needs_attention";
-  /** ISO timestamp from the same ROI summary payload as Insights (30d, active org). */
   roiSignalAsOf: string | null;
 };
+
+const ROLE_NAMES: Record<HomeRole, string> = {
+  OWNER: "Executive owner",
+  ADMIN: "Administrator",
+  REVIEWER: "Reviewer",
+  SUBMITTER: "Submitter",
+  VIEWER: "Viewer",
+};
+
+const TOOL_LINKS = [
+  { title: "Decisions", body: "Review changes, evidence, and approvals.", href: "/changes?view=all", icon: ClipboardCheck },
+  { title: "Problems", body: "See revenue issues that need action.", href: "/issues", icon: TriangleAlert },
+  { title: "Proof", body: "Show protected value and outcomes.", href: "/insights", icon: ShieldCheck },
+  { title: "Setup", body: "Connect systems, people, and rules.", href: "/integrations", icon: Plug },
+] as const;
 
 function urgencyVariant(urgency: HomeWorkItem["urgency"]) {
   if (urgency === "critical") return "danger";
@@ -58,145 +74,119 @@ function urgencyVariant(urgency: HomeWorkItem["urgency"]) {
   return "secondary";
 }
 
-function whySurfaced(item: HomeWorkItem) {
-  if (item.overdue && item.assignedToCurrentUser) return HELP_COPY.whySurfaced.overdue_assigned;
-  if (item.nextStep === "Review approvals") return HELP_COPY.whySurfaced.awaiting_review;
-  if (item.nextStep === "Add supporting details") return HELP_COPY.whySurfaced.missing_details;
-  if (item.nextStep === "Retry notifications") return HELP_COPY.whySurfaced.delivery_problem;
-  if (item.linkedToActiveIssue) return HELP_COPY.whySurfaced.linked_issue;
-  return "Surfaced because it currently needs action or follow-up.";
+function statusText(item: HomeWorkItem) {
+  if (item.overdue) return "Overdue";
+  if (item.assignedToCurrentUser) return "Needs you";
+  if (item.blocked) return "Blocked";
+  if (item.highImpact) return "High impact";
+  return "In progress";
 }
 
-function workflowNext(item: HomeWorkItem) {
-  if (item.nextStep === "Add supporting details") return HELP_COPY.workflowNext.needs_details;
-  if (item.nextStep === "Retry notifications") return HELP_COPY.workflowNext.delivery_issue;
-  if (item.waitingReason && !item.assignedToCurrentUser) return HELP_COPY.workflowNext.waiting_on_others;
-  return null;
+function openLabel(item: HomeWorkItem) {
+  if (item.objectType === "Issue") return "Open problem";
+  if (item.objectType === "Change") return "Open decision";
+  return "Open item";
 }
 
-const OPERATING_MODEL = [
-  {
-    title: "Detect revenue problems",
-    body: "Find leakage, funnel risk, data quality issues, and risky change patterns.",
-    href: "/issues",
-  },
-  {
-    title: "Govern risky changes",
-    body: "Declare changes, collect evidence, route approvals, and release with confidence.",
-    href: "/changes?view=all",
-  },
-  {
-    title: "Route work clearly",
-    body: "Give each person one queue for reviews, evidence, assignments, and follow-up.",
-    href: "/actions",
-  },
-  {
-    title: "Prove business impact",
-    body: "Show exposure, prevented incidents, recovered value, readiness, and ROI.",
-    href: "/insights",
-  },
-] as const;
-
-const CAPABILITY_LINKS = [
-  { title: "Release readiness", body: "Portfolio and release risk", href: "/readiness" },
-  { title: "Verified outcomes", body: "Value stories and prevented loss", href: "/outcomes" },
-  { title: "Executive summary", body: "Leadership-ready overview", href: "/executive" },
-  { title: "Integrations", body: "Coverage, health, and setup", href: "/integrations" },
-  { title: "Policies", body: "Governance rules and exceptions", href: "/settings/policies" },
-  { title: "Team settings", body: "Users, roles, access, and org setup", href: "/settings/users" },
-] as const;
-
-function roleLabel(role: HomeRole) {
-  if (role === "OWNER") return "Executive owner";
-  if (role === "ADMIN") return "Administrator";
-  if (role === "REVIEWER") return "Reviewer";
-  if (role === "SUBMITTER") return "Submitter";
-  return "Viewer";
+function roiLabel(roiSignal: Props["roiSignal"]) {
+  if (roiSignal === "improving") return "Improving";
+  if (roiSignal === "needs_attention") return "Needs attention";
+  return "Stable";
 }
 
-function roleCommand(role: HomeRole, stats: HomeRoleStats) {
-  if (role === "OWNER") {
-    return {
-      title: "Executive command view",
-      body: "Start with decisions, exposure, and whether the operating rhythm is protecting revenue.",
-      primary: { label: "Review decisions", href: "/changes?view=needs-my-review", value: stats.needsReviewCount },
-      secondary: [
-        { label: "High-impact items", href: "/issues", value: stats.highImpactCount },
-        { label: "Revenue impact", href: "/insights", value: null },
-        { label: "Verified outcomes", href: "/outcomes", value: null },
-      ],
-    };
-  }
-  if (role === "ADMIN") {
-    return {
-      title: "Admin control view",
-      body: "Keep coverage, governance, and system follow-up healthy so teams can trust the workflow.",
-      primary: { label: "Fix system follow-up", href: "/actions", value: stats.staleIntegrationCount + stats.waitingCount },
-      secondary: [
-        { label: "Connected systems", href: "/integrations", value: stats.connectedSystemCount },
-        { label: "Governance rules", href: "/settings/policies", value: null },
-        { label: "Team access", href: "/settings/users", value: null },
-      ],
-    };
-  }
-  if (role === "REVIEWER") {
-    return {
-      title: "Reviewer desk",
-      body: "Focus on decisions waiting for you, missing evidence, and risks that need judgment.",
-      primary: { label: "Decisions for me", href: "/changes?view=needs-my-review", value: stats.needsReviewCount },
-      secondary: [
-        { label: "Overdue work", href: "/changes?view=overdue", value: stats.overdueCount },
-        { label: "High-impact risks", href: "/issues", value: stats.highImpactCount },
-        { label: "Evidence gaps", href: "/changes?view=needs-details", value: stats.waitingCount },
-      ],
-    };
-  }
-  if (role === "SUBMITTER") {
-    return {
-      title: "Submitter workspace",
-      body: "Prepare changes for review by finishing intake, evidence, and follow-up before they block release.",
-      primary: { label: "Finish drafts", href: "/changes?view=needs-details", value: stats.draftCount },
-      secondary: [
-        { label: "Create change", href: "/intake/new", value: null },
-        { label: "Waiting on others", href: "/home#waiting-on-others", value: stats.waitingCount },
-        { label: "Changes in flight", href: "/changes?view=all", value: null },
-      ],
-    };
-  }
-  return {
-    title: "Read-only overview",
-    body: "See current risks, changes, and business impact without taking operational actions.",
-    primary: { label: "View revenue risks", href: "/issues", value: stats.openIssueCount },
-    secondary: [
-      { label: "Changes in flight", href: "/changes?view=all", value: null },
-      { label: "Business impact", href: "/insights", value: null },
-      { label: "Reports", href: "/insights/governance-reports", value: null },
-    ],
-  };
+function roiSentence(roiSignal: Props["roiSignal"]) {
+  if (roiSignal === "improving") return "Risk is trending down and Solvren has proof to show.";
+  if (roiSignal === "needs_attention") return "The business needs attention before risk turns into loss.";
+  return "The protection rhythm is steady.";
 }
 
-function workItemCard(item: HomeWorkItem, eventName: string, payload: Record<string, unknown>, showWhy: boolean) {
-  const next = workflowNext(item);
+function WorkCard({
+  item,
+  eventName,
+  position,
+  userId,
+  orgId,
+}: {
+  item: HomeWorkItem;
+  eventName: string;
+  position: number;
+  userId: string;
+  orgId: string | null;
+}) {
   return (
-    <Card key={item.id} className="shadow-sm">
+    <Card className="h-full border-[var(--border)] shadow-sm transition hover:border-[var(--primary)]/35 hover:shadow-md">
       <CardBody>
-        <Stack gap={2}>
-          <Stack direction="row" justify="between" align="center">
-            <p className="text-sm font-semibold">{item.title}</p>
-            <Badge variant={urgencyVariant(item.urgency)}>{item.urgency}</Badge>
+        <Stack gap={3}>
+          <Stack direction="row" justify="between" align="start" gap={3}>
+            <div>
+              <Badge variant={urgencyVariant(item.urgency)}>{statusText(item)}</Badge>
+              <h3 className="mt-3 text-base font-semibold leading-snug text-[var(--text)]">{item.title}</h3>
+            </div>
+            <Badge variant="outline">{item.objectType === "Issue" ? "Problem" : item.objectType}</Badge>
           </Stack>
-          <Stack direction="row" align="center" gap={2} className="text-xs text-[var(--text-muted)]">
-            <Badge variant="outline">{item.objectType}</Badge>
-            <span>{item.why}</span>
-          </Stack>
-          {showWhy ? <WhySurfacedText text={whySurfaced(item)} /> : null}
-          <p className="text-sm">Next step: {item.nextStep}</p>
-          {next ? <WhatHappensNextCallout text={next} /> : null}
-          <Button asChild variant="secondary" size="sm">
-            <Link href={item.destination} onClick={() => trackAppEvent(eventName, payload)}>
-              {item.objectType === "Issue" ? "Open issue" : item.objectType === "Change" ? "Open change" : "Open action"}
+          <p className="text-sm leading-6 text-[var(--text-muted)]">{item.why}</p>
+          <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Next best action</p>
+            <p className="mt-1 text-sm font-medium text-[var(--text)]">{item.nextStep}</p>
+          </div>
+          <Button asChild variant="secondary" size="sm" className="w-fit">
+            <Link
+              href={item.destination}
+              onClick={() =>
+                trackAppEvent(eventName, {
+                  user_id: userId,
+                  org_id: orgId,
+                  object_type: item.objectType,
+                  object_id: item.id,
+                  destination: item.destination,
+                  position,
+                })
+              }
+            >
+              {openLabel(item)}
+              <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </Button>
+        </Stack>
+      </CardBody>
+    </Card>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  body,
+  tone,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  body: string;
+  tone: "primary" | "danger" | "warning" | "success";
+  icon: typeof CircleDollarSign;
+}) {
+  const toneClass =
+    tone === "danger"
+      ? "bg-[var(--danger)]/10 text-[var(--danger)]"
+      : tone === "warning"
+        ? "bg-[var(--warning)]/15 text-[var(--warning)]"
+        : tone === "success"
+          ? "bg-[var(--success)]/10 text-[var(--success)]"
+          : "bg-[var(--primary)]/10 text-[var(--primary)]";
+
+  return (
+    <Card className="h-full shadow-sm">
+      <CardBody>
+        <Stack gap={3}>
+          <div className={`flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] ${toneClass}`}>
+            <Icon className="h-5 w-5" aria-hidden />
+          </div>
+          <div>
+            <p className="text-sm text-[var(--text-muted)]">{label}</p>
+            <p className="mt-1 text-2xl font-semibold text-[var(--text)]">{value}</p>
+          </div>
+          <p className="text-sm leading-6 text-[var(--text-muted)]">{body}</p>
         </Stack>
       </CardBody>
     </Card>
@@ -220,343 +210,301 @@ export default function HomeCommandCenterClient({
   roiSignalAsOf,
   showPhase2SuccessCard = false,
 }: Props) {
-  const roleView = roleCommand(role, roleStats);
-
   useEffect(() => {
     trackAppEvent("home_page_view", { user_id: userId, org_id: orgId, section: "home" });
   }, [userId, orgId]);
 
+  const exposure = exposureLabel ?? "Learning from connected systems";
+  const proofWindow = roiSignalAsOf ? `Updated ${new Date(roiSignalAsOf).toLocaleDateString()}` : "30-day view";
+
   return (
-    <Stack gap={6}>
+    <Stack gap={8}>
       <PageHeaderV2
         breadcrumbs={[{ label: "Home" }]}
-        title="Command Center"
-        description="A simple control room for revenue risk: what needs attention, what is exposed, and what Solvren is protecting."
-        helper="Start here for daily work. Use the queue for decisions, risks for investigations, changes for governance, and impact for executive proof."
-        helpTrigger={<PageHelpDrawer page="home" />}
+        title={PRODUCT_TERMS.home.title}
+        description="A simple view of the money at risk, the decisions that need action, and the proof that Solvren is protecting revenue."
+        helper="Everyone sees the same product. Solvren only changes what it prioritizes first."
       />
 
       {showPhase2SuccessCard ? <Phase2ActivationSuccessCard /> : null}
 
-      <Card className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_7%,var(--bg-surface)),var(--bg-surface)_58%,color-mix(in_oklab,var(--success)_5%,var(--bg-surface)))]">
-        <CardBody>
-          <Stack gap={4}>
-            <Stack direction="row" justify="between" gap={4} className="flex-wrap">
-              <div className="max-w-3xl">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Today in Solvren</p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-[var(--text)]">Act on the few things that protect revenue now.</h2>
-                <p className="mt-2 text-sm text-[var(--text-muted)]">
-                  You are seeing the {roleLabel(role).toLowerCase()} view. Solvren turns detections, risky changes, approvals, and verification into plain next steps for your role.
-                </p>
-              </div>
-              <div className="grid min-w-[16rem] grid-cols-2 gap-2 text-sm">
-                <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
-                  <p className="text-xs text-[var(--text-muted)]">Needs you</p>
-                  <p className="text-xl font-semibold">{assigned.length}</p>
-                </div>
-                <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
-                  <p className="text-xs text-[var(--text-muted)]">Blocked</p>
-                  <p className="text-xl font-semibold">{waiting.length}</p>
-                </div>
-              </div>
-            </Stack>
-            <Stack direction="row" gap={2} className="flex-wrap">
-              <Button asChild>
-                <Link data-testid="home-hero-action-center" href="/actions">
-                  Open Work Queue
-                </Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link data-testid="home-hero-changes" href="/changes?view=all">
-                  Review changes
-                </Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href="/insights">
-                  View business impact
-                </Link>
-              </Button>
-            </Stack>
+      <section className="rounded-[var(--radius-xl)] border border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_8%,var(--bg-surface)),var(--bg-surface)_48%,color-mix(in_oklab,var(--success)_7%,var(--bg-surface)))] p-5 shadow-sm sm:p-7">
+        <Stack gap={6}>
+          <Stack direction="row" justify="between" gap={6} className="flex-wrap">
+            <div className="max-w-3xl">
+              <Badge variant="outline">{ROLE_NAMES[role]}</Badge>
+              <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight text-[var(--text)]">
+                Protect revenue before a change, system issue, or missed decision turns into loss.
+              </h2>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--text-muted)]">
+                Solvren watches revenue-critical work, tells the right people what to decide, and produces proof leaders can trust.
+              </p>
+            </div>
+            <div className="min-w-[16rem] rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm">
+              <p className="text-sm text-[var(--text-muted)]">Right now</p>
+              <p className="mt-2 text-3xl font-semibold">{assigned.length + waiting.length}</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">items need action or follow-up</p>
+            </div>
           </Stack>
-        </CardBody>
-      </Card>
 
-      <Card className="border-[var(--border)]">
-        <CardBody>
-          <Stack gap={4}>
-            <Stack direction="row" justify="between" gap={4} className="flex-wrap">
-              <div className="max-w-2xl">
-                <Badge variant="outline">{roleLabel(role)}</Badge>
-                <h2 className="mt-3 text-lg font-semibold">{roleView.title}</h2>
-                <p className="mt-1 text-sm text-[var(--text-muted)]">{roleView.body}</p>
-              </div>
-              <Button asChild>
-                <Link href={roleView.primary.href}>
-                  {roleView.primary.label}
-                  {roleView.primary.value != null ? ` (${roleView.primary.value})` : ""}
-                </Link>
-              </Button>
-            </Stack>
-            <Grid cols={1} gap={3} className="md:grid-cols-3">
-              {roleView.secondary.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface)]"
-                >
-                  <Stack direction="row" justify="between" align="center" gap={3}>
-                    <span className="text-sm font-semibold text-[var(--text)]">{item.label}</span>
-                    {item.value != null ? <Badge variant="secondary">{item.value}</Badge> : null}
-                  </Stack>
-                </Link>
-              ))}
-            </Grid>
+          <Grid cols={1} gap={3} className="md:grid-cols-2 xl:grid-cols-4">
+            <MetricTile
+              icon={CircleDollarSign}
+              tone="danger"
+              label="Revenue at risk"
+              value={exposure}
+              body="The current dollar exposure Solvren can see from connected systems."
+            />
+            <MetricTile
+              icon={ClipboardCheck}
+              tone="warning"
+              label="Decisions waiting"
+              value={roleStats.needsReviewCount}
+              body="Approvals or change decisions that should not drift."
+            />
+            <MetricTile
+              icon={TriangleAlert}
+              tone="primary"
+              label="Open problems"
+              value={roleStats.openIssueCount}
+              body="Known issues that may affect customers, revenue, or delivery."
+            />
+            <MetricTile
+              icon={CheckCircle2}
+              tone="success"
+              label="Proof signal"
+              value={roiLabel(roiSignal)}
+              body={roiSentence(roiSignal)}
+            />
+          </Grid>
+
+          <Stack direction="row" gap={2} className="flex-wrap">
+            <Button asChild>
+              <Link data-testid="home-hero-action-center" href="/actions">
+                Review what needs attention
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/insights">
+                See proof
+                <ShieldCheck className="h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href={setupIncomplete ? "/integrations" : "/changes?view=all"}>
+                {setupIncomplete ? "Connect systems" : "Review decisions"}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
           </Stack>
-        </CardBody>
-      </Card>
+        </Stack>
+      </section>
 
       <Stack gap={3}>
-        <SectionHeader title="How to use Solvren" helper="The app is organized around four everyday jobs. Every capability rolls up into one of these areas." />
-        <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-4">
-          {OPERATING_MODEL.map((item) => (
-            <Link key={item.title} href={item.href} className="group block rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]">
-              <p className="font-semibold text-[var(--text)] group-hover:text-[var(--primary)]">{item.title}</p>
-              <p className="mt-1 text-sm text-[var(--text-muted)]">{item.body}</p>
-            </Link>
-          ))}
-        </Grid>
-      </Stack>
-
-      <Card>
-        <CardBody>
-          <SectionHeader
-            title="Revenue protection playbooks"
-            helper="Common enterprise paths that turn Solvren from monitoring into a repeatable operating model."
-            action={
-              <Link href="/insights" className="text-sm font-semibold text-[var(--primary)] hover:underline">
-                View proof
+        <SectionHeader
+          title="Today's focus"
+          helper="The shortest path to protecting revenue today."
+          action={
+            <Button asChild variant="secondary" size="sm">
+              <Link href="/actions">
+                Open all
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
-            }
-          />
-          <Grid cols={1} gap={3} className="mt-3 md:grid-cols-3">
-            {REVENUE_PROTECTION_PLAYBOOKS.slice(0, 3).map((playbook) => (
-              <Link
-                key={playbook.key}
-                href={playbook.href}
-                className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 transition hover:border-[var(--primary)]/40"
-              >
-                <p className="text-sm font-semibold">{playbook.title}</p>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">{playbook.trigger}</p>
-                <p className="mt-2 text-xs font-medium text-[var(--primary)]">{playbook.systems.slice(0, 3).join(" + ")}</p>
-              </Link>
-            ))}
-          </Grid>
-        </CardBody>
-      </Card>
-
-      <Stack gap={3} id="waiting-on-others">
-        <SectionHeader title="Today's priorities" helper={HELP_COPY.sections.todays_priorities} />
+            </Button>
+          }
+        />
         {priorities.length === 0 ? (
           <EmptyState
             variant="good_empty"
-            title="No urgent priorities right now"
-            body="There are no major items that need immediate review, resolution, or follow-up."
+            title="No urgent work right now"
+            body="Solvren will surface the next decision, problem, or follow-up as soon as it matters."
           />
         ) : (
-          <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-3">
-            {priorities.map((item, index) =>
-              workItemCard(
-                item,
-                "home_priority_open",
-                {
-                  user_id: userId,
-                  org_id: orgId,
-                  object_type: item.objectType,
-                  object_id: item.id,
-                  destination: item.destination,
-                  position: index,
-                },
-                true
-              )
-            )}
+          <Grid cols={1} gap={3} className="lg:grid-cols-3">
+            {priorities.slice(0, 3).map((item, index) => (
+              <WorkCard
+                key={item.id}
+                item={item}
+                eventName="home_priority_open"
+                position={index}
+                userId={userId}
+                orgId={orgId}
+              />
+            ))}
           </Grid>
         )}
       </Stack>
 
-      <Stack gap={3}>
-        <SectionHeader title="Assigned to me" helper={HELP_COPY.sections.assigned_to_me} />
-        {assigned.length === 0 ? (
-          <EmptyState
-            variant="good_empty"
-            title="Nothing is assigned to you right now"
-            body="Solvren will surface new work here when your review or follow-up is needed."
-          />
-        ) : (
-          <Grid cols={1} gap={3} className="md:grid-cols-2">
-            {assigned.map((item, index) =>
-              workItemCard(
-                item,
-                "home_assigned_open",
-                {
-                  user_id: userId,
-                  org_id: orgId,
-                  object_type: item.objectType,
-                  object_id: item.id,
-                  destination: item.destination,
-                  position: index,
-                },
-                false
-              )
-            )}
-          </Grid>
-        )}
-      </Stack>
-
-      <Stack gap={3}>
-        <SectionHeader title="Waiting on others" helper={HELP_COPY.sections.waiting_on_others} />
-        {waiting.length === 0 ? (
-          <EmptyState
-            variant="good_empty"
-            title="Nothing is blocked right now"
-            body="There are no major items currently waiting on another person, team, or system."
-          />
-        ) : (
-          <Grid cols={1} gap={3} className="md:grid-cols-2">
-            {waiting.map((item, index) =>
-              workItemCard(
-                item,
-                "home_waiting_open",
-                {
-                  user_id: userId,
-                  org_id: orgId,
-                  object_type: item.objectType,
-                  object_id: item.id,
-                  destination: item.destination,
-                  position: index,
-                },
-                false
-              )
-            )}
-          </Grid>
-        )}
-      </Stack>
-
-      <Stack gap={3}>
-        <SectionHeader title="Revenue at risk" helper="A plain-English snapshot of current exposure and where attention is concentrated." />
+      <Grid cols={1} gap={4} className="xl:grid-cols-[1.1fr_0.9fr]">
         <Card className="shadow-sm">
           <CardBody>
-            <Stack gap={3}>
-              <p className="text-2xl font-semibold">{exposureLabel ?? "Exposure data is still building"}</p>
-              <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-4">
-                {exposureMetrics.map((metric) => (
-                  <Card key={metric.label}>
-                    <CardBody>
-                      <Stack gap={1}>
-                        <Stack direction="row" align="center" gap={1}>
-                          <p className="text-xs text-[var(--text-muted)]">{metric.label}</p>
-                          <MetricHelpTooltip metricKey="revenue_at_risk" page="home" section="exposure" />
-                        </Stack>
-                        <p className="text-lg font-semibold">{metric.value}</p>
-                      </Stack>
-                    </CardBody>
-                  </Card>
-                ))}
-              </Grid>
-              <Button asChild variant="secondary">
-                <Link href="/insights">See impact details</Link>
-              </Button>
-            </Stack>
-          </CardBody>
-        </Card>
-      </Stack>
-
-      <Stack gap={3}>
-        <SectionHeader
-          title="Impact signal"
-          helper="30-day trend for whether Solvren is reducing risk and improving operational outcomes."
-        />
-        <Card className="shadow-sm">
-          <CardBody>
-            <Stack direction="row" justify="between" align="center">
-              <p className="text-sm">
-                {roiSignal === "improving"
-                  ? "The business is moving in the right direction."
-                  : roiSignal === "stable"
-                    ? "The operating rhythm is stable."
-                    : "Leadership attention may be needed."}
-              </p>
-              <Badge variant={roiSignal === "improving" ? "success" : roiSignal === "stable" ? "secondary" : "warning"}>
-                {roiSignal.replaceAll("_", " ")}
-              </Badge>
-            </Stack>
-            {roiSignalAsOf ? (
-              <p className="mt-2 text-xs text-[var(--text-muted)]">
-                As of {new Date(roiSignalAsOf).toLocaleString()} · 30d window vs previous 30d
-              </p>
-            ) : null}
-            <Button asChild variant="secondary" size="sm">
-              <Link href="/insights/roi?range=30d">View impact and outcomes</Link>
-            </Button>
-          </CardBody>
-        </Card>
-      </Stack>
-
-      <Stack gap={3}>
-        <SectionHeader
-          title="Where Solvren is protecting the business"
-          helper={HELP_COPY.sections.protection}
-        />
-        <Card className="shadow-sm">
-          <CardBody>
-            <Stack gap={3}>
-              <Grid cols={1} gap={3} className="md:grid-cols-3">
-                {protectionCards.map((card) => (
-                  <Card key={card.label}>
-                    <CardBody>
-                      <p className="text-xs text-[var(--text-muted)]">{card.label}</p>
-                      <p className="text-lg font-semibold">{card.value}</p>
-                    </CardBody>
-                  </Card>
-                ))}
-              </Grid>
-              {setupIncomplete ? (
-                <EmptyStateHelp
-                  variant="incomplete_setup"
-                  title="Finish setup to expand Solvren's protection"
-                  body="Connect systems and configure review coverage so Solvren can monitor more of your revenue-critical workflows."
-                  ctaLabel="Go to Integrations"
-                  ctaHref="/integrations"
-                  page="home"
-                  section="protection"
-                />
-              ) : null}
-              <Button asChild variant="secondary">
-                <Link href="/integrations">Go to Integrations</Link>
-              </Button>
-            </Stack>
-          </CardBody>
-        </Card>
-      </Stack>
-
-      <Stack gap={3}>
-        <SectionHeader title="Recent activity" helper={HELP_COPY.sections.recent_activity} />
-        <Card>
-          <CardBody>
-            <Stack gap={2}>
-              {activity.length === 0 ? (
-                <EmptyStateHelp
-                  variant="still_building"
-                  title="No recent activity yet"
-                  body="Important detections, changes, approvals, and follow-up will appear here as Solvren works."
-                  page="home"
-                  section="activity"
+            <Stack gap={4}>
+              <SectionHeader title="For you" helper="Your reviews, evidence, and follow-up in one place." />
+              {assigned.length === 0 ? (
+                <EmptyState
+                  variant="good_empty"
+                  title="Nothing is assigned to you"
+                  body="You can step away from this queue until Solvren asks for your judgment."
                 />
               ) : (
-                activity.map((item, index) => (
+                <Stack gap={3}>
+                  {assigned.slice(0, 4).map((item, index) => (
+                    <WorkCard
+                      key={item.id}
+                      item={item}
+                      eventName="home_assigned_open"
+                      position={index}
+                      userId={userId}
+                      orgId={orgId}
+                    />
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </CardBody>
+        </Card>
+
+        <Card className="shadow-sm" id="waiting-on-others">
+          <CardBody>
+            <Stack gap={4}>
+              <SectionHeader title="Waiting on others" helper="Items Solvren is tracking so they do not disappear." />
+              {waiting.length === 0 ? (
+                <EmptyState
+                  variant="good_empty"
+                  title="Nothing is blocked"
+                  body="No major item is currently waiting on another person, team, or system."
+                />
+              ) : (
+                <Stack gap={3}>
+                  {waiting.slice(0, 4).map((item, index) => (
+                    <WorkCard
+                      key={item.id}
+                      item={item}
+                      eventName="home_waiting_open"
+                      position={index}
+                      userId={userId}
+                      orgId={orgId}
+                    />
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </CardBody>
+        </Card>
+      </Grid>
+
+      <Grid cols={1} gap={4} className="xl:grid-cols-[0.95fr_1.05fr]">
+        <Card className="shadow-sm">
+          <CardBody>
+            <Stack gap={4}>
+              <SectionHeader title="Proof of protection" helper={`${proofWindow}. Plain proof that Solvren is reducing business risk.`} />
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
+                <Stack direction="row" justify="between" align="center" gap={3}>
+                  <div>
+                    <p className="text-sm text-[var(--text-muted)]">Protected value trend</p>
+                    <p className="mt-1 text-xl font-semibold">{roiLabel(roiSignal)}</p>
+                  </div>
+                  <Badge variant={roiSignal === "improving" ? "success" : roiSignal === "stable" ? "secondary" : "warning"}>
+                    {roiSentence(roiSignal)}
+                  </Badge>
+                </Stack>
+              </div>
+              <Grid cols={1} gap={3} className="md:grid-cols-3">
+                {protectionCards.map((card) => (
+                  <div key={card.label} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+                    <p className="text-xs text-[var(--text-muted)]">{card.label}</p>
+                    <p className="mt-1 text-lg font-semibold">{card.value}</p>
+                  </div>
+                ))}
+              </Grid>
+              {exposureMetrics.length > 0 ? (
+                <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+                  <p className="text-sm font-semibold">Current proof points</p>
+                  <Grid cols={1} gap={3} className="mt-3 md:grid-cols-2">
+                    {exposureMetrics.map((metric) => (
+                      <div key={metric.label}>
+                        <p className="text-xs text-[var(--text-muted)]">{metric.label}</p>
+                        <p className="mt-1 text-base font-semibold">{metric.value}</p>
+                      </div>
+                    ))}
+                  </Grid>
+                </div>
+              ) : null}
+              <Button asChild variant="secondary" size="sm" className="w-fit">
+                <Link href="/insights">
+                  Open proof
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+            </Stack>
+          </CardBody>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardBody>
+            <Stack gap={4}>
+              <SectionHeader title="What Solvren protects" helper="Common business moments where revenue loss usually hides." />
+              <Grid cols={1} gap={3} className="md:grid-cols-3">
+                {REVENUE_PROTECTION_PLAYBOOKS.slice(0, 3).map((playbook) => (
+                  <Link
+                    key={playbook.key}
+                    href={playbook.href}
+                    className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface)]"
+                  >
+                    <p className="text-sm font-semibold text-[var(--text)]">{playbook.title}</p>
+                    <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">{playbook.trigger}</p>
+                  </Link>
+                ))}
+              </Grid>
+            </Stack>
+          </CardBody>
+        </Card>
+      </Grid>
+
+      <Stack gap={3}>
+        <SectionHeader title="Everything else" helper="Nothing is hidden. These are the same core tools, grouped by the job they help you finish." />
+        <Grid cols={1} gap={3} className="md:grid-cols-2 xl:grid-cols-4">
+          {TOOL_LINKS.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <Link
+                key={tool.title}
+                href={tool.href}
+                className="group rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-4 shadow-sm transition hover:border-[var(--primary)]/40 hover:shadow-md"
+              >
+                <Stack gap={3}>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--bg-surface-2)] text-[var(--primary)]">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--text)] group-hover:text-[var(--primary)]">{tool.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">{tool.body}</p>
+                  </div>
+                </Stack>
+              </Link>
+            );
+          })}
+        </Grid>
+      </Stack>
+
+      <Stack gap={3}>
+        <SectionHeader title="Recent activity" helper="A short history of important decisions, problems, and follow-up." />
+        <Card className="shadow-sm">
+          <CardBody>
+            {activity.length === 0 ? (
+              <EmptyState
+                variant="still_building"
+                title="No recent activity yet"
+                body="Important detections, decisions, and follow-up will appear here as Solvren works."
+              />
+            ) : (
+              <Stack gap={2}>
+                {activity.slice(0, 6).map((item, index) => (
                   <Link
                     key={item.id}
                     href={item.destination}
-                    className="rounded-md border p-3 hover:bg-[var(--table-row-hover)]"
+                    className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface)]"
                     onClick={() =>
                       trackAppEvent("home_activity_open", {
                         user_id: userId,
@@ -568,47 +516,45 @@ export default function HomeCommandCenterClient({
                       })
                     }
                   >
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <p className="text-xs text-[var(--text-muted)]">{item.context ?? ""} · {item.relativeTime}</p>
+                    <Stack direction="row" justify="between" align="center" gap={3}>
+                      <div>
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">{item.context ?? "Activity"}</p>
+                      </div>
+                      <span className="text-xs text-[var(--text-muted)]">{item.relativeTime}</span>
+                    </Stack>
                   </Link>
-                ))
-              )}
-            </Stack>
+                ))}
+              </Stack>
+            )}
           </CardBody>
         </Card>
       </Stack>
 
-      <Stack gap={3}>
-        <SectionHeader title="All capabilities" helper="Nothing is hidden. These links expose the deeper surfaces for operators, admins, and executives." />
-        <Grid cols={1} gap={3} className="md:grid-cols-2 lg:grid-cols-3">
-          {CAPABILITY_LINKS.map((dest, index) => (
-            <Card key={dest.title} className="shadow-sm">
-              <CardBody>
-                <Stack gap={2}>
-                  <p className="font-semibold">{dest.title}</p>
-                  <p className="text-sm text-[var(--text-muted)]">{dest.body}</p>
-                  <Button asChild variant="secondary" size="sm">
-                    <Link
-                      data-testid={`home-go-next-${dest.title.toLowerCase().replaceAll(" ", "-")}`}
-                      href={dest.href}
-                      onClick={() =>
-                        trackAppEvent("home_go_next_click", {
-                          user_id: userId,
-                          org_id: orgId,
-                          destination: dest.href,
-                          position: index,
-                        })
-                      }
-                    >
-                      Open
-                    </Link>
-                  </Button>
+      {setupIncomplete ? (
+        <Card className="border-[var(--warning)]/35 bg-[var(--warning)]/5 shadow-sm">
+          <CardBody>
+            <Stack direction="row" justify="between" align="center" gap={4} className="flex-wrap">
+              <div className="max-w-2xl">
+                <Stack direction="row" align="center" gap={2}>
+                  <Plug className="h-5 w-5 text-[var(--warning)]" aria-hidden />
+                  <h2 className="text-lg font-semibold">Connect systems to expand protection</h2>
                 </Stack>
-              </CardBody>
-            </Card>
-          ))}
-        </Grid>
-      </Stack>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">
+                  Solvren gets more valuable as it watches CRM, billing, engineering, and support workflows together.
+                </p>
+              </div>
+              <Button asChild>
+                <Link href="/integrations">
+                  Connect systems
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+            </Stack>
+          </CardBody>
+        </Card>
+      ) : null}
+
     </Stack>
   );
 }

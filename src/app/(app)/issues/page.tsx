@@ -1,6 +1,3 @@
-/**
- * Phase 0 — Issues index with filters, status tabs, and table.
- */
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listIssues } from "@/modules/issues";
@@ -54,15 +51,15 @@ export default async function IssuesPage({
 
   const allIssues = result.issues ?? [];
   const statusSet = new Set(statusesForTab);
-  const issues = statusSet.size > 0 ? allIssues.filter((i) => statusSet.has(i.status)) : allIssues;
+  const issues = statusSet.size > 0 ? allIssues.filter((issue) => statusSet.has(issue.status)) : allIssues;
 
   const openTabStatuses = new Set<string>(OPEN_ISSUE_QUEUE_STATUSES);
   const tabCounts = {
-    open: allIssues.filter((i) => openTabStatuses.has(i.status)).length,
-    assigned: allIssues.filter((i) => ["assigned", "in_progress"].includes(i.status)).length,
-    pending_verification: allIssues.filter((i) => i.status === "resolved").length,
-    verified: allIssues.filter((i) => i.status === "verified").length,
-    dismissed: allIssues.filter((i) => i.status === "dismissed").length,
+    open: allIssues.filter((issue) => openTabStatuses.has(issue.status)).length,
+    assigned: allIssues.filter((issue) => ["assigned", "in_progress"].includes(issue.status)).length,
+    pending_verification: allIssues.filter((issue) => issue.status === "resolved").length,
+    verified: allIssues.filter((issue) => issue.status === "verified").length,
+    dismissed: allIssues.filter((issue) => issue.status === "dismissed").length,
   };
 
   return (
@@ -73,7 +70,7 @@ export default async function IssuesPage({
         helper={PAGE_COPY.issues.helper}
         helpTrigger={<PageHelpDrawer page="issues" />}
       />
-      <SectionHeader title="Issue queue" helper="Filter and triage detected problems by status, ownership, and severity." />
+      <SectionHeader title="Problems needing attention" helper="Find what may affect revenue, who owns it, and what should happen next." />
       <Card>
         <CardBody className="flex flex-col gap-4">
           <IssuesSavedViews />

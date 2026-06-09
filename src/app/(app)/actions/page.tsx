@@ -23,6 +23,7 @@ import {
   TableShell,
 } from "@/ui";
 import { PageHelpDrawer } from "@/components/help";
+import { PRODUCT_TERMS } from "@/config/productLanguage";
 
 type QueueItem = {
   id: string;
@@ -222,11 +223,11 @@ export default async function ActionCenterPage() {
   return (
     <Stack gap={6} className="flex flex-col">
       <PageHeaderV2
-        title="Work Queue"
-        description="One place for approvals, evidence requests, issue ownership, and operational follow-up."
+        title={PRODUCT_TERMS.decisions.title}
+        description={PRODUCT_TERMS.decisions.description}
         actions={
           <Link href="/insights/roi" className="text-sm font-medium text-[var(--primary)] hover:underline">
-            Impact and outcomes
+            Proof
           </Link>
         }
         helpTrigger={<PageHelpDrawer page="actions" />}
@@ -238,7 +239,7 @@ export default async function ActionCenterPage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">Start here</p>
               <h2 className="mt-1 text-lg font-semibold">Take the next clear action without decoding the system.</h2>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Solvren keeps approvals, issues, notifications, and write-back tasks available, but this queue organizes them by what a person should do next.
+                Solvren keeps approvals, problems, notifications, and system follow-up available, but this page organizes them by what a person should do next.
               </p>
             </div>
             <Grid cols={1} gap={3} className="md:grid-cols-3">
@@ -254,7 +255,7 @@ export default async function ActionCenterPage() {
               <Link href="/issues?assignee=me" className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--bg-surface-2)]">
                 <Stack direction="row" justify="between" align="center">
                   <div>
-                    <p className="font-semibold">Resolve assigned risks</p>
+                    <p className="font-semibold">Resolve assigned problems</p>
                     <p className="text-sm text-[var(--text-muted)]">Investigations and fixes you own</p>
                   </div>
                   <Badge variant={counts.risks > 0 ? "warning" : "secondary"}>{counts.risks}</Badge>
@@ -275,8 +276,8 @@ export default async function ActionCenterPage() {
       </Card>
 
       <TableShell
-        title="Prioritized work"
-        helper="Approvals, assigned risks, blocked changes, overdue items, and system follow-up sorted by urgency."
+        title="Prioritized decisions"
+        helper="Approvals, assigned problems, blocked changes, overdue items, and system follow-up sorted by urgency."
         toolbar={
           <Button asChild variant="secondary" size="sm">
             <Link href="/changes?view=needs-my-review">Review decisions</Link>
@@ -286,8 +287,8 @@ export default async function ActionCenterPage() {
           sortedQueue.length === 0 ? (
             <EmptyState
               variant="good_empty"
-              title="No work needs attention right now"
-              body="Approvals, assigned risks, blocked changes, and system follow-up will appear here when they need action."
+              title="Nothing needs attention right now"
+              body="Approvals, assigned problems, blocked changes, and system follow-up will appear here when they need action."
             />
           ) : null
         }

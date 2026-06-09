@@ -49,26 +49,26 @@ export function ExpandOrgFootprintStep(props: { onChanged: () => Promise<void> }
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] p-4">
-      <h3 className="text-sm font-semibold text-[color:var(--rg-text)]">Expand organizational footprint</h3>
-      <p className="text-xs text-[color:var(--rg-text-muted)]">
+    <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+      <h3 className="text-sm font-semibold text-[var(--text)]">Expand organizational footprint</h3>
+      <p className="text-xs text-[var(--text-muted)]">
         Add business units, regions, or subsidiaries. Each unit counts when it has members and qualifying usage in the
         last 30 days.
       </p>
       <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <label className="flex-1 text-xs">
-          <span className="text-[color:var(--rg-text-muted)]">Name</span>
+          <span className="text-[var(--text-muted)]">Name</span>
           <input
-            className="mt-1 w-full rounded-md border border-[color:var(--rg-border)] bg-transparent px-2 py-1.5 text-sm"
+            className="mt-1 w-full rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
         </label>
         <label className="text-xs sm:w-44">
-          <span className="text-[color:var(--rg-text-muted)]">Type</span>
+          <span className="text-[var(--text-muted)]">Type</span>
           <select
-            className="mt-1 w-full rounded-md border border-[color:var(--rg-border)] bg-transparent px-2 py-1.5 text-sm"
+            className="mt-1 w-full rounded-md border border-[var(--border)] bg-transparent px-2 py-1.5 text-sm"
             value={type}
             onChange={(e) => setType(e.target.value)}
           >
@@ -82,12 +82,12 @@ export function ExpandOrgFootprintStep(props: { onChanged: () => Promise<void> }
         <button
           type="submit"
           disabled={busy}
-          className="rounded-md bg-[color:var(--rg-primary)] px-3 py-2 text-xs font-medium text-[color:var(--rg-primary-fg)] disabled:opacity-50"
+          className="rounded-md bg-[var(--primary)] px-3 py-2 text-xs font-medium text-[var(--primary-contrast)] disabled:opacity-50"
         >
           {busy ? "Saving…" : "Add unit"}
         </button>
       </form>
-      {msg ? <p className="text-xs text-[color:var(--rg-text-muted)]">{msg}</p> : null}
+      {msg ? <p className="text-xs text-[var(--text-muted)]">{msg}</p> : null}
     </div>
   );
 }

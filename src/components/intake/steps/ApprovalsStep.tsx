@@ -95,7 +95,7 @@ export function ApprovalsStep(props: {
       <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-muted)]/50 p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">Why we suggest approvers</p>
         <p className="mt-1 text-sm text-[var(--text)]">
-          Governance rules map change type and impact to roles (e.g. Finance, RevOps). Applying suggestions saves time; you can add or remove approvers as needed.
+          Decision rules map change type and impact to roles (e.g. Finance, RevOps). Applying suggestions saves time; you can add or remove approvers as needed.
         </p>
       </div>
 

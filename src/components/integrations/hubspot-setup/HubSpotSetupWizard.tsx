@@ -130,21 +130,21 @@ export function HubSpotSetupWizard(props: Props) {
 
       {step === "field-risk" && (
         <Card><CardBody>
-          <h3 className="font-semibold text-lg">Step 3 — Property risk mapping</h3>
+          <h3 className="font-semibold text-lg">Step 3 - Property risk mapping</h3>
           <Button onClick={() => setStep("rules")}>Continue</Button>
         </CardBody></Card>
       )}
 
       {step === "rules" && (
         <Card><CardBody>
-          <h3 className="font-semibold text-lg">Step 4 — Governance rules</h3>
+          <h3 className="font-semibold text-lg">Step 4 - Decision rules</h3>
           <Button onClick={handleRulesNext}>Continue</Button>
         </CardBody></Card>
       )}
 
       {step === "validate" && (
         <Card><CardBody>
-          <h3 className="font-semibold text-lg">Step 5 — Validation</h3>
+          <h3 className="font-semibold text-lg">Step 5 - Validation</h3>
           {error && <p className="text-sm text-amber-600">{error}</p>}
           <Button onClick={handleValidate} disabled={loading}>Test connection</Button>
         </CardBody></Card>
@@ -160,3 +160,4 @@ export function HubSpotSetupWizard(props: Props) {
     </div>
   );
 }
+

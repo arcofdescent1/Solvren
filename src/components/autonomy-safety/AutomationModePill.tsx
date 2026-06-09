@@ -36,7 +36,7 @@ export function AutomationModePill({ requestedMode, effectiveMode }: Props) {
             <Badge variant="secondary">{MODE_LABELS[requestedMode]}</Badge>
             {isDowngraded && (
               <>
-                <span className="text-[color:var(--rg-text-muted)]">→</span>
+                <span className="text-[var(--text-muted)]">→</span>
                 <Badge variant="warning">{MODE_LABELS[effectiveMode]}</Badge>
               </>
             )}

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getActiveOrg } from "@/lib/org/activeOrg";
-import { PageHeader, Stack } from "@/ui";
+import { PageHeaderV2, Stack } from "@/ui";
 import { ActivationWizard } from "@/components/onboarding/phase2/ActivationWizard";
 
 export default async function ActivationOnboardingPage() {
@@ -15,12 +15,12 @@ export default async function ActivationOnboardingPage() {
 
   return (
     <div className="max-w-5xl space-y-6">
-      <PageHeader
-        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Activation" }]}
-        title="Activation & team rollout"
-        description="Embed Solvren into your operating model: team, priorities, workflows, approvals, and your first live signal."
+      <PageHeaderV2
+        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Setup" }]}
+        title="Turn protection on"
+        description="Choose what to protect, invite the right people, connect the first workflow, and start seeing risk and value."
       />
-      <Suspense fallback={<p className="text-sm text-[color:var(--rg-text-muted)]">Loading…</p>}>
+      <Suspense fallback={<p className="text-sm text-[var(--text-muted)]">Loading...</p>}>
         <Stack gap={4}>
           <ActivationWizard />
         </Stack>

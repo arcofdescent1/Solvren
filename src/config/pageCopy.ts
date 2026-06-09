@@ -1,49 +1,39 @@
+import { PRODUCT_TERMS } from "@/config/productLanguage";
+
 export const PAGE_COPY = {
   home: {
-    title: "Command Center",
-    description:
-      "Your revenue risk command center. See what needs attention, what is assigned to you, what is blocked, and where Solvren is protecting the business.",
-    helper:
-      "Solvren helps your team detect revenue-impacting issues, govern risky changes, and coordinate action before problems become losses.",
+    title: PRODUCT_TERMS.home.title,
+    description: PRODUCT_TERMS.home.description,
+    helper: PRODUCT_TERMS.home.helper,
   },
   issues: {
-    title: "Revenue Risks",
-    description:
-      "Problems Solvren detected across your systems. Investigate what happened, understand the business impact, and move resolution forward.",
-    helper:
-      "Start here when Solvren has identified a revenue-impacting problem that needs investigation or follow-up.",
+    title: PRODUCT_TERMS.problems.title,
+    description: PRODUCT_TERMS.problems.description,
+    helper: PRODUCT_TERMS.problems.helper,
   },
   changes: {
-    title: "Changes",
-    description:
-      "Revenue-impacting changes in flight. Track review status, missing details, deadlines, and what needs action next.",
-    helper:
-      "Start here when a change needs review, approval, supporting details, or follow-up.",
+    title: PRODUCT_TERMS.changes.title,
+    description: PRODUCT_TERMS.changes.description,
+    helper: PRODUCT_TERMS.changes.helper,
   },
   actions: {
-    title: "Work Queue",
-    description:
-      "Everything that needs action now, including work assigned to you, recommended next steps, and operational follow-up.",
-    helper: "Start here when you want to know exactly what needs your attention.",
+    title: PRODUCT_TERMS.decisions.title,
+    description: PRODUCT_TERMS.decisions.description,
+    helper: PRODUCT_TERMS.decisions.helper,
   },
   insights: {
-    title: "Insights",
-    description:
-      "Business impact, revenue exposure, governance health, and verified outcomes across your organization.",
-    helper:
-      "Start here when you need executive visibility into what Solvren is protecting and where risk is concentrated.",
+    title: PRODUCT_TERMS.proof.title,
+    description: PRODUCT_TERMS.proof.description,
+    helper: PRODUCT_TERMS.proof.helper,
   },
   integrations: {
-    title: "Integrations",
-    description:
-      "Manage the connected systems Solvren uses to detect issues, track changes, and verify outcomes.",
-    helper: "Healthy integrations improve coverage, signal quality, and trust in what Solvren detects.",
+    title: PRODUCT_TERMS.integrations.title,
+    description: PRODUCT_TERMS.integrations.description,
+    helper: PRODUCT_TERMS.integrations.helper,
   },
   settings: {
-    title: "Settings",
-    description:
-      "Configure your organization, team access, approval policies, notifications, and governance rules.",
-    helper:
-      "Use settings to control how Solvren works for your organization without changing the underlying monitoring model.",
+    title: PRODUCT_TERMS.settings.title,
+    description: PRODUCT_TERMS.settings.description,
+    helper: PRODUCT_TERMS.settings.helper,
   },
 } as const;

@@ -32,9 +32,9 @@ export function ExecutiveQBRStep(props: { onChanged: () => Promise<void> }) {
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] p-4">
-      <h3 className="text-sm font-semibold text-[color:var(--rg-text)]">Executive QBR cadence</h3>
-      <p className="text-xs text-[color:var(--rg-text-muted)]">
+    <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+      <h3 className="text-sm font-semibold text-[var(--text)]">Executive QBR cadence</h3>
+      <p className="text-xs text-[var(--text-muted)]">
         The 4-week streak uses <span className="font-medium">WEEKLY_EXECUTIVE_SUMMARY</span> rows linked to generated
         reports, delivered when processing completes, and opened by an executive in the same ISO week (org timezone).
       </p>
@@ -42,11 +42,11 @@ export function ExecutiveQBRStep(props: { onChanged: () => Promise<void> }) {
         type="button"
         disabled={busy}
         onClick={() => void generate()}
-        className="rounded-md bg-[color:var(--rg-primary)] px-3 py-2 text-xs font-medium text-[color:var(--rg-primary-fg)] disabled:opacity-50"
+        className="rounded-md bg-[var(--primary)] px-3 py-2 text-xs font-medium text-[var(--primary-contrast)] disabled:opacity-50"
       >
         {busy ? "Queueing…" : "Generate weekly executive summary"}
       </button>
-      {msg ? <p className="text-xs text-[color:var(--rg-text-muted)]">{msg}</p> : null}
+      {msg ? <p className="text-xs text-[var(--text-muted)]">{msg}</p> : null}
     </div>
   );
 }

@@ -55,15 +55,15 @@ export function EnterpriseExpansionCenter() {
   }, [refresh]);
 
   if (err) {
-    return <p className="text-sm text-[color:var(--rg-text-muted)]">{err}</p>;
+    return <p className="text-sm text-[var(--text-muted)]">{err}</p>;
   }
   if (!state) {
-    return <p className="text-sm text-[color:var(--rg-text-muted)]">Loading…</p>;
+    return <p className="text-sm text-[var(--text-muted)]">Loading…</p>;
   }
 
   if (!state.eligible) {
     return (
-      <p className="text-sm text-[color:var(--rg-text-muted)]">
+      <p className="text-sm text-[var(--text-muted)]">
         Phase 4 unlocks after Phase 3 completion and a maturity signal (30 days since Phase 3 completion in org timezone,
         ≥3 active value stories since Phase 3 completion, or enough active departments for your plan tier).
       </p>
@@ -92,8 +92,8 @@ export function EnterpriseExpansionCenter() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <RenewalScoreCard score={state.phase4RenewalScore} />
-        <div className="lg:col-span-2 rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] p-4 text-xs text-[color:var(--rg-text-muted)]">
-          <p className="font-medium text-[color:var(--rg-text)]">Cached counters (sync-owned)</p>
+        <div className="lg:col-span-2 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4 text-xs text-[var(--text-muted)]">
+          <p className="font-medium text-[var(--text)]">Cached counters (sync-owned)</p>
           <ul className="mt-2 list-disc space-y-1 pl-4">
             <li>Expanded units: {state.phase4ExpandedUnitCount}</li>
             <li>Connected integrations: {state.phase4ConnectedIntegrations}</li>
@@ -118,12 +118,12 @@ export function EnterpriseExpansionCenter() {
 
 function Milestone(props: { label: string; ok: boolean; detail: string }) {
   return (
-    <div className="rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-surface)] p-3">
-      <p className="text-xs font-medium text-[color:var(--rg-text)]">{props.label}</p>
-      <p className="mt-1 text-[10px] uppercase tracking-wide text-[color:var(--rg-text-muted)]">
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-3">
+      <p className="text-xs font-medium text-[var(--text)]">{props.label}</p>
+      <p className="mt-1 text-[10px] uppercase tracking-wide text-[var(--text-muted)]">
         {props.ok ? "Complete" : "In progress"}
       </p>
-      <p className="mt-1 text-xs text-[color:var(--rg-text-muted)]">{props.detail}</p>
+      <p className="mt-1 text-xs text-[var(--text-muted)]">{props.detail}</p>
     </div>
   );
 }

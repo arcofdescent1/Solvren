@@ -57,8 +57,8 @@ export function AutomationSafetyPanel(props: Props) {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-panel)] p-4">
-        <p className="text-sm text-[color:var(--rg-text-muted)]">Loading autonomy state…</p>
+      <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+        <p className="text-sm text-[var(--text-muted)]">Loading autonomy state…</p>
       </div>
     );
   }
@@ -68,11 +68,11 @@ export function AutomationSafetyPanel(props: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-[color:var(--rg-border)] bg-[color:var(--rg-panel)] p-4">
-      <h3 className="mb-3 text-sm font-semibold text-[color:var(--rg-text)]">Automation Safety</h3>
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-4">
+      <h3 className="mb-3 text-sm font-semibold text-[var(--text)]">Automation Safety</h3>
       <dl className="space-y-2 text-sm">
         <div className="flex items-center justify-between gap-4">
-          <dt className="text-[color:var(--rg-text-muted)]">Mode</dt>
+          <dt className="text-[var(--text-muted)]">Mode</dt>
           <dd>
             <AutomationModePill
               requestedMode={state.requestedMode as ExecutionMode}
@@ -81,7 +81,7 @@ export function AutomationSafetyPanel(props: Props) {
           </dd>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <dt className="text-[color:var(--rg-text-muted)]">Confidence</dt>
+          <dt className="text-[var(--text-muted)]">Confidence</dt>
           <dd>
             <AutonomyConfidenceBadge
               band={state.autonomyConfidenceBand as AutonomyConfidenceBand}
@@ -92,16 +92,16 @@ export function AutomationSafetyPanel(props: Props) {
         </div>
         {state.downgradeReasonCodes.length > 0 && (
           <div>
-            <dt className="mb-1 text-[color:var(--rg-text-muted)]">Downgrade reasons</dt>
-            <dd className="text-xs text-[color:var(--rg-text-muted)]">
+            <dt className="mb-1 text-[var(--text-muted)]">Downgrade reasons</dt>
+            <dd className="text-xs text-[var(--text-muted)]">
               {state.downgradeReasonCodes.join(", ")}
             </dd>
           </div>
         )}
         {state.pauseReasonCodes.length > 0 && (
           <div>
-            <dt className="mb-1 text-[color:var(--rg-text-muted)]">Pause reasons</dt>
-            <dd className="text-xs text-[color:var(--rg-text-muted)]">
+            <dt className="mb-1 text-[var(--text-muted)]">Pause reasons</dt>
+            <dd className="text-xs text-[var(--text-muted)]">
               {state.pauseReasonCodes.join(", ")}
             </dd>
           </div>

@@ -1,21 +1,23 @@
+import { PRODUCT_TERMS } from "@/config/productLanguage";
+
 export const PAGE_HELP = {
   home: {
     title: "How this page works",
     purpose:
-      "Home is your revenue risk command center: priorities first, then assignments, blockers, exposure, and where Solvren is actively protecting the business.",
+      "Home shows the plain answer first: what revenue is at risk, what needs attention, and what Solvren is protecting.",
     bullets: [
-      "Use Today's priorities for the most important work now.",
-      "Use Assigned to me for direct ownership and follow-up.",
-      "Use Waiting on others to understand external blockers.",
-      "Use Revenue at risk for estimated business exposure context.",
+      "Start with the money and the few items that need attention.",
+      "Use the primary action to review the most important work.",
+      "Look lower on the page only when you need supporting context.",
+      "Coverage and activity show whether Solvren is protecting the right systems.",
     ],
   },
   changes: {
     title: "How this page works",
     purpose:
-      "Changes helps you review revenue-impacting changes, understand blockers, and take one clear next action.",
+      `${PRODUCT_TERMS.changes.title} helps you review revenue-sensitive changes, understand blockers, and take one clear next action.`,
     bullets: [
-      "Use segments to focus on needs-review, needs-details, overdue, or delivery-health work.",
+      "Use filters to focus on decisions, missing proof, overdue work, or delivery follow-up.",
       "Open row details to see why the item surfaced and what happens next.",
       "Use bulk actions for nudge, retry, and export workflows.",
     ],
@@ -23,31 +25,31 @@ export const PAGE_HELP = {
   issues: {
     title: "How this page works",
     purpose:
-      "Issues shows detected problems that may affect revenue workflows and guides investigation and resolution.",
+      `${PRODUCT_TERMS.problems.title} shows detected problems that may affect revenue and guides investigation and resolution.`,
     bullets: [
       "Use status tabs to move between open, assigned, and verification states.",
       "Filter by ownership and severity to prioritize impact.",
-      "Open an issue for timeline, evidence, and resolution actions.",
+      "Open a problem for timeline, proof, and resolution actions.",
     ],
   },
   actions: {
     title: "How this page works",
     purpose:
-      "Work Queue brings approvals, missing details, overdue work, and system follow-up into one prioritized place.",
+      `${PRODUCT_TERMS.decisions.title} brings approvals, missing proof, overdue work, and follow-up into one prioritized place.`,
     bullets: [
       "Start at the top: items are ordered by urgency and business impact.",
-      "Use each item's recommended action to approve, add evidence, retry delivery, or follow up in context.",
-      "Completed work automatically improves change, issue, readiness, and executive views.",
+      "Use each item's recommended action to approve, add proof, retry delivery, or follow up in context.",
+      "Completed work automatically improves change reviews, problems, proof, and leadership views.",
     ],
   },
   insights: {
     title: "How this page works",
     purpose:
-      "Insights helps you understand exposure, governance outcomes, and business impact trends.",
+      `${PRODUCT_TERMS.proof.title} helps you understand exposure, protected value, and business impact trends.`,
     bullets: [
-      "Start with executive summary for high-level direction.",
-      "Use exposure drivers and revenue exposure for root-cause analysis.",
-      "Use governance reports for compliance and audit context.",
+      "Start with the current money at risk and whether it is improving.",
+      "Use exposure drivers to understand what is causing risk.",
+      "Use reports when you need board-ready or audit-ready proof.",
     ],
   },
   risk_drivers: {

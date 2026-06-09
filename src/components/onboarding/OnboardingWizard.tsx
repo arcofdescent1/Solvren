@@ -76,8 +76,8 @@ export function OnboardingWizard() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-xl font-semibold text-[color:var(--rg-text)]">Get started with Solvren</h1>
-      <p className="text-sm text-[color:var(--rg-text-muted)]">
+      <h1 className="text-xl font-semibold text-[var(--text)]">Get started with Solvren</h1>
+      <p className="text-sm text-[var(--text-muted)]">
         Follow these steps to connect integrations, enable playbooks, and reach your first value.
       </p>
 
@@ -88,19 +88,19 @@ export function OnboardingWizard() {
         return (
           <Card key={group.key}>
             <CardBody>
-              <h2 className="mb-4 text-sm font-semibold text-[color:var(--rg-text)]">{group.label}</h2>
+              <h2 className="mb-4 text-sm font-semibold text-[var(--text)]">{group.label}</h2>
               <ul className="space-y-3">
                 {steps.map((step) => (
                   <li
                     key={step.stepKey}
-                    className="flex items-center justify-between rounded border border-[color:var(--rg-border)] p-3"
+                    className="flex items-center justify-between rounded border border-[var(--border)] p-3"
                   >
                     <div>
                       <p className="text-sm font-medium">
                         {step.displayName}
-                        {step.required && <span className="ml-1 text-[color:var(--rg-danger)]">*</span>}
+                        {step.required && <span className="ml-1 text-[var(--danger)]">*</span>}
                       </p>
-                      <p className="text-xs text-[color:var(--rg-text-muted)]">{step.stepStatus}</p>
+                      <p className="text-xs text-[var(--text-muted)]">{step.stepStatus}</p>
                     </div>
                     <div className="flex gap-2">
                       {step.stepStatus !== "COMPLETED" && (

@@ -17,22 +17,22 @@ type Item = {
 };
 
 export default function ValueStoriesListPage() {
-  const sp = useSearchParams();
-  const orgId = sp.get("orgId");
+  const searchParams = useSearchParams();
+  const orgId = searchParams.get("orgId");
   const [items, setItems] = useState<Item[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const q = orgId ? `?orgId=${encodeURIComponent(orgId)}` : "";
-    const res = await fetch(`/api/outcomes/value-stories${q}`, { credentials: "include" });
+    const query = orgId ? `?orgId=${encodeURIComponent(orgId)}` : "";
+    const res = await fetch(`/api/outcomes/value-stories${query}`, { credentials: "include" });
     if (!res.ok) {
-      const j = (await res.json().catch(() => ({}))) as { error?: string };
-      setErr(j.error ?? res.statusText);
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      setErr(json.error ?? res.statusText);
       return;
     }
     setErr(null);
-    const j = (await res.json()) as { items: Item[] };
-    setItems(j.items ?? []);
+    const json = (await res.json()) as { items: Item[] };
+    setItems(json.items ?? []);
   }, [orgId]);
 
   useEffect(() => {
@@ -44,18 +44,19 @@ export default function ValueStoriesListPage() {
   return (
     <Stack gap={6} className="pb-10">
       <PageHeaderV2
+        breadcrumbs={[{ label: "Proof", href: "/insights" }, { label: "Value stories" }]}
         title="Value stories"
-        description="Paginated list of ROI narratives and eligibility states."
+        description="Traceable proof stories showing what Solvren helped protect, resolve, or accelerate."
         actions={
           <Link href="/outcomes" className="text-sm font-medium text-[var(--primary)] hover:underline">
-            ← Outcomes
+            Back to executive proof
           </Link>
         }
       />
       {err ? <p className="text-sm text-[var(--danger)]">{err}</p> : null}
       <Stack gap={3}>
-        {items.map((s) => (
-          <ValueStoryCard key={s.id} story={s} />
+        {items.map((story) => (
+          <ValueStoryCard key={story.id} story={story} />
         ))}
       </Stack>
     </Stack>

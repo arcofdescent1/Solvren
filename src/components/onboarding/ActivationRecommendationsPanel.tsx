@@ -43,21 +43,21 @@ export function ActivationRecommendationsPanel() {
   return (
     <Card>
       <CardBody>
-        <h3 className="mb-3 text-sm font-semibold text-[color:var(--rg-text)]">Recommended next steps</h3>
+        <h3 className="mb-3 text-sm font-semibold text-[var(--text)]">Recommended next steps</h3>
         <ul className="space-y-3">
           {recommendations.slice(0, 5).map((r, i) => (
             <li key={i} className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-medium">
                   {r.href ? (
-                    <Link href={r.href} className="hover:underline text-[color:var(--rg-primary)]">
+                    <Link href={r.href} className="hover:underline text-[var(--primary)]">
                       {r.title}
                     </Link>
                   ) : (
                     r.title
                   )}
                 </p>
-                <p className="text-xs text-[color:var(--rg-text-muted)]">{r.description}</p>
+                <p className="text-xs text-[var(--text-muted)]">{r.description}</p>
               </div>
               <Badge variant="secondary">{r.confidenceScore}</Badge>
             </li>
@@ -65,7 +65,7 @@ export function ActivationRecommendationsPanel() {
         </ul>
         <Link
           href="/onboarding"
-          className="mt-3 inline-block text-xs font-medium text-[color:var(--rg-primary)] hover:underline"
+          className="mt-3 inline-block text-xs font-medium text-[var(--primary)] hover:underline"
         >
           View all recommendations →
         </Link>

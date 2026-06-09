@@ -40,9 +40,9 @@ export default async function ExecutiveRiskPage() {
         <PageHeader
           breadcrumbs={[
             { label: "Overview", href: "/dashboard" },
-            { label: "Revenue Risks" },
+            { label: "Problems" },
           ]}
-          title="Revenue Risks"
+          title="Problems"
         />
         <Card>
           <CardBody>
@@ -99,10 +99,10 @@ export default async function ExecutiveRiskPage() {
       <PageHeader
         breadcrumbs={[
           { label: "Overview", href: "/dashboard" },
-          { label: "Revenue Risks" },
+          { label: "Problems" },
         ]}
-        title="Revenue Risks"
-        description="Revenue risk detected from your systems"
+        title="Problems"
+        description="Revenue-impacting problems detected from your systems"
         right={
           <div className="flex flex-wrap gap-3">
             <Link href="/reports/revenue-governance" className="text-sm font-semibold text-[var(--primary)] hover:underline">
@@ -212,7 +212,7 @@ export default async function ExecutiveRiskPage() {
 
       <Card className="transition-shadow duration-200 hover:shadow-md">
         <CardBody>
-          <h2 className="mb-4 font-semibold">Revenue Risks Detected</h2>
+          <h2 className="mb-4 font-semibold">Problems detected</h2>
           {allEvents.length === 0 ? (
             <p className="text-sm text-[var(--text-muted)]">No risk events in the last 7 days.</p>
           ) : (

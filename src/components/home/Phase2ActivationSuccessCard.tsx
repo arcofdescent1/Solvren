@@ -32,7 +32,7 @@ export function Phase2ActivationSuccessCard() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild size="sm">
-              <Link href="/issues">View Issues</Link>
+              <Link href="/issues">View Problems</Link>
             </Button>
             <Button asChild size="sm" variant="secondary">
               <Link href="/readiness">View Workflows</Link>

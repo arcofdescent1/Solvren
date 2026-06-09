@@ -151,7 +151,7 @@ export default function IntakeNewPage() {
               </Button>
             </div>
             <p className="text-xs text-[var(--text-muted)]">
-              Native integrations continue to create changes from connected systems automatically.
+              Connected systems continue to add decisions automatically when revenue-sensitive work appears.
             </p>
           </CardBody>
         </Card>

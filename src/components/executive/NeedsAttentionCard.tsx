@@ -71,7 +71,7 @@ export default async function NeedsAttentionCard() {
           </p>
         </div>
         <Link href="/actions" className="text-sm font-semibold text-[var(--primary)] hover:underline shrink-0">
-          Work Queue
+          Decisions
         </Link>
       </CardHeader>
       <CardBody className="space-y-3">

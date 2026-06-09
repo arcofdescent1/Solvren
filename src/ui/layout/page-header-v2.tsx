@@ -25,10 +25,10 @@ export function PageHeaderV2({
   className,
 }: PageHeaderV2Props) {
   const right = (
-    <>
+    <div className="flex flex-wrap items-center gap-2">
       {actions}
       {helpTrigger}
-    </>
+    </div>
   );
 
   return (
@@ -37,10 +37,10 @@ export function PageHeaderV2({
         title={title}
         description={description}
         breadcrumbs={breadcrumbs}
-        right={right}
+        right={actions || helpTrigger ? right : undefined}
         className={className}
       />
-      {helper ? <p className="px-1 text-sm text-[var(--text-muted)]">{helper}</p> : null}
+      {helper ? <p className="max-w-4xl px-1 text-sm leading-6 text-[var(--text-muted)]">{helper}</p> : null}
     </div>
   );
 }

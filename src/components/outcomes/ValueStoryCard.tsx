@@ -30,7 +30,7 @@ export function ValueStoryCard({
               {story.headline}
             </Link>
             <p className="text-xs text-[var(--text-muted)]">
-              {story.outcome_type.replace(/_/g, " ")} · {story.confidence_level.replace(/_/g, " ")} · {story.status}
+              {story.outcome_type.replace(/_/g, " ")} | {story.confidence_level.replace(/_/g, " ")} | {story.status}
             </p>
           </div>
           <p className="text-sm font-medium tabular-nums">{valueLabel}</p>
