@@ -17,12 +17,13 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
+import { UserAvatar } from "@/components/profile/UserAvatar";
 import type { OrgMembership } from "@/lib/org/activeOrg";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/primitives/tooltip";
 import { trackAppEvent } from "@/lib/appAnalytics";
 
 export type TopbarProps = {
-  user?: { id: string; email?: string } | null;
+  user?: { id: string; email?: string; displayName?: string | null; avatarUrl?: string | null } | null;
   memberships?: OrgMembership[];
   activeOrgId?: string | null;
   unreadCount?: number;
@@ -154,19 +155,21 @@ export function Topbar({
                   className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--border)] bg-[var(--bg-surface-2)] text-[var(--text)] transition-colors hover:bg-[var(--bg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--focus)]"
                   aria-label="User menu"
                 >
-                  <span className="flex h-full w-full items-center justify-center bg-[var(--primary)]/20 text-sm font-semibold text-[var(--primary)]">
-                    {(user.email ?? "?").charAt(0).toUpperCase()}
-                  </span>
+                  <UserAvatar
+                    name={user.displayName}
+                    email={user.email}
+                    avatarUrl={user.avatarUrl}
+                    size="sm"
+                    className="h-full w-full border-0"
+                  />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[13rem]">
                 <div className="flex items-center gap-3 px-3 py-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/20 text-sm font-semibold text-[var(--primary)]">
-                    {(user.email ?? "?").charAt(0).toUpperCase()}
-                  </div>
+                  <UserAvatar name={user.displayName} email={user.email} avatarUrl={user.avatarUrl} size="md" />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-[var(--text)]">
-                      {user.email ?? "User"}
+                      {(user.displayName?.trim() || user.email) ?? "User"}
                     </p>
                     <p className="truncate text-xs text-[var(--text-muted)]">
                       {user.email}

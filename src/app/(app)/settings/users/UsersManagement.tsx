@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/ui";
 import { MoreHorizontal } from "lucide-react";
+import { UserAvatar, UserIdentity } from "@/components/profile/UserAvatar";
 
 const ROLES = [
   { value: "viewer", label: "Viewer" },
@@ -38,6 +39,7 @@ type OrgMember = {
   user_id: string;
   email: string | null;
   name: string | null;
+  avatar_url: string | null;
   role: string;
   status: "Active" | "Unverified";
   joined_at: string;
@@ -226,12 +228,19 @@ export default function UsersManagement({ orgId, orgName, currentUserId }: Props
                 {members.map((m) => (
                   <TableRow key={m.user_id}>
                     <TableCell>
-                      <span className="font-medium">{displayName(m)}</span>
-                      {m.user_id === currentUserId && (
-                        <Badge variant="secondary" className="ml-2">
-                          You
-                        </Badge>
-                      )}
+                      <UserIdentity
+                        name={m.name}
+                        email={m.email}
+                        avatarUrl={m.avatar_url}
+                        label={displayName(m)}
+                        trailing={
+                          m.user_id === currentUserId ? (
+                            <Badge variant="secondary">
+                              You
+                            </Badge>
+                          ) : null
+                        }
+                      />
                     </TableCell>
                     <TableCell className="text-[var(--text-muted)]">{m.email ?? "—"}</TableCell>
                     <TableCell>
@@ -297,7 +306,12 @@ export default function UsersManagement({ orgId, orgName, currentUserId }: Props
               <TableBody>
                 {invites.map((inv) => (
                   <TableRow key={inv.id}>
-                    <TableCell className="font-medium">{inv.email}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="inline-flex items-center gap-2">
+                        <UserAvatar email={inv.email} size="sm" />
+                        {inv.email}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{ROLES.find((r) => r.value === inv.role)?.label ?? inv.role}</Badge>
                     </TableCell>

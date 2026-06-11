@@ -7,6 +7,7 @@ import { meetsPhase4EntryConditions } from "@/modules/onboarding/phase4/phase4-e
 import { phase4Thresholds } from "@/modules/onboarding/phase4/phase4-thresholds";
 import { planFromString } from "@/services/billing/entitlements";
 import { AppShellClient } from "./AppShellClient";
+import { getUserProfile } from "@/lib/users/profiles";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient();
@@ -32,6 +33,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     { activeOrgId, memberships },
     { count: needsReviewCount },
     { count: myIssueCount },
+    profile,
   ] = await Promise.all([
     supabase
       .from("in_app_notifications")
@@ -64,6 +66,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         return { count: 0 };
       }
     })(),
+    getUserProfile(supabase, data.user.id),
   ]);
   const myWorkCount = (needsReviewCount ?? 0) + (myIssueCount ?? 0);
 
@@ -121,7 +124,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AppShellClient
-      user={{ id: data.user.id, email: data.user.email ?? undefined }}
+      user={{ id: data.user.id, email: data.user.email ?? undefined, displayName: profile?.displayName ?? null, avatarUrl: profile?.avatarUrl ?? null }}
       memberships={memberships}
       activeOrgId={activeOrgId}
       unreadCount={unreadCount ?? 0}

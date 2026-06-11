@@ -46,6 +46,7 @@ import { isRiskDomain, type RiskDomain } from "@/types/risk";
 import type { EvidenceKind, RiskBucket } from "@/services/risk/requirements";
 import { canViewChange } from "@/lib/access/changeAccess";
 import RestrictedAccessPanel from "@/components/changes/RestrictedAccessPanel";
+import { getUserProfileMap } from "@/lib/users/profiles";
 
 function formatMoney(value: number | null | undefined) {
   if (value == null || !Number.isFinite(Number(value))) return "Not estimated";
@@ -289,6 +290,16 @@ export default async function ChangeDetailPage({
     : `${approvedCount} of ${approvalTargetCount} approvals complete`;
   const customerImpact = (change as { percent_customer_base_affected?: number | null }).percent_customer_base_affected;
   const visibleRevenueSurface = (change as { revenue_surface?: string | null }).revenue_surface ?? (change as { domain?: string }).domain ?? "Revenue systems";
+  const approvalProfileMap = await getUserProfileMap(
+    supabase,
+    (approvals ?? []).map((a: { approver_user_id: string }) => a.approver_user_id)
+  );
+  const approvalProfiles = Object.fromEntries(
+    Array.from(approvalProfileMap.entries()).map(([userId, profile]) => [
+      userId,
+      { displayName: profile.displayName, avatarUrl: profile.avatarUrl },
+    ])
+  );
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -460,6 +471,7 @@ export default async function ChangeDetailPage({
             approvals={(approvals ?? []) as Parameters<typeof ApprovalsPanel>[0]["approvals"]}
             currentUserId={currentUserId}
             requiredApprovalAreas={requiredApprovalAreas}
+            profiles={approvalProfiles}
           />
         ) : (
           <Card>

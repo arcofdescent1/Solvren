@@ -3,6 +3,9 @@ import { ArrowRight, Bell, Building2, ClipboardCheck, Handshake, LockKeyhole, Ro
 import { Card, CardBody, Grid, PageHeaderV2, SectionHeader, Stack } from "@/ui";
 import { PAGE_COPY } from "@/config/pageCopy";
 import { PageHelpDrawer } from "@/components/help";
+import { ProfileSettingsCard } from "@/components/profile/ProfileSettingsCard";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUserProfile } from "@/lib/users/profiles";
 
 const SETTINGS_LINKS = [
   {
@@ -78,7 +81,12 @@ const SETTINGS_GROUPS = [
   },
 ] as const;
 
-export default function SettingsLandingPage() {
+export default async function SettingsLandingPage() {
+  const supabase = await createServerSupabaseClient();
+  const { data: userRes } = await supabase.auth.getUser();
+  const profile = userRes.user ? await getUserProfile(supabase, userRes.user.id) : null;
+  const authName = (userRes.user?.user_metadata as Record<string, unknown> | undefined)?.full_name;
+
   return (
     <Stack gap={6}>
       <PageHeaderV2
@@ -87,6 +95,12 @@ export default function SettingsLandingPage() {
         description={PAGE_COPY.settings.description}
         helper={PAGE_COPY.settings.helper}
         helpTrigger={<PageHelpDrawer page="settings" />}
+      />
+
+      <ProfileSettingsCard
+        initialDisplayName={profile?.displayName ?? (typeof authName === "string" ? authName : null)}
+        initialEmail={userRes.user?.email ?? null}
+        initialAvatarUrl={profile?.avatarUrl ?? null}
       />
 
       <Card className="border-[var(--primary)]/20 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_4%,var(--bg-surface)),var(--bg-surface)_72%)]">

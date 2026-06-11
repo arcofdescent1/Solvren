@@ -24,6 +24,8 @@ import {
 } from "@/ui";
 import { PageHelpDrawer } from "@/components/help";
 import { PRODUCT_TERMS } from "@/config/productLanguage";
+import { UserIdentity } from "@/components/profile/UserAvatar";
+import { getUserProfile } from "@/lib/users/profiles";
 
 type QueueItem = {
   id: string;
@@ -86,6 +88,7 @@ export default async function ActionCenterPage() {
     { data: pendingApprovals },
     { data: assignedIssues },
     changesResult,
+    currentProfile,
   ] = await Promise.all([
     listPendingTasksForOrg(supabase, membership.org_id, 50),
     supabase.from("issues").select("id").eq("org_id", membership.org_id),
@@ -110,6 +113,7 @@ export default async function ActionCenterPage() {
         .eq("org_id", membership.org_id)
         .in("status", ["DRAFT", "READY", "SUBMITTED", "IN_REVIEW"])
     ).limit(150),
+    getUserProfile(supabase, userRes.user.id),
   ]);
 
   const issueIds = (orgIssues ?? []).map((i: { id: string }) => i.id);
@@ -325,7 +329,18 @@ export default async function ActionCenterPage() {
                         : "System"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{item.owner}</TableCell>
+                  <TableCell>
+                    {item.owner === "You" ? (
+                      <UserIdentity
+                        name={currentProfile?.displayName}
+                        email={userRes.user.email}
+                        avatarUrl={currentProfile?.avatarUrl}
+                        label="You"
+                      />
+                    ) : (
+                      item.owner
+                    )}
+                  </TableCell>
                   <TableCell className="text-[var(--text-muted)]">{item.dueLabel}</TableCell>
                   <TableCell>
                     <Badge variant={urgencyVariant(item.urgency)}>{item.urgency}</Badge>

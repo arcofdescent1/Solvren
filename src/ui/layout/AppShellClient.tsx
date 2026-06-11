@@ -12,7 +12,7 @@ import { Phase3AdoptionBanner } from "@/components/onboarding/phase3/Phase3Adopt
 import { Phase4EnterpriseBanner } from "@/components/onboarding/phase4/Phase4EnterpriseBanner";
 
 export type AppShellClientProps = {
-  user?: { id: string; email?: string } | null;
+  user?: { id: string; email?: string; displayName?: string | null; avatarUrl?: string | null } | null;
   memberships?: OrgMembership[];
   activeOrgId?: string | null;
   unreadCount?: number;

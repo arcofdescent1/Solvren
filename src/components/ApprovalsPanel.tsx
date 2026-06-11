@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, Button, Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/ui";
 import { postPhase3Interaction } from "@/components/onboarding/phase3/postPhase3Interaction";
+import { UserIdentity } from "@/components/profile/UserAvatar";
 
 type Approval = {
   id: string;
@@ -15,6 +16,11 @@ type Approval = {
 };
 
 type MsgKind = "info" | "warning" | "error";
+type ApprovalProfile = {
+  displayName: string | null;
+  avatarUrl: string | null;
+  email?: string | null;
+};
 
 function decisionVariant(decision: Approval["decision"]): "success" | "danger" | "warning" {
   if (decision === "APPROVED") return "success";
@@ -32,10 +38,12 @@ export default function ApprovalsPanel({
   approvals,
   currentUserId,
   requiredApprovalAreas = [],
+  profiles = {},
 }: {
   approvals: Approval[];
   currentUserId: string;
   requiredApprovalAreas?: string[];
+  profiles?: Record<string, ApprovalProfile>;
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -157,11 +165,20 @@ export default function ApprovalsPanel({
           <div className="grid gap-3">
             {approvals.map((a) => {
               const isAssigned = a.approver_user_id === currentUserId;
+              const profile = profiles[a.approver_user_id];
               return (
                 <div key={a.id} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-surface-2)] p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-sm font-semibold">{a.approval_area}</div>
+                      <UserIdentity
+                        name={profile?.displayName}
+                        email={profile?.email ?? undefined}
+                        avatarUrl={profile?.avatarUrl}
+                        label={isAssigned ? "You" : profile?.displayName ?? "Assigned approver"}
+                        sublabel="Decision owner"
+                        className="mt-2"
+                      />
                       {a.comment ? <p className="mt-1 text-sm text-[var(--text-muted)]">{a.comment}</p> : null}
                       {a.decided_at ? <p className="mt-1 text-xs text-[var(--text-muted)]">Decided {new Date(a.decided_at).toLocaleString()}</p> : null}
                     </div>

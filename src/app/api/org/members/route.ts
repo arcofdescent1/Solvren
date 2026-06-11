@@ -6,6 +6,7 @@ export type OrgMemberRow = {
   user_id: string;
   email: string | null;
   name: string | null;
+  avatar_url: string | null;
   role: string;
   status: "Active" | "Unverified";
   joined_at: string;
@@ -31,6 +32,19 @@ export async function GET(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+    const profileUserIds = Array.from(
+      new Set((rows ?? []).map((row) => String((row as { user_id?: string }).user_id ?? "")).filter(Boolean))
+    );
+    const { data: profiles } = profileUserIds.length
+      ? await admin.from("user_profiles").select("user_id, display_name, avatar_url").in("user_id", profileUserIds)
+      : { data: [] };
+    const profileByUserId = new Map(
+      ((profiles ?? []) as Array<{ user_id: string; display_name: string | null; avatar_url: string | null }>).map((profile) => [
+        profile.user_id,
+        profile,
+      ])
+    );
+
     const members: OrgMemberRow[] = [];
     for (const row of rows ?? []) {
       const userId = String((row as { user_id?: string }).user_id ?? "");
@@ -50,10 +64,12 @@ export async function GET(req: NextRequest) {
       } catch {
         /* leave null */
       }
+      const profile = profileByUserId.get(userId);
       members.push({
         user_id: userId,
         email,
-        name,
+        name: profile?.display_name ?? name,
+        avatar_url: profile?.avatar_url ?? null,
         role,
         status,
         joined_at: createdAt,
