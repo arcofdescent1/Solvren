@@ -12,12 +12,15 @@ export function isDemoWriteAllowedRequest(request: NextRequest): boolean {
 
   if (m === "POST") {
     if (p.startsWith("/api/auth")) return true;
+    if (p === "/api/profile/avatar") return true;
     if (p.match(/^\/api\/integrations\/[^/]+\/webhook/)) return true;
     if (p === "/api/integrations/slack/actions" || p.startsWith("/api/integrations/slack/interactions")) return true;
     if (p === "/api/slack/actions" || p.startsWith("/api/slack/actions/")) return true;
     if (p.startsWith("/api/health")) return true;
     return false;
   }
+
+  if (m === "PATCH" && p === "/api/profile") return true;
 
   return false;
 }

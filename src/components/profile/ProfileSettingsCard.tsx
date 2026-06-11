@@ -62,7 +62,10 @@ export function ProfileSettingsCard({ initialDisplayName, initialEmail, initialA
       form.append("displayName", displayName.trim());
       const res = await fetch("/api/profile/avatar", { method: "POST", body: form });
       const data = (await res.json().catch(() => ({}))) as { error?: string; profile?: { avatarUrl?: string | null } };
-      if (!res.ok) throw new Error(data.error ?? "Unable to save profile picture.");
+      if (!res.ok) {
+        const demoBlocked = res.status === 403 && data.error === "Demo mode is read-only";
+        throw new Error(demoBlocked ? "Demo profile uploads are not enabled yet. Please try again after the latest update deploys." : data.error ?? "Unable to save profile picture.");
+      }
       setAvatarUrl(data.profile?.avatarUrl ?? null);
       setMessage("Profile picture updated.");
     } catch (error) {
@@ -83,7 +86,10 @@ export function ProfileSettingsCard({ initialDisplayName, initialEmail, initialA
         body: JSON.stringify({ displayName: displayName.trim() }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Unable to save profile.");
+      if (!res.ok) {
+        const demoBlocked = res.status === 403 && data.error === "Demo mode is read-only";
+        throw new Error(demoBlocked ? "Demo profile updates are not enabled yet. Please try again after the latest update deploys." : data.error ?? "Unable to save profile.");
+      }
       setMessage("Profile saved.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to save profile.");
