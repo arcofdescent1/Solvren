@@ -26,7 +26,8 @@ export const metadata: Metadata = {
   description:
     "Solvren helps teams govern pricing, billing, and revenue-impacting changes with risk intelligence, automated coordination, evidence enforcement, and executive visibility.",
   icons: {
-    icon: [{ url: "/images/Solvren.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/images/SolvrenLogo.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/images/SolvrenLogo.svg", type: "image/svg+xml" }],
   },
 };
 

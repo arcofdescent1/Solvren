@@ -57,20 +57,18 @@ export function Topbar({
       {/* Brand - hidden on mobile, shown on sm+ */}
       <Link
         href={user ? "/home" : "/"}
-        className="hidden shrink-0 items-center gap-2 font-bold tracking-normal text-[var(--text)] sm:inline-flex"
+        className="hidden shrink-0 items-center sm:inline-flex"
+        aria-label="Solvren home"
       >
-        {user ? (
-          <Image
-            src="/images/Solvren.svg"
-            alt=""
-            width={20}
-            height={20}
-            className="h-[1.5em] w-auto shrink-0"
-            unoptimized
-            aria-hidden
-          />
-        ) : null}
-        <span>Solvren</span>
+        <Image
+          src="/images/Solvren.svg"
+          alt="Solvren"
+          width={132}
+          height={35}
+          className="h-8 w-auto shrink-0"
+          priority
+          unoptimized
+        />
       </Link>
 
       {/* Search - centered on desktop, hidden on mobile */}
