@@ -1,16 +1,17 @@
 ---
 title: User Management
-description: Manage users and access within your organization.
+description: Manage team access, roles, profiles, and ownership in Solvren.
 section: Admin
 order: 2
 toc: true
+lastUpdated: 2026-06-17
 ---
 
 ## Overview
 
-User Management allows administrators to control who can access Solvren and what actions they can perform.
+User management lives under **Setup -> Team & access**. It controls who can access Solvren, what they can do, and how they appear when work is assigned.
 
-Proper user configuration ensures that governance workflows involve the correct stakeholders.
+Proper user configuration helps Decisions, approvals, and Problems route to the right people.
 
 ---
 
@@ -20,54 +21,62 @@ Administrators can invite users to the organization.
 
 To invite a user:
 
-1. Navigate to **Admin → Users**
-2. Click **Invite User**
-3. Enter the user's email address
-4. Assign a role
+1. Open **Setup**.
+2. Open **Team & access**.
+3. Click **Invite user**.
+4. Enter the user's email address.
+5. Assign a role.
 
-The user will receive an invitation email with instructions for joining the organization.
+The user receives an invitation email with instructions for joining the organization.
+
+---
+
+## Profiles And Avatars
+
+Users can manage their own display name and profile picture from Setup.
+
+Profile pictures are resized for consistent display and appear throughout the app, including:
+
+- the topbar user menu
+- team member rows
+- Decisions
+- approval owner cards
+
+Demo workspaces allow profile updates even though most operational writes remain restricted.
 
 ---
 
 ## User Roles
 
-Roles determine what actions users can perform within the system.
-
-Typical roles include:
+Roles determine what actions users can perform.
 
 ### Owner
 
-Full system access.
-
-Owners can configure organization settings and manage governance policies.
-
----
+Full organization access. Owners can configure organization settings, license scope, users, security, and decision rules.
 
 ### Admin
 
-Administrators manage system configuration.
+Administrators manage setup and configuration.
 
 They can:
 
-• invite users  
-• configure approvals  
-• manage evidence policies
-
----
+- invite users
+- configure approval roles and mappings
+- manage evidence and proof expectations
+- manage integrations and setup
+- review diagnostics and security settings
 
 ### Submitter
 
-Submitters can create and edit changes.
-
-They can also submit changes for review.
-
----
+Submitters can create and edit changes and submit them for review.
 
 ### Reviewer
 
-Reviewers evaluate and approve changes.
+Reviewers evaluate and approve changes assigned to them.
 
-They provide feedback and determine whether governance requirements have been satisfied.
+### Viewer
+
+Viewers can see permitted records but cannot manage organization settings.
 
 ---
 
@@ -77,11 +86,12 @@ Administrators can update user roles at any time.
 
 They can also:
 
-• deactivate users  
-• reassign roles  
-• transfer ownership
+- remove users from the organization
+- maintain approval role assignments
+- grant explicit access to restricted records
+- keep owner/admin access limited to people who need it
 
-Removing unused accounts helps maintain system security.
+Removing unused accounts helps maintain security.
 
 ---
 
@@ -89,8 +99,8 @@ Removing unused accounts helps maintain system security.
 
 Recommended practices include:
 
-• assigning reviewers from each operational domain  
-• limiting administrative privileges  
-• removing inactive accounts promptly
-
-These steps help ensure that governance workflows remain secure and efficient.
+- Invite the decision makers who own revenue-sensitive workflows.
+- Keep admins limited to people who actually manage setup.
+- Assign reviewers for each important revenue area.
+- Ask users to add profile pictures so ownership is easy to scan.
+- Review access when people change roles or leave the company.

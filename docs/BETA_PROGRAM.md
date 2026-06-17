@@ -1,142 +1,162 @@
-# Solvren — Beta Onboarding and Pilot Framework
+# Solvren Beta Onboarding and Pilot Framework
 
-How beta organizations start using the product and what success looks like.
+How beta organizations start using Solvren and what success looks like.
 
----
-
-## Table of Contents
-
-1. [Beta Onboarding Process](#1-beta-onboarding-process)
-2. [Pilot Use Cases](#2-pilot-use-cases)
-3. [Beta Success Criteria](#3-beta-success-criteria)
-4. [Beta Feedback Areas](#4-beta-feedback-areas)
+Last updated: 2026-06-17
 
 ---
 
 ## 1. Beta Onboarding Process
 
-### Step 1 — Organization Setup
+### Step 1 - Organization Setup
 
-1. **Create organization** — Provision org for the beta partner
-2. **Invite key stakeholders** — Owner, Admin, Submitters, Reviewers
-3. **Verify access** — Ensure all can log in and see the right surfaces
+1. Create the organization.
+2. Confirm the primary owner and admin.
+3. Invite the first decision makers.
+4. Confirm everyone can log in and see the expected workspace.
 
-**Checklist:**
+Checklist:
 
 - [ ] Org created
-- [ ] Admin/Owner invited
-- [ ] At least one Submitter and one Reviewer invited
+- [ ] Owner/admin invited
+- [ ] Finance, RevOps, engineering, and reviewer stakeholders identified
 - [ ] Login and access confirmed
+- [ ] Users encouraged to add profile pictures for easier ownership scanning
 
-### Step 2 — Governance Configuration
+### Step 2 - Connect Systems
 
-1. **Configure domains** — Enable domains (e.g., REVENUE, SECURITY) that match the partner's workflows
-2. **Configure approval roles** — Create roles (Finance Reviewer, Billing Owner, etc.) and assign users
-3. **Configure approval mappings** — Map domains, systems, and change types to approval roles
+Connect the systems needed for the first pilot workflow.
 
-**Example mapping:**
+Common beta systems:
 
-| Trigger Type | Trigger Value | Approval Role |
-|--------------|---------------|---------------|
-| DOMAIN | REVENUE | Finance Reviewer |
-| SYSTEM | Stripe | Billing Owner |
-| CHANGE_TYPE | PRICING | Revenue Leadership |
+- Stripe or billing
+- Salesforce or HubSpot
+- Jira or GitHub
+- NetSuite or finance
+- data warehouse or operational database
 
-**Checklist:**
+Checklist:
 
-- [ ] Domains enabled
-- [ ] Approval roles created and populated
-- [ ] Approval mappings configured for pilot use cases
-- [ ] Domain permissions set for reviewers
+- [ ] First system connected
+- [ ] Connection health reviewed
+- [ ] Setup health visible in Home or Setup
+- [ ] Any connection needing attention has an owner
 
-### Step 3 — Pilot Use Case Selection
+### Step 3 - Choose What To Protect
 
-Choose one or two high-impact workflows to pilot. See [Pilot Use Cases](#2-pilot-use-cases) below.
+Choose one or two workflows where the value will be obvious.
 
-### Step 4 — First Change
+Recommended starting workflows:
 
-1. Have a Submitter create the first real change through guided intake
-2. Generate coordination plan and apply approvers/evidence
-3. Submit for review
-4. Have Reviewer approve
-5. Confirm end-to-end flow works for the partner
+- pricing changes
+- billing logic
+- invoice or renewal workflows
+- lead routing
+- CRM or billing integration changes
+- revenue recognition changes
+
+### Step 4 - Configure Decision Rules
+
+Configure only the rules needed for the pilot:
+
+- approval roles
+- approval mappings
+- proof expectations
+- domain permissions
+- attention routing
+
+Avoid over-configuring before the product has shown value.
+
+### Step 5 - Run The First Decision Or Problem
+
+For a change-review pilot:
+
+1. Create the first real revenue-sensitive change.
+2. Add business impact and proof.
+3. Submit for review.
+4. Have the assigned reviewer decide.
+5. Download or review the proof packet.
+
+For a problem-detection pilot:
+
+1. Connect the system.
+2. Confirm the first problem appears.
+3. Assign an owner.
+4. Resolve or verify the problem.
+5. Confirm Proof reflects the value story.
 
 ---
 
 ## 2. Pilot Use Cases
 
-Select one or two for the beta:
-
 | Use Case | Description | Why It Works |
 |----------|-------------|--------------|
-| **Pricing changes** | Stripe, Chargebee, or other pricing logic updates | High risk, clear stakeholders, strong ROI story |
-| **Billing logic changes** | Invoice generation, subscription lifecycle, proration | Finance + Billing Owner involvement, evidence-heavy |
-| **Revenue recognition updates** | NetSuite, ERP, or reporting rule changes | Critical for compliance, clear audit need |
-| **Integration changes** | Webhooks, API, CRM sync | Multi-system coordination, risk visibility |
-| **Schema / data changes** | CRM field changes, data migration | Data integrity risk, stakeholder clarity |
+| Pricing changes | Stripe, Chargebee, or other pricing logic updates | High risk, clear stakeholders, strong proof story |
+| Billing logic | Invoice generation, subscription lifecycle, proration | Finance + engineering ownership, evidence-heavy |
+| Revenue recognition | NetSuite, ERP, or reporting rule changes | Critical for audit and compliance |
+| Integration changes | Webhooks, APIs, CRM sync | Multi-system coordination and high hidden-risk potential |
+| Lead routing | CRM territory, assignment, or campaign routing | Easy for revenue leaders to understand |
 
-**Recommended:** Start with **pricing** or **billing logic** changes—they have clear risk and stakeholder alignment.
+Recommended: start with pricing, billing, or lead routing because the business value is immediately visible.
 
 ---
 
 ## 3. Beta Success Criteria
 
-A pilot is **successful** when:
+A pilot is successful when:
 
-1. **Teams submit real changes** — At least 3–5 changes submitted through the system during the pilot
-2. **Coordination autopilot reduces manual coordination** — Partners report less back-and-forth to figure out approvers/evidence
-3. **Revenue Impact Reports are reviewed** — Reviewers use reports to inform decisions
-4. **Approval governance is followed** — Changes are approved through the system with traceability
+1. Users can explain Solvren in one sentence: what revenue is at risk, what needs action, and what value was protected.
+2. Home gives a useful ten-second summary.
+3. Decisions makes the next action obvious.
+4. Problems show a clear owner and business impact.
+5. Proof shows credible protected value.
+6. Setup feels manageable, not overwhelming.
 
-**Quantitative indicators:**
+Quantitative indicators:
 
-- Number of changes submitted
-- Number of approvals completed
-- Time from submission to approval (qualitative)
-- Feedback score on coordination usefulness
+- number of connected systems
+- number of decisions reviewed
+- number of problems detected
+- time from decision surfaced to action taken
+- proof packets or value stories created
 
-**Qualitative indicators:**
+Qualitative indicators:
 
-- Partner can run the flow without heavy support
-- Executives find dashboards useful
-- Partners want to expand beyond the pilot use case
+- executives understand the value without a long explanation
+- finance and engineering agree on ownership
+- reviewers trust the proof
+- admins can configure the pilot without heavy support
+- the customer wants to expand coverage
 
 ---
 
-## 4. Beta Feedback Areas
-
-Collect structured feedback on:
+## 4. Feedback Areas
 
 | Area | Questions |
 |------|-----------|
-| **Usability** | Is the UI intuitive? Where do users get stuck? |
-| **Workflow clarity** | Are intake steps clear? Is the approval flow logical? |
-| **Report usefulness** | Do Revenue Impact Reports help? What's missing? |
-| **Search quality** | Can users find changes and systems quickly? |
-| **Dashboard visibility** | Do executives get value from the Executive and Dashboard views? |
-| **Coordination autopilot** | Are suggestions relevant? What would improve them? |
-| **Evidence enforcement** | Are evidence requirements reasonable? Too strict or too loose? |
-
-**Feedback format:**
-
-- Weekly sync during pilot
-- Short survey at pilot midpoint and end
-- Bug reports and enhancement requests tracked separately
+| Value clarity | Is the value obvious on Home and Proof? |
+| Decision clarity | Can users tell what to do next? |
+| Problem clarity | Does each problem explain why it matters? |
+| Setup clarity | Can admins connect systems and invite users without confusion? |
+| Proof credibility | Would a VP, CEO, or board member trust the proof packet? |
+| Terminology | Are any terms too internal or technical for the target user? |
+| Consistency | Does the app feel uniform across roles and workflows? |
 
 ---
 
-## Beta Program Timeline (Example)
+## 5. Beta Program Timeline
 
 | Phase | Duration | Activities |
 |-------|----------|------------|
-| **Kickoff** | Week 1 | Org setup, governance config, pilot use case selection |
-| **Pilot** | Weeks 2–6 | Real changes submitted and approved; feedback collected |
-| **Review** | Week 7 | Success criteria review, feedback synthesis, next steps |
+| Kickoff | Week 1 | Org setup, first systems, pilot workflow selection |
+| First value | Weeks 1-2 | First decision, problem, proof packet, or value story |
+| Expansion | Weeks 3-6 | Add workflows, users, and decision rules |
+| Review | Week 7 | Success criteria review, feedback synthesis, next steps |
 
 ---
 
 ## See Also
 
-- [USER_GUIDE.md](./USER_GUIDE.md) — Product usage
-- [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) — Governance configuration
-- [UAT_SEED_DATA.md](./UAT_SEED_DATA.md) — Demo environment and personas
+- [USER_GUIDE.md](./USER_GUIDE.md)
+- [ADMIN_GUIDE.md](./ADMIN_GUIDE.md)
+- [EXECUTIVE_GUIDE.md](./EXECUTIVE_GUIDE.md)

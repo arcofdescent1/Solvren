@@ -1,39 +1,55 @@
 ---
 title: How Solvren Works
-description: End-to-end flow from signals to verified value.
+description: End-to-end flow from connected systems to decisions, problems, proof, and verified value.
 section: Platform Overview
 order: 2
 toc: true
-lastUpdated: 2026-03-17
+lastUpdated: 2026-06-17
 ---
 
 ## End-to-End Flow
 
-Solvren processes data through a clear pipeline:
+Solvren presents a simple product experience while preserving a full revenue protection engine underneath.
 
-### 1. Integrations & Signals
+### 1. Setup: connect systems and invite people
 
-You connect revenue systems (billing, CRM, pricing, etc.). Solvren ingests data as **signals**. Signal quality and health are monitored.
+Start in **Setup**. Connect systems such as Stripe, Salesforce, HubSpot, Jira, GitHub, NetSuite, Snowflake, BigQuery, PostgreSQL, or MySQL. Invite decision makers and configure security, access, rules, and license scope.
 
-### 2. Detectors & Issues
+### 2. Problems: find revenue risk
 
-**Detector packs** analyze signals. When they find potential problems, they create **issues** with impact estimates and confidence scores.
+Solvren watches connected systems for problems such as billing mismatches, CRM routing failures, integration drift, failed automation, or revenue workflow gaps.
 
-### 3. Impact & Prioritization
+### 3. Decisions: make the next action obvious
 
-The impact engine quantifies revenue at risk. Issues are prioritized by impact, confidence, and policy rules.
+The **Decisions** area combines approvals, assigned problems, missing proof, overdue work, and system follow-up. It is the short list of what a person should do next.
 
-### 4. Actions & Playbooks
+### 4. Change review: protect risky changes before they ship
 
-**Playbooks** define what to do for each issue type. They can recommend actions, simulate fixes, or (with policy approval) execute them via write-back.
+Revenue-sensitive changes have a plain-language decision page:
 
-### 5. Verification & ROI
+- What happened?
+- Why does it matter?
+- What should happen next?
+- Who owns it?
+- What proof exists?
 
-When actions run, Solvren verifies outcomes and attributes **recovered revenue** or **avoided loss**. The ROI dashboard surfaces this to executives.
+Technical logs, source signals, scoring details, and audit records remain available in details sections.
 
-### 6. Safe Automation
+### 5. Proof: show the value
 
-**Policies** control who approves what. **Safe mode** and confidence thresholds govern when automation can run. **Simulations** allow testing without execution.
+The **Proof** area brings together revenue protected, risks prevented, decisions accelerated, incidents avoided, outcomes, reports, and executive proof packets.
+
+### 6. Safe automation and verification
+
+Where enabled, playbooks can recommend, simulate, or execute actions through governed write-back. Verification checks outcomes using system data and attributes recovered revenue or avoided loss.
+
+---
+
+## What Changed From Earlier Docs
+
+Older Solvren docs may describe the product primarily as a pipeline: **signals -> detectors -> issues -> actions -> verification -> ROI**.
+
+That pipeline still exists, but it is now surfaced through the simpler app model: **Home, Decisions, Problems, Proof, Setup**.
 
 ---
 
