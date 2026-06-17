@@ -32,6 +32,8 @@ function createStubClient(): SupabaseClient {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       signOut: () => Promise.resolve({ error: null }),
       signInWithPassword: () => Promise.resolve(empty),
+      resetPasswordForEmail: () => Promise.resolve({ data: {}, error: null }),
+      updateUser: () => Promise.resolve(empty),
       signUp: () =>
         Promise.resolve({
           data: { user: null, session: null },

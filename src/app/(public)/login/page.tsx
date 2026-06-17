@@ -5,7 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Input, Button, Card, CardBody, PageHeader } from "@/ui";
-import { validatePassword, PASSWORD_MIN_LENGTH } from "@/lib/passwordPolicy";
+import {
+  validatePassword,
+  validatePasswordMatch,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_REQUIREMENTS,
+} from "@/lib/passwordPolicy";
 import { getSafeAppRedirect } from "@/lib/auth/redirects";
 
 type SsoOrg = {
@@ -23,6 +28,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [ssoOrgs, setSsoOrgs] = useState<SsoOrg[]>([]);
@@ -96,6 +102,11 @@ export default function LoginPage() {
         setMsg(v.message ?? "Password too weak");
         return;
       }
+      const matchErr = validatePasswordMatch(password, confirmPassword);
+      if (matchErr) {
+        setMsg(matchErr);
+        return;
+      }
     }
 
     if (mode === "login") {
@@ -132,7 +143,10 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      setMsg(error.message);
+      const message = error.message.toLowerCase().includes("invalid login credentials")
+        ? "Invalid email or password. If you just created this account, verify your email first. You can also reset your password."
+        : error.message;
+      setMsg(message);
       return;
     }
 
@@ -164,6 +178,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                required
               />
               <Input
                 data-testid="login-password"
@@ -173,10 +188,23 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
                 minLength={mode === "signup" ? PASSWORD_MIN_LENGTH : undefined}
+                required
               />
               {mode === "signup" && (
+                <Input
+                  data-testid="login-confirm-password"
+                  placeholder="Confirm password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={PASSWORD_MIN_LENGTH}
+                  required
+                />
+              )}
+              {mode === "signup" && (
                 <p className="text-xs text-slate-400">
-                  At least {PASSWORD_MIN_LENGTH} characters
+                  Password must include {PASSWORD_REQUIREMENTS.join(", ").toLowerCase()}.
                 </p>
               )}
               {mode === "login" && (

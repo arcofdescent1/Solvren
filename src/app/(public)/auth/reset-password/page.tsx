@@ -9,6 +9,7 @@ import {
   validatePassword,
   validatePasswordMatch,
   PASSWORD_MIN_LENGTH,
+  PASSWORD_REQUIREMENTS,
 } from "@/lib/passwordPolicy";
 
 export default function ResetPasswordPage() {
@@ -119,7 +120,7 @@ export default function ResetPasswordPage() {
                   minLength={PASSWORD_MIN_LENGTH}
                 />
                 <p className="mt-1 text-xs text-slate-400">
-                  At least {PASSWORD_MIN_LENGTH} characters
+                  Password must include {PASSWORD_REQUIREMENTS.join(", ").toLowerCase()}.
                 </p>
               </div>
               <Input

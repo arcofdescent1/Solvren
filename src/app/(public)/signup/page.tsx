@@ -5,7 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Input, Button, Card, CardBody, PageHeader } from "@/ui";
-import { validatePassword, PASSWORD_MIN_LENGTH } from "@/lib/passwordPolicy";
+import {
+  validatePassword,
+  validatePasswordMatch,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_REQUIREMENTS,
+} from "@/lib/passwordPolicy";
 
 /**
  * Enterprise registration — Step 1: Create your account.
@@ -19,6 +24,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +48,11 @@ export default function SignupPage() {
     const v = validatePassword(password);
     if (!v.valid) {
       setMsg(v.message ?? "Password too weak");
+      return;
+    }
+    const matchErr = validatePasswordMatch(password, confirmPassword);
+    if (matchErr) {
+      setMsg(matchErr);
       return;
     }
 
@@ -91,6 +102,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 autoComplete="name"
+                required
               />
               <Input
                 data-testid="signup-email"
@@ -99,6 +111,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                required
               />
               <Input
                 data-testid="signup-password"
@@ -108,9 +121,20 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 minLength={PASSWORD_MIN_LENGTH}
+                required
+              />
+              <Input
+                data-testid="signup-confirm-password"
+                placeholder="Confirm password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={PASSWORD_MIN_LENGTH}
+                required
               />
               <p className="text-xs text-slate-400">
-                At least {PASSWORD_MIN_LENGTH} characters
+                Password must include {PASSWORD_REQUIREMENTS.join(", ").toLowerCase()}.
               </p>
               <Button data-testid="signup-submit" type="submit" className="w-full" disabled={loading}>
                 {loading ? "Creating account…" : "Continue"}

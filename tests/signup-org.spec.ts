@@ -16,6 +16,7 @@ test.describe("Signup page", () => {
     await expect(page.getByTestId("signup-full-name")).toBeVisible();
     await expect(page.getByTestId("signup-email")).toBeVisible();
     await expect(page.getByTestId("signup-password")).toBeVisible();
+    await expect(page.getByTestId("signup-confirm-password")).toBeVisible();
     await expect(page.getByTestId("signup-submit")).toBeVisible();
     await expect(page.getByRole("button", { name: /^Continue$/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: /create your account/i })).toBeVisible();
@@ -35,6 +36,7 @@ test.describe("Signup page", () => {
     await page.getByTestId("signup-full-name").fill("A");
     await page.getByTestId("signup-email").fill("test@example.com");
     await page.getByTestId("signup-password").fill(UAT_PASSWORD);
+    await page.getByTestId("signup-confirm-password").fill(UAT_PASSWORD);
     await page.getByTestId("signup-submit").click();
     await expect(page.getByText(/full name|please enter/i)).toBeVisible({ timeout: 5_000 });
   });
@@ -44,6 +46,7 @@ test.describe("Signup page", () => {
     await page.getByTestId("signup-full-name").fill("Test User");
     await page.getByTestId("signup-email").fill("test@example.com");
     await page.getByTestId("signup-password").fill("short");
+    await page.getByTestId("signup-confirm-password").fill("short");
     await page.getByTestId("signup-submit").click();
     await expect(page.getByText(/password|at least \d+ characters/i)).toBeVisible({ timeout: 5_000 });
   });
