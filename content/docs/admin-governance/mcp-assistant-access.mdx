@@ -1,0 +1,464 @@
+---
+title: MCP Assistant Access
+description: Connect AI assistants to Solvren with read-only intelligence, draft support, controlled actions, policy profiles, and auditability.
+section: Admin & Governance
+order: 5
+toc: true
+tags:
+  - MCP
+  - Assistants
+  - Admin
+  - Security
+roles:
+  - owner
+  - admin
+lastUpdated: 2026-06-25
+---
+
+## Overview
+
+Solvren's MCP server lets approved AI assistants answer questions and help teams act on revenue protection data without giving the assistant broad product access.
+
+Use MCP when you want an assistant to answer questions like:
+
+- "What revenue is at risk right now?"
+- "Which decisions need approval?"
+- "What proof is missing before this can ship?"
+- "What should I tell the CEO?"
+- "Can this assistant prepare an approval or request more proof?"
+- "What has the assistant done recently?"
+
+The core product sentence still applies:
+
+> Solvren shows what revenue is at risk, what needs action, and what value was protected.
+
+MCP exposes that same value loop to trusted assistants.
+
+---
+
+## Who MCP is for
+
+MCP is primarily for enterprise teams that want Solvren context available in approved AI workflows.
+
+Common users include:
+
+| User | What they can do with MCP |
+|------|----------------------------|
+| CEO or executive assistant | Ask for a quick summary of money at risk, pending decisions, and protected value |
+| VP Finance | Review revenue exposure, pending proof, and board-ready summaries |
+| Engineering VP | Understand what is blocking a release or which revenue-impacting decisions need action |
+| Risk or compliance manager | Review audit history, policy boundaries, and trust reports |
+| Admin | Configure assistant access profiles and review controlled-action history |
+
+The interface and vocabulary stay consistent. MCP does not create a separate product model; it gives assistants a governed way to use Solvren's existing Home, Decisions, Problems, Proof, and Setup concepts.
+
+---
+
+## What MCP can do
+
+Solvren MCP is organized into four capability groups.
+
+### 1. Read Solvren context
+
+Read-only tools help assistants summarize:
+
+- Home summary
+- Decisions needing action
+- Decision details
+- Open problems
+- Problem details
+- Proof and value summaries
+- Setup health
+- Data freshness
+
+These tools are useful for executive briefings, daily reviews, Slack summaries, and internal copilots.
+
+### 2. Explain what should happen next
+
+Guidance tools help answer:
+
+- Is this decision ready to approve?
+- What proof is missing?
+- Who still needs to decide?
+- What is the recommended next step?
+- What caused this problem?
+- Which decisions or incidents are related?
+- What setup gap should be fixed next?
+
+These tools are read-only. They help people understand what matters without changing Solvren data.
+
+### 3. Draft messages and proof packets
+
+Draft tools can produce:
+
+- Approval comments
+- Requests for missing proof
+- Owner follow-up messages
+- Executive updates
+- Board briefs
+- Decision briefs
+- Problem briefs
+- Setup gap summaries
+
+Draft tools do not mutate data. They return suggested text that a person can review before sending or using.
+
+### 4. Prepare and confirm controlled actions
+
+When explicitly enabled, MCP can use a two-step controlled action flow:
+
+1. **Prepare** an action.
+   The assistant creates a short-lived action request that says exactly what would change.
+
+2. **Confirm** the action.
+   A user must provide the exact confirmation phrase before Solvren executes the action.
+
+Controlled actions are intentionally narrow:
+
+- Approve a decision
+- Request more proof
+- Attach a proof link
+- Assign a problem owner
+- Add a problem comment
+
+MCP cannot invite users, change billing, alter licenses, edit integrations, change its own policy, bypass permissions, or perform destructive administration.
+
+---
+
+## Safety model
+
+MCP is designed around the principle that assistants should be useful before they are powerful.
+
+Effective access is the intersection of:
+
+- server environment guardrails
+- customer policy profile
+- organization allowlist
+- tool allowlist
+- mutation allowlist
+- user role and email domain rules
+- Solvren object-level permissions
+- explicit confirmation
+- audit logging
+
+If any layer blocks an action, the action is blocked.
+
+---
+
+## Access modes
+
+Solvren MCP supports two deployment modes.
+
+| Mode | Meaning | Best for |
+|------|---------|----------|
+| `readonly` | Assistants can read, explain, draft, and generate summaries, but cannot mutate Solvren data | Executive summaries, Slack bots, analyst workflows, secure pilots |
+| `controlled_write` | Assistants can prepare approved action types and execute them only after explicit confirmation | Mature enterprise deployments with admin approval |
+
+The default mode is `readonly`.
+
+---
+
+## Policy profiles
+
+Policy profiles let enterprise admins scope assistant access by deployment.
+
+For example, you might create:
+
+- an executive assistant profile that can summarize Home, Proof, and urgent Decisions
+- a finance assistant profile that can inspect revenue exposure and proof packets
+- an engineering assistant profile that can inspect Decisions, Problems, and setup gaps
+- a controlled action profile for a restricted operational assistant
+
+Each profile can define:
+
+| Setting | Purpose |
+|---------|---------|
+| Profile key | Which deployed assistant uses this profile |
+| Allowed tools | Which MCP tools can run |
+| Allowed actions | Which controlled write actions can be prepared |
+| Allowed roles | Which Solvren roles may use the assistant |
+| Allowed email domains | Which user email domains are accepted |
+| Result limit | Maximum list size returned to the assistant |
+| Confirmation requirement | Whether controlled actions require explicit confirmation |
+| Action expiration | How long prepared actions remain valid |
+| Redaction level | How aggressively sensitive fields are hidden |
+| Audit level | How much MCP usage metadata is retained |
+
+Admins can review profiles in Solvren at:
+
+`Setup -> Organization setup -> MCP assistant access`
+
+or directly:
+
+`/settings/mcp`
+
+---
+
+## Deployment overview
+
+MCP is normally deployed by an enterprise admin, platform team, or Solvren account team.
+
+<Steps>
+  <Step number={1} title="Choose the assistant use case">
+    Decide whether the assistant should summarize, draft, prepare controlled actions, or only answer setup questions.
+  </Step>
+  <Step number={2} title="Create a policy profile">
+    Configure a profile key, allowed tools, allowed actions, allowed roles, result limit, confirmation requirement, and audit level.
+  </Step>
+  <Step number={3} title="Configure the MCP server">
+    Set Supabase credentials, environment guardrails, caller label, profile key, and access mode.
+  </Step>
+  <Step number={4} title="Connect the MCP client">
+    Add the server command to the approved MCP client, such as an internal desktop assistant or enterprise AI gateway.
+  </Step>
+  <Step number={5} title="Test with simulations">
+    Use policy simulation tools before enabling controlled writes.
+  </Step>
+  <Step number={6} title="Review audit history">
+    Verify tool calls, prepared actions, confirmations, failures, and blocked attempts.
+  </Step>
+</Steps>
+
+---
+
+## Required environment
+
+The MCP server runs outside the browser, so it uses trusted server credentials.
+
+Minimum environment:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SOLVREN_MCP_MODE=readonly
+SOLVREN_MCP_CALLER_LABEL=executive-assistant
+SOLVREN_MCP_POLICY_PROFILE_KEY=executive-assistant
+SOLVREN_MCP_AUDIT_ENABLED=true
+```
+
+Common guardrails:
+
+```bash
+SOLVREN_MCP_ALLOWED_ORG_IDS=org-id-1,org-id-2
+SOLVREN_MCP_ALLOWED_TOOLS=get_home_summary,list_decisions_needing_action,get_decision,get_proof_summary
+SOLVREN_MCP_MAX_LIMIT=25
+```
+
+Controlled write guardrails:
+
+```bash
+SOLVREN_MCP_MODE=controlled_write
+SOLVREN_MCP_ALLOWED_MUTATIONS=approve_decision,request_more_proof,attach_proof_link,assign_problem_owner,add_problem_comment,confirm_action
+SOLVREN_MCP_REQUIRE_CONFIRMATION=true
+SOLVREN_MCP_WRITE_AUDIT_REQUIRED=true
+SOLVREN_MCP_ACTION_TTL_MINUTES=10
+```
+
+Use the smallest practical allowlist for each assistant deployment.
+
+---
+
+## Example MCP client configuration
+
+```json
+{
+  "mcpServers": {
+    "solvren": {
+      "command": "npm",
+      "args": ["run", "mcp:server"],
+      "cwd": "C:\\Users\\your-user\\revenueguard",
+      "env": {
+        "NEXT_PUBLIC_SUPABASE_URL": "https://your-project.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key",
+        "SOLVREN_MCP_MODE": "readonly",
+        "SOLVREN_MCP_ALLOWED_ORG_IDS": "org-id-1",
+        "SOLVREN_MCP_ALLOWED_TOOLS": "get_home_summary,list_decisions_needing_action,get_decision,get_proof_summary,get_setup_health,generate_board_brief,draft_exec_update",
+        "SOLVREN_MCP_MAX_LIMIT": "25",
+        "SOLVREN_MCP_CALLER_LABEL": "executive-assistant",
+        "SOLVREN_MCP_POLICY_PROFILE_KEY": "executive-assistant",
+        "SOLVREN_MCP_AUDIT_ENABLED": "true"
+      }
+    }
+  }
+}
+```
+
+Do not expose the stdio MCP server over HTTP unless your organization adds authentication, tenant authorization, rate limits, network controls, and audit logging.
+
+---
+
+## Tool reference
+
+### Core read tools
+
+| Tool | Use it for |
+|------|------------|
+| `get_home_summary` | Executive summary of money at risk, urgent work, problems, protected value, and setup health |
+| `list_decisions_needing_action` | Decisions that need review or completion |
+| `get_decision` | One decision with impact, proof, approvals, and next action |
+| `list_open_problems` | Open revenue problems ordered by priority |
+| `get_problem` | One problem with impact, owner, actions, and sources |
+| `get_proof_summary` | Protected value, prevented incidents, saved time, and proof packets |
+| `generate_executive_brief` | Short executive brief from current risk, action, setup, and proof |
+| `get_setup_health` | Connected systems, setup gaps, and latest scan |
+| `get_mcp_server_health` | MCP server mode, audit status, and configured guardrails |
+| `get_mcp_data_freshness` | Latest timestamps for Solvren data |
+
+### Decision readiness tools
+
+| Tool | Use it for |
+|------|------------|
+| `explain_decision_readiness` | Whether a decision can be approved |
+| `list_missing_proof` | Required proof still missing |
+| `list_pending_approvers` | Who still needs to decide |
+| `recommend_decision_next_step` | The next best action for a decision |
+
+### Problem resolution tools
+
+| Tool | Use it for |
+|------|------------|
+| `recommend_problem_actions` | Practical next actions for a problem |
+| `summarize_problem_root_cause` | Likely root cause and source context |
+| `list_related_decisions` | Decisions linked to a problem |
+| `list_related_incidents` | Incidents related to a problem |
+
+### Proof and setup tools
+
+| Tool | Use it for |
+|------|------------|
+| `generate_board_brief` | Board-ready Markdown summary |
+| `generate_decision_brief` | Decision-specific brief |
+| `generate_problem_brief` | Problem-specific brief |
+| `generate_setup_gap_summary` | Setup gap summary |
+| `recommend_next_setup_step` | The next setup action |
+| `explain_coverage_gap` | Why a setup gap matters |
+| `list_unprotected_revenue_surfaces` | Revenue areas that appear under-protected |
+
+### Draft-only tools
+
+| Tool | Use it for |
+|------|------------|
+| `draft_approval_comment` | Suggested approval or not-ready comment |
+| `draft_request_for_proof` | Suggested proof request |
+| `draft_owner_message` | Suggested owner follow-up |
+| `draft_exec_update` | Suggested executive update |
+
+### Controlled action tools
+
+| Tool | Use it for |
+|------|------------|
+| `prepare_approve_decision` | Prepare an approval |
+| `prepare_request_more_proof` | Prepare a visible proof request |
+| `prepare_attach_proof_link` | Prepare attaching a proof link |
+| `prepare_assign_problem_owner` | Prepare assigning a problem owner |
+| `prepare_add_problem_comment` | Prepare adding a problem comment |
+| `confirm_action` | Execute a prepared action after exact confirmation |
+
+### Policy and trust tools
+
+| Tool | Use it for |
+|------|------------|
+| `get_mcp_policy` | Show the effective policy profile |
+| `explain_mcp_policy` | Explain the policy in plain English |
+| `list_mcp_policy_profiles` | List assistant profiles for an organization |
+| `get_effective_mcp_permissions` | Show environment, policy, and actor boundaries |
+| `simulate_mcp_tool_call` | Test whether a tool call would be allowed |
+| `simulate_mcp_action` | Test whether a controlled action would be allowed |
+| `explain_why_mcp_action_blocked` | Explain a blocked controlled action |
+| `get_mcp_audit_summary` | Summarize recent MCP action audit |
+| `get_mcp_action_history` | List recent MCP action events |
+| `generate_mcp_trust_report` | Generate a security-reviewable trust report |
+
+---
+
+## Response format
+
+Every tool returns a stable JSON envelope:
+
+```json
+{
+  "schemaVersion": "solvren.mcp.v1.2",
+  "toolName": "get_home_summary",
+  "orgId": "organization-id-or-null",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "whatThisMeans": "Plain-English summary.",
+  "whyItMatters": "Business reason this matters.",
+  "recommendedNextAction": "The next sensible action.",
+  "sourceRecords": [
+    { "table": "change_events", "id": "record-id", "label": "Record label" }
+  ],
+  "links": [
+    { "label": "Open Solvren", "url": "/" }
+  ],
+  "data": {}
+}
+```
+
+The assistant should prefer `whatThisMeans`, `whyItMatters`, and `recommendedNextAction` for executive-facing answers, then use `data` and `sourceRecords` for detail and traceability.
+
+---
+
+## Example prompts
+
+Use prompts like these with an approved MCP client:
+
+```text
+Give me the Solvren home summary for Bluepeak. What needs attention today?
+```
+
+```text
+Which decisions need approval, and what proof is missing?
+```
+
+```text
+Generate a board brief for the last 30 days of protected revenue.
+```
+
+```text
+Can this assistant prepare an approval action for this decision? Simulate it first.
+```
+
+```text
+Generate an MCP trust report for security review.
+```
+
+---
+
+## Admin review checklist
+
+Before enabling MCP for production:
+
+- Confirm the MCP server runs only in a trusted environment.
+- Use `readonly` mode first.
+- Restrict allowed organizations.
+- Restrict allowed tools.
+- Set a conservative result limit.
+- Create a customer policy profile.
+- Require confirmation for controlled actions.
+- Require MCP audit logging.
+- Review `/settings/mcp`.
+- Generate an MCP trust report.
+- Test blocked actions before enabling controlled writes.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | What to do |
+|---------|--------------|------------|
+| "Organization not found" | The org ID is wrong or not available to the server | Confirm the org ID and environment |
+| "This server is not authorized for that organization" | The org is outside the allowlist | Update `SOLVREN_MCP_ALLOWED_ORG_IDS` or use the correct deployment |
+| "Controlled writes are disabled" | Server is in `readonly` mode | Use read/draft tools or intentionally enable `controlled_write` |
+| "Tool is not allowed" | Environment or customer policy blocks the tool | Review allowed tools and policy profile |
+| "Mutation is not allowed" | The controlled action is not allowlisted | Review allowed mutations and customer policy |
+| "Confirmation phrase does not match" | The user did not provide the exact phrase | Use the phrase from the prepare response |
+| No policy profiles appear in settings | No database profile exists for this assistant key | Create a profile or rely on environment guardrails |
+
+---
+
+## Related docs
+
+- [Admin & Governance](/docs/admin-governance)
+- [Security Overview](/docs/security/overview)
+- [Auditability](/docs/security/auditability)
+- [Permission Matrix](/docs/admin/permission-matrix)
+- [Safe Automation](/docs/safe-automation)

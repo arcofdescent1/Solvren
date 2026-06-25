@@ -4,35 +4,7 @@
     "description": "Solvren shows what revenue is at risk, what needs action, and what value was protected.",
     "section": "Documentation",
     "href": "/docs/index",
-    "content": "Solvren Documentation Protect revenue with a product people can understand quickly Solvren shows what revenue is at risk, what needs action, and what value was protected. The logged in product is organized around five stable areas: Home money at risk, urgent work, problems detected, protected value, and setup health. Decisions approvals, blocked work, missing proof, and the next clear action. Problems revenue impacting problems Solvren found across connected systems. Proof protected value, outcomes, reports, ROI, and board ready proof packets. Setup connected systems, users, decision rules, security, license, and organization settings. The deeper engine still detects, scores, routes, acts, verifies, and audits. The UI presents that complexity in business language first, with technical details available where operators and admins need them. How Solvren Works Now 1. Connect systems Solvren watches billing, CRM, finance, support, code, and operational systems. 2. Find risk Detectors and change reviews identify problems or risky decisions that could affect revenue. 3. Decide what to do Solvren shows who owns the work, what proof exists, what is missing, and the next action. 4. Fix the problem Teams resolve the problem directly or use governed playbooks and write back workflows where enabled. 5. Prove value Verification, outcome records, value stories, and proof packets show what revenue was protected. Get Started Follow the fastest path to value: Key Areas Understand how Solvren works Connect your systems Identify problems Focus on what matters Fix issues Prove value Control execution First value and playbook metrics Architecture & Admin | Guide | Description | | | | | | System layers, data flow, security | | | Policy center, integration health, demo orgs | | | Product updates and platform evolution | What Makes Solvren Different One universal app model for executives, finance, engineering, RevOps, risk, and admins. Plain language surfaces for money at risk, needed action, and proof. Deep system details remain available without making every user learn internal terminology. Safe automation, approval policy, restricted access, audit logs, and enterprise controls. Verified outcomes and proof packets that make value visible outside the product. Start Protecting Your Revenue Connect your systems, invite the right people, protect your first revenue workflow, and prove the first value Solvren protected. Need Help? | Page | Description | | | | | | Common questions and troubleshooting |"
-  },
-  {
-    "title": "Action Registry",
-    "description": "Available actions and their capabilities.",
-    "section": "Actions & Playbooks",
-    "href": "/docs/actions-playbooks/action-registry",
-    "content": "Overview The action registry lists actions Solvren can take. Actions can be read only (recommend, notify) or write back (update billing, fix pricing, etc.). Action Types | Type | Description | | | | | Recommend | Suggest a fix; human executes | | Notify | Alert stakeholders | | Simulate | Run in dry run mode | | Execute | Apply changes via write back (when policies allow) | Configuration Actions are configured per playbook. Policies control when execution is allowed. Related"
-  },
-  {
-    "title": "Actions & Playbooks",
-    "description": "Playbooks, idempotent execution, lifecycle, reliability, and write-back.",
-    "section": "Actions & Playbooks",
-    "href": "/docs/actions-playbooks",
-    "content": "What are Playbooks? Playbooks are structured workflows that resolve issues. Key Properties Idempotent — Safe to retry Observable — Fully tracked Reliable — State managed execution Execution Lifecycle → → | | (See for retries, dead letter, and integration health.) Reliability Features Retry orchestration Error handling External verification Dead letter handling Example Playbooks Retry failed payment Correct CRM record Issue refund adjustment Outcome Playbooks ensure issues are resolved consistently and safely. What you'll find here | Page | Description | | | | | | Available actions and their capabilities | | | Playbook structure and configuration | | | Execution, retries, and failure handling | Related — Policies and approvals — Proving value from actions"
-  },
-  {
-    "title": "Playbooks",
-    "description": "Playbook structure and configuration.",
-    "section": "Actions & Playbooks",
-    "href": "/docs/actions-playbooks/playbooks",
-    "content": "Overview Playbooks map issue types to actions. When an issue is detected, the matching playbook determines what Solvren recommends or executes. Structure A playbook typically includes: Trigger — Issue type or detector Actions — Steps to take (recommend, notify, simulate, execute) Policy — Approval requirements, safe mode settings Enabling Playbooks Admins enable playbooks per environment. Policies (approvals, confidence thresholds) control automation level. Related"
-  },
-  {
-    "title": "Writeback and Reliability",
-    "description": "Execution, failure handling, and reliability.",
-    "section": "Actions & Playbooks",
-    "href": "/docs/actions-playbooks/writeback-and-reliability",
-    "content": "Overview Write back sends changes from Solvren to external systems (billing, CRM, etc.). Reliability measures ensure actions complete or fail safely. Execution Flow 1. Playbook triggers for an issue 2. Policy checks (approvals, confidence) 3. Action executes against external API 4. Result logged; verification runs if applicable Failure Handling Retries — Transient failures may be retried Rollback — Where supported, failed actions can be reverted Audit — All attempts are logged for troubleshooting Related"
+    "content": "Solvren Documentation Protect revenue with a product people can understand quickly Solvren shows what revenue is at risk, what needs action, and what value was protected. The logged in product is organized around five stable areas: Home money at risk, urgent work, problems detected, protected value, and setup health. Decisions approvals, blocked work, missing proof, and the next clear action. Problems revenue impacting problems Solvren found across connected systems. Proof protected value, outcomes, reports, ROI, and board ready proof packets. Setup connected systems, users, decision rules, security, license, and organization settings. The deeper engine still detects, scores, routes, acts, verifies, and audits. The UI presents that complexity in business language first, with technical details available where operators and admins need them. How Solvren Works Now 1. Connect systems Solvren watches billing, CRM, finance, support, code, and operational systems. 2. Find risk Detectors and change reviews identify problems or risky decisions that could affect revenue. 3. Decide what to do Solvren shows who owns the work, what proof exists, what is missing, and the next action. 4. Fix the problem Teams resolve the problem directly or use governed playbooks and write back workflows where enabled. 5. Prove value Verification, outcome records, value stories, and proof packets show what revenue was protected. Get Started Follow the fastest path to value: Key Areas Understand how Solvren works Connect your systems Identify problems Focus on what matters Fix issues Prove value Control execution First value and playbook metrics Architecture & Admin | Guide | Description | | | | | | System layers, data flow, security | | | Policy center, integration health, MCP assistant access, demo orgs | | | Connect approved AI assistants to Solvren with policy profiles, controlled actions, and auditability | | | Product updates and platform evolution | What Makes Solvren Different One universal app model for executives, finance, engineering, RevOps, risk, and admins. Plain language surfaces for money at risk, needed action, and proof. Deep system details remain available without making every user learn internal terminology. Safe automation, approval policy, restricted access, audit logs, and enterprise controls. Verified outcomes and proof packets that make value visible outside the product. Start Protecting Your Revenue Connect your systems, invite the right people, protect your first revenue workflow, and prove the first value Solvren protected. Need Help? | Page | Description | | | | | | Common questions and troubleshooting |"
   },
   {
     "title": "Approval Mappings",
@@ -133,6 +105,34 @@
     "content": "Org roles Solvren uses organization level roles to define what users can do. | Role | Responsibilities | | | | | Owner | Full configuration and governance control | | Admin | Manage users, settings, and governance setup | | Submitter | Create and submit changes | | Reviewer | Review and approve changes | | Viewer | Read only access where allowed | Assigning roles well Owner: executive sponsor. Admin: RevOps lead. Submitter: operators, engineers. Reviewer: finance, security stakeholders. Viewer: leadership, observers. Keep the number of owners small. Use Admin for operational configuration. Related concepts Org roles are different from approval roles, domain permissions, and explicit restricted access grants."
   },
   {
+    "title": "Action Registry",
+    "description": "Available actions and their capabilities.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks/action-registry",
+    "content": "Overview The action registry lists actions Solvren can take. Actions can be read only (recommend, notify) or write back (update billing, fix pricing, etc.). Action Types | Type | Description | | | | | Recommend | Suggest a fix; human executes | | Notify | Alert stakeholders | | Simulate | Run in dry run mode | | Execute | Apply changes via write back (when policies allow) | Configuration Actions are configured per playbook. Policies control when execution is allowed. Related"
+  },
+  {
+    "title": "Actions & Playbooks",
+    "description": "Playbooks, idempotent execution, lifecycle, reliability, and write-back.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks",
+    "content": "What are Playbooks? Playbooks are structured workflows that resolve issues. Key Properties Idempotent — Safe to retry Observable — Fully tracked Reliable — State managed execution Execution Lifecycle → → | | (See for retries, dead letter, and integration health.) Reliability Features Retry orchestration Error handling External verification Dead letter handling Example Playbooks Retry failed payment Correct CRM record Issue refund adjustment Outcome Playbooks ensure issues are resolved consistently and safely. What you'll find here | Page | Description | | | | | | Available actions and their capabilities | | | Playbook structure and configuration | | | Execution, retries, and failure handling | Related — Policies and approvals — Proving value from actions"
+  },
+  {
+    "title": "Playbooks",
+    "description": "Playbook structure and configuration.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks/playbooks",
+    "content": "Overview Playbooks map issue types to actions. When an issue is detected, the matching playbook determines what Solvren recommends or executes. Structure A playbook typically includes: Trigger — Issue type or detector Actions — Steps to take (recommend, notify, simulate, execute) Policy — Approval requirements, safe mode settings Enabling Playbooks Admins enable playbooks per environment. Policies (approvals, confidence thresholds) control automation level. Related"
+  },
+  {
+    "title": "Writeback and Reliability",
+    "description": "Execution, failure handling, and reliability.",
+    "section": "Actions & Playbooks",
+    "href": "/docs/actions-playbooks/writeback-and-reliability",
+    "content": "Overview Write back sends changes from Solvren to external systems (billing, CRM, etc.). Reliability measures ensure actions complete or fail safely. Execution Flow 1. Playbook triggers for an issue 2. Policy checks (approvals, confidence) 3. Action executes against external API 4. Result logged; verification runs if applicable Failure Handling Retries — Transient failures may be retried Rollback — Where supported, failed actions can be reverted Audit — All attempts are logged for troubleshooting Related"
+  },
+  {
     "title": "AI Risk Engine",
     "description": "How Solvren analyzes potential financial risk before a change is deployed.",
     "section": "Architecture",
@@ -218,10 +218,10 @@
   },
   {
     "title": "Admin & Governance",
-    "description": "Policy Center, integration health, and demo environments.",
+    "description": "Policy Center, integration health, MCP assistant access, and demo environments.",
     "section": "Admin & Governance",
     "href": "/docs/admin-governance",
-    "content": "Overview Admins configure policies, monitor integration health, and manage demo or safe environments. What You'll Find Here | Page | Description | | | | | | Configure approval and automation policies | | | Monitor signal pipelines and connections | | | Safe environments for demos and testing | Related — Policy concepts — Signal health — Full org setup"
+    "content": "Overview Admins configure policies, monitor integration health, govern assistant access, and manage demo or safe environments. What You'll Find Here | Page | Description | | | | | | Configure approval and automation policies | | | Monitor signal pipelines and connections | | | Connect AI assistants to Solvren with policy profiles, safe actions, and auditability | | | Safe environments for demos and testing | Related Policy concepts Signal health Full org setup Enterprise trust posture"
   },
   {
     "title": "Integration Health",
@@ -229,6 +229,13 @@
     "section": "Admin & Governance",
     "href": "/docs/admin-governance/integration-health",
     "content": "Overview Integration health dashboards show connection status, signal flow, and any issues with your connected systems. What to Monitor Connection status — Green/red per integration Last sync — When data was last received Error rate — Failed syncs or auth issues Signal volume — Expected vs actual Troubleshooting When health is degraded: Check authentication and tokens Verify API quotas and rate limits Review Related"
+  },
+  {
+    "title": "MCP Assistant Access",
+    "description": "Connect AI assistants to Solvren with read-only intelligence, draft support, controlled actions, policy profiles, and auditability.",
+    "section": "Admin & Governance",
+    "href": "/docs/admin-governance/mcp-assistant-access",
+    "content": "Overview Solvren's MCP server lets approved AI assistants answer questions and help teams act on revenue protection data without giving the assistant broad product access. Use MCP when you want an assistant to answer questions like: \"What revenue is at risk right now?\" \"Which decisions need approval?\" \"What proof is missing before this can ship?\" \"What should I tell the CEO?\" \"Can this assistant prepare an approval or request more proof?\" \"What has the assistant done recently?\" The core product sentence still applies: Solvren shows what revenue is at risk, what needs action, and what value was protected. MCP exposes that same value loop to trusted assistants. Who MCP is for MCP is primarily for enterprise teams that want Solvren context available in approved AI workflows. Common users include: | User | What they can do with MCP | | | | | CEO or executive assistant | Ask for a quick summary of money at risk, pending decisions, and protected value | | VP Finance | Review revenue exposure, pending proof, and board ready summaries | | Engineering VP | Understand what is blocking a release or which revenue impacting decisions need action | | Risk or compliance manager | Review audit history, policy boundaries, and trust reports | | Admin | Configure assistant access profiles and review controlled action history | The interface and vocabulary stay consistent. MCP does not create a separate product model; it gives assistants a governed way to use Solvren's existing Home, Decisions, Problems, Proof, and Setup concepts. What MCP can do Solvren MCP is organized into four capability groups. 1. Read Solvren context Read only tools help assistants summarize: Home summary Decisions needing action Decision details Open problems Problem details Proof and value summaries Setup health Data freshness These tools are useful for executive briefings, daily reviews, Slack summaries, and internal copilots. 2. Explain what should happen next Guidance tools help answer: Is this decision ready to approve? What proof is missing? Who still needs to decide? What is the recommended next step? What caused this problem? Which decisions or incidents are related? What setup gap should be fixed next? These tools are read only. They help people understand what matters without changing Solvren data. 3. Draft messages and proof packets Draft tools can produce: Approval comments Requests for missing proof Owner follow up messages Executive updates Board briefs Decision briefs Problem briefs Setup gap summaries Draft tools do not mutate data. They return suggested text that a person can review before sending or using. 4. Prepare and confirm controlled actions When explicitly enabled, MCP can use a two step controlled action flow: 1. Prepare an action. The assistant creates a short lived action request that says exactly what would change. 2. Confirm the action. A user must provide the exact confirmation phrase before Solvren executes the action. Controlled actions are intentionally narrow: Approve a decision Request more proof Attach a proof link Assign a problem owner Add a problem comment MCP cannot invite users, change billing, alter licenses, edit integrations, change its own policy, bypass permissions, or perform destructive administration. Safety model MCP is designed around the principle that assistants should be useful before they are powerful. Effective access is the intersection of: server environment guardrails customer policy profile organization allowlist tool allowlist mutation allowlist user role and email domain rules Solvren object level permissions explicit confirmation audit logging If any layer blocks an action, the action is blocked. Access modes Solvren MCP supports two deployment modes. | Mode | Meaning | Best for | | | | | | | Assistants can read, explain, draft, and generate summaries, but cannot mutate Solvren data | Executive summaries, Slack bots, analyst workflows, secure pilots | | | Assistants can prepare approved action types and execute them only after explicit confirmation | Mature enterprise deployments with admin approval | The default mode is . Policy profiles Policy profiles let enterprise admins scope assistant access by deployment. For example, you might create: an executive assistant profile that can summarize Home, Proof, and urgent Decisions a finance assistant profile that can inspect revenue exposure and proof packets an engineering assistant profile that can inspect Decisions, Problems, and setup gaps a controlled action profile for a restricted operational assistant Each profile can define: | Setting | Purpose | | | | | Profile key | Which deployed assistant uses this profile | | Allowed tools | Which MCP tools can run | | Allowed actions | Which controlled write actions can be prepared | | Allowed roles | Which Solvren roles may use the assistant | | Allowed email domains | Which user email domains are accepted | | Result limit | Maximum list size returned to the assistant | | Confirmation requirement | Whether controlled actions require explicit confirmation | | Action expiration | How long prepared actions remain valid | | Redaction level | How aggressively sensitive fields are hidden | | Audit level | How much MCP usage metadata is retained | Admins can review profiles in Solvren at: or directly: Deployment overview MCP is normally deployed by an enterprise admin, platform team, or Solvren account team. Decide whether the assistant should summarize, draft, prepare controlled actions, or only answer setup questions. Configure a profile key, allowed tools, allowed actions, allowed roles, result limit, confirmation requirement, and audit level. Set Supabase credentials, environment guardrails, caller label, profile key, and access mode. Add the server command to the approved MCP client, such as an internal desktop assistant or enterprise AI gateway. Use policy simulation tools before enabling controlled writes. Verify tool calls, prepared actions, confirmations, failures, and blocked attempts. Required environment The MCP server runs outside the browser, so it uses trusted server credentials. Minimum environment: Common guardrails: Controlled write guardrails: Use the smallest practical allowlist for each assistant deployment. Example MCP client configuration Do not expose the stdio MCP server over HTTP unless your organization adds authentication, tenant authorization, rate limits, network controls, and audit logging. Tool reference Core read tools | Tool | Use it for | | | | | | Executive summary of money at risk, urgent work, problems, protected value, and setup health | | | Decisions that need review or completion | | | One decision with impact, proof, approvals, and next action | | | Open revenue problems ordered by priority | | | One problem with impact, owner, actions, and sources | | | Protected value, prevented incidents, saved time, and proof packets | | | Short executive brief from current risk, action, setup, and proof | | | Connected systems, setup gaps, and latest scan | | | MCP server mode, audit status, and configured guardrails | | | Latest timestamps for Solvren data | Decision readiness tools | Tool | Use it for | | | | | | Whether a decision can be approved | | | Required proof still missing | | | Who still needs to decide | | | The next best action for a decision | Problem resolution tools | Tool | Use it for | | | | | | Practical next actions for a problem | | | Likely root cause and source context | | | Decisions linked to a problem | | | Incidents related to a problem | Proof and setup tools | Tool | Use it for | | | | | | Board ready Markdown summary | | | Decision specific brief | | | Problem specific brief | | | Setup gap summary | | | The next setup action | | | Why a setup gap matters | | | Revenue areas that appear under protected | Draft only tools | Tool | Use it for | | | | | | Suggested approval or not ready comment | | | Suggested proof request | | | Suggested owner follow up | | | Suggested executive update | Controlled action tools | Tool | Use it for | | | | | | Prepare an approval | | | Prepare a visible proof request | | | Prepare attaching a proof link | | | Prepare assigning a problem owner | | | Prepare adding a problem comment | | | Execute a prepared action after exact confirmation | Policy and trust tools | Tool | Use it for | | | | | | Show the effective policy profile | | | Explain the policy in plain English | | | List assistant profiles for an organization | | | Show environment, policy, and actor boundaries | | | Test whether a tool call would be allowed | | | Test whether a controlled action would be allowed | | | Explain a blocked controlled action | | | Summarize recent MCP action audit | | | List recent MCP action events | | | Generate a security reviewable trust report | Response format Every tool returns a stable JSON envelope: The assistant should prefer , , and for executive facing answers, then use and for detail and traceability. Example prompts Use prompts like these with an approved MCP client: Admin review checklist Before enabling MCP for production: Confirm the MCP server runs only in a trusted environment. Use mode first. Restrict allowed organizations. Restrict allowed tools. Set a conservative result limit. Create a customer policy profile. Require confirmation for controlled actions. Require MCP audit logging. Review . Generate an MCP trust report. Test blocked actions before enabling controlled writes. Troubleshooting | Symptom | Likely cause | What to do | | | | | | \"Organization not found\" | The org ID is wrong or not available to the server | Confirm the org ID and environment | | \"This server is not authorized for that organization\" | The org is outside the allowlist | Update or use the correct deployment | | \"Controlled writes are disabled\" | Server is in mode | Use read/draft tools or intentionally enable | | \"Tool is not allowed\" | Environment or customer policy blocks the tool | Review allowed tools and policy profile | | \"Mutation is not allowed\" | The controlled action is not allowlisted | Review allowed mutations and customer policy | | \"Confirmation phrase does not match\" | The user did not provide the exact phrase | Use the phrase from the prepare response | | No policy profiles appear in settings | No database profile exists for this assistant key | Create a profile or rely on environment guardrails | Related docs"
   },
   {
     "title": "Policy Center",
@@ -287,20 +294,6 @@
     "content": "Overview Elite documentation uses consistent screenshot patterns. Follow these guidelines to maintain visual consistency across Solvren docs. Pattern 1 — Interface Overview Use for introducing a screen or feature. Structure: 1. Step explanation 2. Full UI screenshot 3. Caption explaining the interface Example MDX: Pattern 2 — Annotated UI Use when highlighting specific elements. Structure: 1. Numbered list describing each element 2. Annotated screenshot with callouts Example MDX: Pattern 3 — Workflow Screens Use for multi step flows. Structure: One screenshot per step Clear step headers Example MDX: Folder Structure Store screenshots in: Style Guidelines | Rule | Recommendation | | | | | Resolution | 1440px wide | | Format | PNG | | Theme | Use light mode | | Callouts | Simple numbered circles | | Cropping | Remove browser UI | Reference These patterns follow conventions used by Stripe, Vercel, and Supabase documentation."
   },
   {
-    "title": "Example: Billing Logic Change",
-    "description": "Governance workflow for billing system updates.",
-    "section": "Examples",
-    "href": "/docs/examples/billing-change",
-    "content": "Scenario An organization needs to modify subscription billing rules. Systems involved: • billing platform • CRM system • financial reporting pipeline Governance Steps Approvals required: • Engineering • Finance Evidence required: • billing simulations • rollback procedure • monitoring plan Risks Identified Potential risks: • duplicate billing • invoice generation failures • revenue reporting discrepancies"
-  },
-  {
-    "title": "Example: Pricing Configuration Change",
-    "description": "Walkthrough of a real pricing change governed through Solvren.",
-    "section": "Examples",
-    "href": "/docs/examples/pricing-change",
-    "content": "Overview This example demonstrates how a pricing configuration change is managed through Solvren. Pricing changes are high impact because they directly affect customer billing and revenue generation. Scenario An organization wants to introduce a new pricing tier for a product. The change involves: • updating pricing logic in the billing platform • updating pricing documentation • verifying invoice generation Step 1 — Create the Change Example change configuration: | Field | Value | | | | | Title | Add new Pro pricing tier | | Domain | Pricing | | Systems | Stripe | | Change Type | Pricing configuration | Step 2 — Coordination Autopilot The system generates recommended governance steps. Suggested approvals: • Finance • Product Suggested evidence: • pricing rule validation tests • invoice simulation • rollback procedure Step 3 — Revenue Impact Report The system identifies potential risks: Failure modes: • incorrect pricing applied to existing customers • invoice calculation errors Risk score: Medium Recommended safeguards: • test invoice generation • verify billing tier mapping Step 4 — Submit for Review Approvers review: • change description • risk report • evidence checklist Finance verifies pricing logic before approval. Outcome After approvals are complete, the change is approved and recorded in the audit history. This example demonstrates how governance workflows reduce pricing configuration risk."
-  },
-  {
     "title": "Detector Packs",
     "description": "Available detector packs and what they find.",
     "section": "Detectors & Issues",
@@ -327,6 +320,20 @@
     "section": "Detectors & Issues",
     "href": "/docs/detectors-issues/issue-explainer",
     "content": "Overview An issue is a detected problem that may impact revenue. It is the core unit of work in the value loop. Issue Anatomy | Field | Description | | | | | Source | Detector and signal that produced the issue | | Impact | Estimated revenue at risk | | Confidence | How confident the system is in the finding | | Status | Open, in progress, resolved, etc. | | Verification | Whether the fix was verified and value attributed | | Recommended playbooks | Actions that can address the issue | Lifecycle Issues move through states: created → triaged → action taken → verified. Verification attributes recovered revenue or avoided loss. Related"
+  },
+  {
+    "title": "Example: Billing Logic Change",
+    "description": "Governance workflow for billing system updates.",
+    "section": "Examples",
+    "href": "/docs/examples/billing-change",
+    "content": "Scenario An organization needs to modify subscription billing rules. Systems involved: • billing platform • CRM system • financial reporting pipeline Governance Steps Approvals required: • Engineering • Finance Evidence required: • billing simulations • rollback procedure • monitoring plan Risks Identified Potential risks: • duplicate billing • invoice generation failures • revenue reporting discrepancies"
+  },
+  {
+    "title": "Example: Pricing Configuration Change",
+    "description": "Walkthrough of a real pricing change governed through Solvren.",
+    "section": "Examples",
+    "href": "/docs/examples/pricing-change",
+    "content": "Overview This example demonstrates how a pricing configuration change is managed through Solvren. Pricing changes are high impact because they directly affect customer billing and revenue generation. Scenario An organization wants to introduce a new pricing tier for a product. The change involves: • updating pricing logic in the billing platform • updating pricing documentation • verifying invoice generation Step 1 — Create the Change Example change configuration: | Field | Value | | | | | Title | Add new Pro pricing tier | | Domain | Pricing | | Systems | Stripe | | Change Type | Pricing configuration | Step 2 — Coordination Autopilot The system generates recommended governance steps. Suggested approvals: • Finance • Product Suggested evidence: • pricing rule validation tests • invoice simulation • rollback procedure Step 3 — Revenue Impact Report The system identifies potential risks: Failure modes: • incorrect pricing applied to existing customers • invoice calculation errors Risk score: Medium Recommended safeguards: • test invoice generation • verify billing tier mapping Step 4 — Submit for Review Approvers review: • change description • risk report • evidence checklist Finance verifies pricing logic before approval. Outcome After approvals are complete, the change is approved and recorded in the audit history. This example demonstrates how governance workflows reduce pricing configuration risk."
   },
   {
     "title": "Frequently Asked Questions",
@@ -383,34 +390,6 @@
     "section": "Get Started",
     "href": "/docs/get-started/view-your-first-value",
     "content": "Overview The final step in the value loop is verification . Solvren tracks which actions succeeded and quantifies the recovered revenue or avoided loss they produced. What You'll Do 1. Open the Verification or ROI area in the dashboard 2. Find issues where actions have been executed and verified 3. Review recovered vs avoided value 4. Use the ROI dashboard for executive visibility Recovered vs Avoided Value Recovered revenue — Value that was lost (e.g., churn, billing error) and restored by an action Avoided loss — Value that would have been lost if the issue had not been addressed Both contribute to the total ROI Solvren proves. After Viewing You now have: A connected system A detected issue An enabled playbook Verified value From here, expand to more integrations, detectors, and playbooks. See . Related"
-  },
-  {
-    "title": "Confidence and Impact Score",
-    "description": "Understanding confidence levels and impact scores.",
-    "section": "Impact & Prioritization",
-    "href": "/docs/impact-prioritization/confidence-and-impact-score",
-    "content": "Overview Each issue has an impact (revenue at risk) and a confidence (how certain the system is). Together they drive prioritization and safe automation. Confidence Levels Higher confidence means the detector and impact model are more certain. Low confidence may require manual review before automation. Impact Score Impact can be expressed as a dollar amount or severity band. It helps operators and playbooks decide urgency and which actions to take. Safe Automation Policies often gate automation by confidence. High confidence issues may be auto resolved; low confidence issues may require approval. Related"
-  },
-  {
-    "title": "Impact Models",
-    "description": "How revenue impact is calculated.",
-    "section": "Impact & Prioritization",
-    "href": "/docs/impact-prioritization/impact-models",
-    "content": "Overview The impact engine estimates revenue at risk for each issue. Models vary by issue type and available signal data. Model Types Direct revenue — Billing, subscription, or payment impact Churn risk — Customer or contract at risk Attribution gaps — Revenue misattributed or lost Config drift — Pricing or discount misconfigurations Inputs Impact models use signal data, historical patterns, and configurable parameters. Results feed prioritization and policy decisions. Related"
-  },
-  {
-    "title": "Impact & Prioritization",
-    "description": "Impact models, confidence scores, and prioritization logic.",
-    "section": "Impact & Prioritization",
-    "href": "/docs/impact-prioritization",
-    "content": "Overview Solvren quantifies impact (revenue at risk) and uses it to prioritize issues. Confidence scores indicate how certain the system is in each estimate. What You'll Find Here | Page | Description | | | | | | How impact is calculated | | | Confidence levels and score interpretation | | | How issues are ordered | Related — Confidence gates automation"
-  },
-  {
-    "title": "Prioritization Logic",
-    "description": "How issues are ordered in the ops inbox.",
-    "section": "Impact & Prioritization",
-    "href": "/docs/impact-prioritization/prioritization-logic",
-    "content": "Overview Issues are prioritized so high impact, high confidence items surface first. The logic combines impact, confidence, age, and policy rules. Factors | Factor | Effect | | | | | Impact | Higher impact = higher priority | | Confidence | Higher confidence = higher priority | | Age | Older issues may be elevated | | Policy | Custom rules can override default ordering | Ops Inbox The ops inbox displays issues in priority order. Operators can filter and sort as needed. Related"
   },
   {
     "title": "Approvals Workflow",
@@ -497,6 +476,34 @@
     "content": "Overview Solvren helps teams protect revenue and manage change. It gives every user the same simple product model: Home what matters right now Decisions what needs action Problems what Solvren found Proof what value was protected Setup systems, people, rules, and controls This guide explains how people use the app during normal work. Home Home answers the executive question first: what revenue is at risk, what needs attention, what problems were detected, what value was protected, and whether setup coverage is healthy. Use Home when you want the fastest read on why Solvren matters today. Decisions Decisions is the short list of work that needs a person to act. It can include: approvals waiting for you assigned problems changes missing proof overdue or blocked work system follow up tasks Each row points to the next action instead of forcing users to inspect raw workflow state. Problems Problems are revenue impacting issues Solvren found across connected systems. Examples include: billing or invoice mismatches failed payment or renewal workflows CRM routing failures integration drift automation failures operational gaps that could affect customers or revenue Open a problem to understand what happened, why it matters, who owns it, and what should happen next. Change Reviews Revenue sensitive changes have a decision page built for both leaders and operators. Each page answers: What happened? Why does it matter? What should happen next? Who owns it? What proof exists? Technical logs, source signals, scoring details, and audit history are still available in system detail sections. Proof Proof is where Solvren shows value. It includes: revenue protected recovered revenue avoided loss risks prevented decisions accelerated incidents avoided value stories board ready proof packets Use Proof when a leader, board member, auditor, or customer stakeholder asks what Solvren protected. Setup Setup is where admins and owners manage: connected systems users and roles profile pictures and display names decision rules approval mappings evidence expectations security and data protection license scope diagnostics Most users will only need a few Setup pages. Advanced controls remain available without cluttering everyday work. Profiles And Avatars Users can upload a profile picture and set a display name from Setup. Solvren resizes profile pictures for display and uses them throughout the app so ownership is easier to recognize. Avatars appear in places such as: the topbar user menu team and access management Decisions approval ownership areas Evidence And Proof Solvren uses proof to help reviewers decide confidently. Proof may include: PR or change diff test plan rollback plan monitoring plan revenue validation incident links delivery logs approval history Missing proof blocks or slows decisions depending on configured rules. Notifications And Search Solvren notifies users when work needs attention, approvals are pending, proof is missing, or decisions become overdue. Use the top search bar to find problems, decisions, proof, setup pages, and historical records. Audit History Important actions are recorded for accountability: change creation proof updates approval decisions access grants configuration changes integration and system events Audit history supports trust, troubleshooting, and enterprise review."
   },
   {
+    "title": "Confidence and Impact Score",
+    "description": "Understanding confidence levels and impact scores.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization/confidence-and-impact-score",
+    "content": "Overview Each issue has an impact (revenue at risk) and a confidence (how certain the system is). Together they drive prioritization and safe automation. Confidence Levels Higher confidence means the detector and impact model are more certain. Low confidence may require manual review before automation. Impact Score Impact can be expressed as a dollar amount or severity band. It helps operators and playbooks decide urgency and which actions to take. Safe Automation Policies often gate automation by confidence. High confidence issues may be auto resolved; low confidence issues may require approval. Related"
+  },
+  {
+    "title": "Impact Models",
+    "description": "How revenue impact is calculated.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization/impact-models",
+    "content": "Overview The impact engine estimates revenue at risk for each issue. Models vary by issue type and available signal data. Model Types Direct revenue — Billing, subscription, or payment impact Churn risk — Customer or contract at risk Attribution gaps — Revenue misattributed or lost Config drift — Pricing or discount misconfigurations Inputs Impact models use signal data, historical patterns, and configurable parameters. Results feed prioritization and policy decisions. Related"
+  },
+  {
+    "title": "Impact & Prioritization",
+    "description": "Impact models, confidence scores, and prioritization logic.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization",
+    "content": "Overview Solvren quantifies impact (revenue at risk) and uses it to prioritize issues. Confidence scores indicate how certain the system is in each estimate. What You'll Find Here | Page | Description | | | | | | How impact is calculated | | | Confidence levels and score interpretation | | | How issues are ordered | Related — Confidence gates automation"
+  },
+  {
+    "title": "Prioritization Logic",
+    "description": "How issues are ordered in the ops inbox.",
+    "section": "Impact & Prioritization",
+    "href": "/docs/impact-prioritization/prioritization-logic",
+    "content": "Overview Issues are prioritized so high impact, high confidence items surface first. The logic combines impact, confidence, age, and policy rules. Factors | Factor | Effect | | | | | Impact | Higher impact = higher priority | | Confidence | Higher confidence = higher priority | | Age | Older issues may be elevated | | Policy | Custom rules can override default ordering | Ops Inbox The ops inbox displays issues in priority order. Operators can filter and sort as needed. Related"
+  },
+  {
     "title": "5-Minute Jira Setup",
     "description": "Connect Jira to Solvren in about 5 minutes.",
     "section": "Guides",
@@ -560,20 +567,6 @@
     "content": "Overview After you've seen your first verified value, expand coverage and automation. Recommended Expansion 1. More integrations — Connect additional revenue systems 2. More detector packs — Broaden issue coverage 3. More playbooks — Address more issue types 4. Tune policies — Adjust approvals and safe mode as confidence grows 5. Executive visibility — Share ROI dashboard with leadership Related"
   },
   {
-    "title": "Governance Playbook",
-    "description": "Recommended governance structure for revenue operations.",
-    "section": "Playbooks",
-    "href": "/docs/playbooks/governance-playbook",
-    "content": "Overview Governance policies determine how organizations review and approve operational changes. This playbook provides recommended governance structures for revenue operations teams. Recommended Approval Structure Organizations should include stakeholders responsible for financial accuracy and system implementation. Example approval structure: | Domain | Required Approvers | | | | | Pricing | Finance + Product | | Billing | Engineering + Finance | | CRM | Revenue Operations | This ensures that both business and technical stakeholders review changes. High Risk Domains Certain domains require stronger governance safeguards. Examples include: • billing configuration • pricing updates • revenue recognition logic For these domains, organizations should require: • multiple reviewers • evidence documentation • validation testing Evidence Policies Governance policies should enforce operational safeguards. Recommended evidence types: • rollback procedures • monitoring plans • validation tests These safeguards reduce operational risk. Continuous Improvement Organizations should periodically review governance policies. Recommended practices include: • reviewing rejected changes • analyzing incident causing changes • refining approval requirements Governance policies should evolve as systems grow more complex."
-  },
-  {
-    "title": "Operational Maturity Model",
-    "description": "Evaluate the maturity of revenue operations governance.",
-    "section": "Playbooks",
-    "href": "/docs/playbooks/operational-maturity",
-    "content": "Overview Organizations vary widely in how they manage operational changes. Solvren supports teams at different stages of operational maturity. Level 1 — Ad Hoc Changes are implemented without structured governance. Characteristics: • informal approvals • minimal documentation • reactive incident management Risk level: High Level 2 — Documented Organizations begin documenting changes. Characteristics: • written change descriptions • some approval processes • limited safeguards Risk level: Moderate Level 3 — Governed Organizations implement structured governance workflows. Characteristics: • formal approval policies • evidence requirements • cross team coordination Risk level: Low Level 4 — Automated Governance Governance workflows are automated and integrated into operational systems. Characteristics: • automated risk analysis • automated approval routing • structured audit history Risk level: Very Low Level 5 — Predictive Operations Advanced organizations use predictive systems to prevent operational failures. Characteristics: • predictive risk analysis • automated safeguards • continuous operational monitoring Risk level: Minimal"
-  },
-  {
     "title": "How Solvren Works",
     "description": "End-to-end flow from connected systems to decisions, problems, proof, and verified value.",
     "section": "Platform Overview",
@@ -593,6 +586,20 @@
     "section": "Platform Overview",
     "href": "/docs/platform-overview/key-concepts",
     "content": "Product Areas Home The first screen after login. Home summarizes money at risk, items needing action, problems detected, value protected, and setup health. Decisions The prioritized list of work that needs a person to decide, approve, add proof, or follow up. Problems Revenue impacting issues Solvren found across connected systems. Proof The value story: protected revenue, avoided loss, outcomes, value stories, reports, and proof packets. Setup Connected systems, users, rules, security, license, and organization settings. Operational Concepts Decision A piece of work that needs approval, proof, ownership, or follow up. Decisions can include change reviews, assigned problems, blocked work, overdue items, and system tasks. Problem A detected issue that may be costing money, blocking customers, or putting revenue workflows at risk. Proof Evidence that a decision is safe, a problem was handled, or value was protected. Proof can include evidence links, approval history, delivery logs, outcome records, value stories, and proof packets. Connected System A system Solvren watches or works with, such as billing, CRM, finance, support, code, data warehouse, or ticketing systems. Profile Each user can set a display name and profile picture. Avatars appear in the topbar, team management, decisions, and approval ownership areas. Technical Concepts These terms appear in admin, architecture, details, and audit views. Signal A raw event from an integrated system. Detector Logic that identifies patterns or anomalies. Issue The technical record behind a Problem. Impact Estimated financial effect of a problem or decision. Playbook A defined set of actions to resolve a problem. Execution The process of applying a playbook. Verification Confirmation that a problem has been resolved or a value claim has supporting evidence. Value Measured outcome, including recovered revenue or avoided loss. Restricted Access Restricted records are visible only to permitted owners, admins, creators, assigned approvers, or explicitly granted users. Safe Automation Controlled execution using policies, approvals, simulations, and confidence thresholds. Related"
+  },
+  {
+    "title": "Governance Playbook",
+    "description": "Recommended governance structure for revenue operations.",
+    "section": "Playbooks",
+    "href": "/docs/playbooks/governance-playbook",
+    "content": "Overview Governance policies determine how organizations review and approve operational changes. This playbook provides recommended governance structures for revenue operations teams. Recommended Approval Structure Organizations should include stakeholders responsible for financial accuracy and system implementation. Example approval structure: | Domain | Required Approvers | | | | | Pricing | Finance + Product | | Billing | Engineering + Finance | | CRM | Revenue Operations | This ensures that both business and technical stakeholders review changes. High Risk Domains Certain domains require stronger governance safeguards. Examples include: • billing configuration • pricing updates • revenue recognition logic For these domains, organizations should require: • multiple reviewers • evidence documentation • validation testing Evidence Policies Governance policies should enforce operational safeguards. Recommended evidence types: • rollback procedures • monitoring plans • validation tests These safeguards reduce operational risk. Continuous Improvement Organizations should periodically review governance policies. Recommended practices include: • reviewing rejected changes • analyzing incident causing changes • refining approval requirements Governance policies should evolve as systems grow more complex."
+  },
+  {
+    "title": "Operational Maturity Model",
+    "description": "Evaluate the maturity of revenue operations governance.",
+    "section": "Playbooks",
+    "href": "/docs/playbooks/operational-maturity",
+    "content": "Overview Organizations vary widely in how they manage operational changes. Solvren supports teams at different stages of operational maturity. Level 1 — Ad Hoc Changes are implemented without structured governance. Characteristics: • informal approvals • minimal documentation • reactive incident management Risk level: High Level 2 — Documented Organizations begin documenting changes. Characteristics: • written change descriptions • some approval processes • limited safeguards Risk level: Moderate Level 3 — Governed Organizations implement structured governance workflows. Characteristics: • formal approval policies • evidence requirements • cross team coordination Risk level: Low Level 4 — Automated Governance Governance workflows are automated and integrated into operational systems. Characteristics: • automated risk analysis • automated approval routing • structured audit history Risk level: Very Low Level 5 — Predictive Operations Advanced organizations use predictive systems to prevent operational failures. Characteristics: • predictive risk analysis • automated safeguards • continuous operational monitoring Risk level: Minimal"
   },
   {
     "title": "Changelog",
@@ -651,20 +658,6 @@
     "content": "Overview Simulations let you test playbooks without executing write back. Actions run in dry run mode and report what would happen. Use Cases Validate playbook logic before enabling Train operators on expected behavior Debug detector to action flow How It Works When simulation is enabled, actions: Evaluate inputs and produce a \"would do\" report Do not call external APIs for write back Log results for review Related"
   },
   {
-    "title": "Seeded Personas and Data",
-    "description": "Understand the seeded users, roles, systems, and sample changes used for UAT and demos.",
-    "section": "UAT",
-    "href": "/docs/uat/seed-data",
-    "content": "Why seeded data matters Seeded data makes testing and demos repeatable. It ensures every tester starts from the same baseline and role behavior can be validated consistently. Seeded personas Typical personas include Owner, Admin, Submitter, Reviewer, Viewer, Finance Reviewer, Security Reviewer, Restricted Reviewer. Seeded sample changes Typical seeded records include high risk pricing change, blocked billing logic change, approved revenue recognition change, restricted security change, overdue approval change, draft in progress. How to use this data Use the seeded personas and sample changes as the basis for UAT scripts, E2E tests, demos, and screenshot generation."
-  },
-  {
-    "title": "UAT Test Scripts",
-    "description": "Run structured user acceptance tests against the full Solvren workflow.",
-    "section": "UAT",
-    "href": "/docs/uat/test-scripts",
-    "content": "UAT goals User Acceptance Testing should confirm that the product works for real users in realistic workflows. Core test groups Recommended UAT coverage includes owner and admin setup, submitter workflow, reviewer workflow, evidence enforcement, restricted visibility, search and queues, notifications, dashboard correctness. Typical UAT structure Each test should include persona, prerequisites, steps, expected outcomes, pass/fail result, and notes. Example scenario: Submitter creates and submits a high risk change 1. Log in as the submitter 2. Create a draft 3. Complete guided intake 4. Generate Coordination Plan 5. Generate Revenue Impact Report 6. Apply approvers and evidence 7. Submit for review Expected outcomes: readiness becomes satisfied, report and plan appear, review status updates, approval request becomes visible to the assigned reviewer. Use seeded personas and sample changes for UAT so every run is comparable and easier to debug."
-  },
-  {
     "title": "Auditability",
     "description": "See how Solvren preserves a clear historical record of change activity, approvals, evidence, and coordination.",
     "section": "Security",
@@ -698,6 +691,20 @@
     "section": "Security",
     "href": "/docs/security/restricted-visibility",
     "content": "What restricted visibility means Some changes are too sensitive for broad org visibility. Examples include security sensitive billing changes and confidential legal changes. For these cases, Solvren supports restricted visibility. Who can typically access restricted changes Depending on policy, access may be limited to owners, admins, the change creator, assigned reviewers, and explicitly granted users. Why this matters Restricted visibility prevents sensitive work from leaking through queues, search, timeline activity, result counts, and notifications. Best practice Use restricted visibility intentionally for high sensitivity workflows, but do not overuse it for normal operational changes."
+  },
+  {
+    "title": "Seeded Personas and Data",
+    "description": "Understand the seeded users, roles, systems, and sample changes used for UAT and demos.",
+    "section": "UAT",
+    "href": "/docs/uat/seed-data",
+    "content": "Why seeded data matters Seeded data makes testing and demos repeatable. It ensures every tester starts from the same baseline and role behavior can be validated consistently. Seeded personas Typical personas include Owner, Admin, Submitter, Reviewer, Viewer, Finance Reviewer, Security Reviewer, Restricted Reviewer. Seeded sample changes Typical seeded records include high risk pricing change, blocked billing logic change, approved revenue recognition change, restricted security change, overdue approval change, draft in progress. How to use this data Use the seeded personas and sample changes as the basis for UAT scripts, E2E tests, demos, and screenshot generation."
+  },
+  {
+    "title": "UAT Test Scripts",
+    "description": "Run structured user acceptance tests against the full Solvren workflow.",
+    "section": "UAT",
+    "href": "/docs/uat/test-scripts",
+    "content": "UAT goals User Acceptance Testing should confirm that the product works for real users in realistic workflows. Core test groups Recommended UAT coverage includes owner and admin setup, submitter workflow, reviewer workflow, evidence enforcement, restricted visibility, search and queues, notifications, dashboard correctness. Typical UAT structure Each test should include persona, prerequisites, steps, expected outcomes, pass/fail result, and notes. Example scenario: Submitter creates and submits a high risk change 1. Log in as the submitter 2. Create a draft 3. Complete guided intake 4. Generate Coordination Plan 5. Generate Revenue Impact Report 6. Apply approvers and evidence 7. Submit for review Expected outcomes: readiness becomes satisfied, report and plan appear, review status updates, approval request becomes visible to the assigned reviewer. Use seeded personas and sample changes for UAT so every run is comparable and easier to debug."
   },
   {
     "title": "Executive proof packet",

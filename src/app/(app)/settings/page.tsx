@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bell, Building2, ClipboardCheck, Handshake, LockKeyhole, Route, Settings2, Users } from "lucide-react";
+import { ArrowRight, Bell, Bot, Building2, ClipboardCheck, Handshake, LockKeyhole, Route, Settings2, Users } from "lucide-react";
 import { Card, CardBody, Grid, PageHeaderV2, SectionHeader, Stack } from "@/ui";
 import { PAGE_COPY } from "@/config/pageCopy";
 import { PageHelpDrawer } from "@/components/help";
@@ -63,6 +63,13 @@ const SETTINGS_LINKS = [
     description: "Operational diagnostics and advanced troubleshooting.",
     group: "Advanced",
     icon: Settings2,
+  },
+  {
+    title: "MCP assistant access",
+    href: "/settings/mcp",
+    description: "Review assistant policy profiles, allowed actions, and MCP audit activity.",
+    group: "Advanced",
+    icon: Bot,
   },
 ];
 
