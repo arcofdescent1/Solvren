@@ -927,14 +927,14 @@ export function PricingCards() {
     <SectionFrame eyebrow="Pricing" title="Early access is focused on high-value pilots, not self-serve commodity seats.">
       <div className="grid gap-6 lg:grid-cols-4">
         {tiers.map((tier) => (
-          <div key={tier.name} className="rounded-[32px] border border-white/10 bg-white/5 p-8">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-              <div>
+          <div key={tier.name} className="flex h-full flex-col rounded-[32px] border border-white/10 bg-white/5 p-8">
+            <div className="space-y-4">
+              <div className="min-w-0">
                 <div className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-200">{tier.badge}</div>
                 <h3 className="mt-3 text-3xl font-black tracking-tight text-white">{tier.name}</h3>
               </div>
-              <div className="text-left sm:text-right">
-                <div className="text-3xl font-black tracking-tight text-white">{tier.price}</div>
+              <div className="min-w-0">
+                <div className="max-w-full text-3xl font-black leading-tight tracking-tight text-white">{tier.price}</div>
                 <div className="text-sm text-slate-400">per organization</div>
               </div>
             </div>
@@ -947,7 +947,7 @@ export function PricingCards() {
                 </div>
               ))}
             </div>
-            <div className="mt-8">
+            <div className="mt-auto pt-8">
               <Link href="/login">
                 <Button size="lg" className="w-full bg-white text-slate-950">Talk to us about access</Button>
               </Link>
