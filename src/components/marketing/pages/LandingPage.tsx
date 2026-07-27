@@ -1,19 +1,25 @@
 import {
   AudienceCardsSection,
   ComparisonBand,
+  ConcreteRiskExamplesSection,
   FAQSection,
   FeatureShowcaseSection,
   FinalCTASection,
+  FirstWeekPilotSection,
   HeroSection,
   LogoStrip,
   MarketingShell,
   MetricsStrip,
+  PilotOfferSection,
   ProblemSection,
+  ProofArtifactsSection,
+  RevenueProtectionPromiseSection,
   SignalsMetadataTrustBlock,
   UseCasesSection,
   V1ValueCardsSection,
   V1FlowDiagramSection,
   ValuePillarsSection,
+  WhoThisIsForSection,
   WhyThisIsSafeSection,
   WorkflowOverviewSection,
 } from "@/components/marketing/MarketingBlocks";
@@ -30,8 +36,10 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
         primaryCta={HERO.primaryCta}
         secondaryCta={HERO.secondaryCta}
       />
+      <RevenueProtectionPromiseSection />
       <SignalsMetadataTrustBlock />
       <WhyThisIsSafeSection />
+      <ConcreteRiskExamplesSection />
       <V1ValueCardsSection />
       <V1FlowDiagramSection />
       <LogoStrip />
@@ -79,7 +87,11 @@ export function LandingPage({ noShell = false }: { noShell?: boolean }) {
       />
       <ComparisonBand />
       <AudienceCardsSection />
+      <WhoThisIsForSection />
+      <FirstWeekPilotSection />
+      <ProofArtifactsSection />
       <FAQSection />
+      <PilotOfferSection />
       <FinalCTASection />
     </>
   );

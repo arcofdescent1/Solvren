@@ -49,8 +49,8 @@ export function PublicHeader() {
           <Link href="/login" className="whitespace-nowrap text-sm font-medium text-slate-300 transition hover:text-white">
             Sign in
           </Link>
-          <Link href="/signup">
-            <Button className="bg-white text-slate-950 hover:brightness-95">Start Free Trial</Button>
+          <Link href="/pilot">
+            <Button className="bg-white text-slate-950 hover:brightness-95">Request Pilot</Button>
           </Link>
         </div>
 
@@ -84,8 +84,8 @@ export function PublicHeader() {
                 Sign in
               </Button>
             </Link>
-            <Link href="/signup" className="flex-1">
-              <Button className="w-full bg-white text-slate-950">Start Free Trial</Button>
+            <Link href="/pilot" className="flex-1">
+              <Button className="w-full bg-white text-slate-950">Request Pilot</Button>
             </Link>
           </div>
         </div>

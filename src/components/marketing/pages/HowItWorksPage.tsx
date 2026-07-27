@@ -18,8 +18,8 @@ export function HowItWorksPage({ noShell = false }: { noShell?: boolean }) {
         eyebrow="Workflow overview"
         title="Detect operational risk — without exposing your data"
         subtitle="Solvren works on system signals, metadata, and events — not your source-of-truth data."
-        primaryCta={{ href: "/pricing", label: "Request beta access" }}
-        secondaryCta={{ href: "/login", label: "View the product" }}
+        primaryCta={{ href: "/pilot", label: "Request Pilot" }}
+        secondaryCta={{ href: "/revenue-protection", label: "What is revenue protection?" }}
         trustItems={[
           "Event-level signals — not full-table replication",
           "Redaction and minimization before persistence",

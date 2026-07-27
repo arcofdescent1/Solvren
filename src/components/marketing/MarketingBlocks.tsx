@@ -14,6 +14,7 @@ import {
 } from "./landingCopy";
 import { Button } from "@/ui";
 import { PublicShell } from "@/components/layout/PublicShell";
+import { PilotRequestForm } from "@/components/marketing/PilotRequestForm";
 
 const iconMap = {
   Sparkles,
@@ -278,8 +279,8 @@ export function HeroSection({
   eyebrow = "Revenue protection platform",
   title,
   subtitle,
-  primaryCta = { href: "/signup", label: "Get Started" },
-  secondaryCta = { href: "/contact", label: "Book a Demo" },
+  primaryCta = { href: "/pilot", label: "Request Pilot" },
+  secondaryCta = { href: "/revenue-protection", label: "What is revenue protection?" },
   tertiaryCta,
   trustItems,
 }: {
@@ -948,8 +949,8 @@ export function PricingCards() {
               ))}
             </div>
             <div className="mt-auto pt-8">
-              <Link href="/login">
-                <Button size="lg" className="w-full bg-white text-slate-950">Talk to us about access</Button>
+              <Link href="/pilot">
+                <Button size="lg" className="w-full bg-white text-slate-950">Request Pilot</Button>
               </Link>
             </div>
           </div>
@@ -961,6 +962,191 @@ export function PricingCards() {
           Higher tiers add optional depth — not a mandate to copy your warehouse into ours.
         </p>
         <PricingDataAccessTable />
+      </div>
+    </SectionFrame>
+  );
+}
+
+export function RevenueProtectionPromiseSection() {
+  return (
+    <section className="border-t border-cyan-400/20 bg-cyan-400/[0.08] py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <p className="max-w-5xl text-3xl font-black tracking-[-0.03em] text-white sm:text-4xl">
+          Solvren finds revenue leaks and risky revenue-system changes before they cost you money.
+        </p>
+        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
+          It gives finance, revenue operations, and engineering one place to see what is at risk, what needs action, and what proof shows value was protected.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+export function ConcreteRiskExamplesSection() {
+  const examples = [
+    {
+      title: "Failed payment recovery",
+      body: "Detect payment failures, retry gaps, and recovery breakdowns before recurring revenue quietly slips.",
+      icon: "Receipt" as IconName,
+    },
+    {
+      title: "Pricing drift",
+      body: "Catch plan, discount, and checkout-rule changes that can create underbilling or renewal confusion.",
+      icon: "CircleDollarSign" as IconName,
+    },
+    {
+      title: "CRM/billing mismatch",
+      body: "Find account, owner, lifecycle, and plan mismatches across Salesforce, HubSpot, Stripe, and NetSuite.",
+      icon: "Workflow" as IconName,
+    },
+    {
+      title: "Refund leakage",
+      body: "Surface refund patterns, duplicate credits, and exception paths that turn support decisions into lost revenue.",
+      icon: "AlertTriangle" as IconName,
+    },
+    {
+      title: "Risky billing change awaiting approval",
+      body: "Route proof, ownership, and approvals before revenue-impacting changes ship.",
+      icon: "FileCheck2" as IconName,
+    },
+  ];
+  return (
+    <SectionFrame eyebrow="Revenue risks Solvren catches" title="Concrete problems, not abstract dashboards.">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
+        {examples.map((example) => {
+          const Icon = iconMap[example.icon];
+          return (
+            <div key={example.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-200">
+                <Icon className="h-5 w-5" aria-hidden />
+              </div>
+              <h3 className="mt-5 text-lg font-bold text-white">{example.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-300">{example.body}</p>
+            </div>
+          );
+        })}
+      </div>
+    </SectionFrame>
+  );
+}
+
+export function WhoThisIsForSection() {
+  const items = [
+    "B2B SaaS companies",
+    "Usage or subscription billing",
+    "Complex pricing and packaging",
+    "Revenue operations teams",
+    "Finance systems and billing operations",
+    "Engineering teams shipping revenue-impacting changes",
+    "$10M+ ARR with multiple revenue systems",
+    "Stripe, Salesforce, HubSpot, NetSuite, or Chargebee environments",
+  ];
+  return (
+    <SectionFrame eyebrow="Best fit" title="Built for teams where operational mistakes become revenue loss.">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((item) => (
+          <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+    </SectionFrame>
+  );
+}
+
+export function FirstWeekPilotSection() {
+  const days = [
+    ["Day 1", "Connect systems", "Connect one focused revenue workflow with minimal data scope."],
+    ["Day 2", "Choose protected workflows", "Pick the risk surface: failed payments, pricing drift, CRM/billing mismatch, refunds, or risky billing changes."],
+    ["Day 3", "Detect first risks", "Run the first scan and validate whether Solvren found a real operational risk."],
+    ["Day 5", "Review first proof packet", "Review revenue at risk, owners, missing proof, and next actions with finance, RevOps, and engineering."],
+  ];
+  return (
+    <SectionFrame eyebrow="14-day pilot" title="What you get in the first week.">
+      <div className="grid gap-5 lg:grid-cols-4">
+        {days.map(([day, title, body]) => (
+          <div key={day} className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">{day}</div>
+            <h3 className="mt-4 text-xl font-bold text-white">{title}</h3>
+            <p className="mt-3 text-sm leading-7 text-slate-300">{body}</p>
+          </div>
+        ))}
+      </div>
+    </SectionFrame>
+  );
+}
+
+export function ProofArtifactsSection() {
+  const downloads = [
+    {
+      title: "Sample Revenue Impact Report",
+      body: "See how Solvren explains exposure, proof, assumptions, and the next decision.",
+      href: "/downloads/sample-revenue-impact-report.md",
+    },
+    {
+      title: "Sample Board Proof Packet",
+      body: "A board-ready summary of revenue protected, controls used, and outcomes.",
+      href: "/downloads/sample-board-proof-packet.md",
+    },
+    {
+      title: "Security One-Pager",
+      body: "The short version of Solvren's minimization, access, audit, and trust posture.",
+      href: "/downloads/security-one-pager.md",
+    },
+    {
+      title: "14-Day Pilot Plan",
+      body: "The step-by-step pilot path from connection to first proof packet.",
+      href: "/downloads/14-day-revenue-protection-pilot-plan.md",
+    },
+  ];
+  return (
+    <SectionFrame eyebrow="Proof artifacts" title="Give buyers something concrete to inspect.">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {downloads.map((item) => (
+          <a key={item.href} href={item.href} download className="group rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:border-cyan-300/50 hover:bg-white/[0.08]">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-200">
+              <FileCheck2 className="h-5 w-5" aria-hidden />
+            </div>
+            <h3 className="mt-5 text-lg font-bold text-white group-hover:text-cyan-100">{item.title}</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-300">{item.body}</p>
+            <p className="mt-5 text-sm font-semibold text-cyan-200">Download</p>
+          </a>
+        ))}
+      </div>
+    </SectionFrame>
+  );
+}
+
+export function PilotOfferSection() {
+  return (
+    <SectionFrame id="pilot-request" eyebrow="Pilot offer" title="Find your first revenue risk in 14 days.">
+      <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div className="space-y-6 text-base leading-8 text-slate-300">
+          <p>
+            The 14-Day Revenue Protection Pilot is designed to prove value on one revenue workflow before expanding scope. Start with Stripe, HubSpot, Salesforce, NetSuite, or the systems where pricing, billing, renewals, and refunds can break.
+          </p>
+          <div className="rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-6">
+            <h3 className="text-lg font-bold text-white">Pilot promise</h3>
+            <p className="mt-3">
+              Connect one workflow, detect the first meaningful risk, and produce an executive-ready proof packet your team can review.
+            </p>
+          </div>
+          <ul className="space-y-3">
+            {[
+              "Minimal data scope first",
+              "One clear protected workflow",
+              "First risk and proof packet before expansion",
+              "Designed for finance, RevOps, and engineering review",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-cyan-300" aria-hidden />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <PilotRequestForm source="pilot-offer-section" />
       </div>
     </SectionFrame>
   );
@@ -1008,9 +1194,19 @@ export function MetricsStrip() {
   );
 }
 
-function SectionFrame({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
+function SectionFrame({
+  id,
+  eyebrow,
+  title,
+  children,
+}: {
+  id?: string;
+  eyebrow: string;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="border-t border-white/10 bg-slate-950 py-20 sm:py-24">
+    <section id={id} className="border-t border-white/10 bg-slate-950 py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-[0.26em] text-cyan-200">{eyebrow}</div>

@@ -4,16 +4,16 @@
  */
 
 export const HERO = {
-  headline: "Detect revenue risk — without exposing your data",
+  headline: "Find revenue leaks before they cost you money",
   subheadline:
-    "Solvren works on system signals, metadata, and events — not your source-of-truth data. We detect revenue-impacting operational issues, estimate exposure with clear assumptions, and help you resolve them with auditable controls.",
+    "Solvren finds revenue leaks and risky revenue-system changes before they cost you money. Start with a 14-day pilot that connects one workflow, detects the first risk, and produces an executive-ready proof packet.",
   primaryCta: {
-    label: "Get Started",
-    href: "/signup",
+    label: "Request Pilot",
+    href: "/pilot",
   },
   secondaryCta: {
-    label: "Book a Demo",
-    href: "/contact",
+    label: "What is revenue protection?",
+    href: "/revenue-protection",
   },
 };
 
@@ -187,15 +187,15 @@ export const ROI_SECTION = {
 };
 
 export const FINAL_CTA = {
-  headline: "Stop revenue leaks before they become expensive problems.",
+  headline: "Find your first revenue risk in 14 days.",
   subheadline:
-    "Connect with minimal data scope, detect your first issue from signals, and prove value with clear estimation basis.",
+    "Connect one revenue workflow, detect the first meaningful risk, and leave with an executive proof packet.",
   primaryCta: {
-    label: "Get Started",
-    href: "/signup",
+    label: "Request Pilot",
+    href: "/pilot",
   },
   secondaryCta: {
-    label: "Book a Demo",
+    label: "Talk to sales",
     href: "/contact",
   },
 };

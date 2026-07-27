@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingArticle } from "@/components/marketing/MarketingArticle";
+import { PilotRequestForm } from "@/components/marketing/PilotRequestForm";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -13,6 +14,7 @@ export default function ContactPage() {
       title="Contact Solvren"
       intro="Talk with us about revenue risk intelligence, privacy-first integrations, enterprise readiness, or how Solvren can fit into your operating environment."
     >
+      <PilotRequestForm source="contact-page" />
       <p>
         <strong className="text-white">Sales and enterprise.</strong> Email{" "}
         <a href="mailto:sales@solvren.com" className="text-cyan-300 underline hover:text-cyan-200">

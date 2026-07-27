@@ -1,11 +1,15 @@
 import {
   FinalCTASection,
+  FirstWeekPilotSection,
   HeroSection,
   MarketingShell,
+  PilotOfferSection,
   PricingCards,
   PricingEnterpriseSection,
+  ProofArtifactsSection,
   SignalsMetadataTrustBlock,
   ValuePillarsSection,
+  WhoThisIsForSection,
 } from "@/components/marketing/MarketingBlocks";
 
 /** When noShell, layout provides PublicShell. */
@@ -13,20 +17,26 @@ export function PricingPage({ noShell = false }: { noShell?: boolean }) {
   const content = (
     <>
       <HeroSection
-        eyebrow="Pricing and beta access"
-        title="Start without sharing sensitive data"
-        subtitle="Solvren is offered through guided beta programs for teams that want governance on pricing, billing, and revenue-recognition changes — with a signals-first onboarding path that keeps scope small until you expand it."
-        primaryCta={{ href: "/login", label: "Request beta access" }}
-        secondaryCta={{ href: "/how-it-works", label: "See how it works" }}
+        eyebrow="Pricing and pilot access"
+        title="Find your first revenue risk in 14 days"
+        subtitle="Solvren is offered through guided pilots for teams that want to protect pricing, billing, renewals, and revenue operations without expanding data scope."
+        primaryCta={{ href: "/pilot", label: "Request Pilot" }}
+        secondaryCta={{ href: "/revenue-protection", label: "What is revenue protection?" }}
         trustItems={["Minimal data required", "Read-only integrations", "No data replication", "Safe Mode onboarding"]}
       />
       <SignalsMetadataTrustBlock />
       <PricingCards />
+      <WhoThisIsForSection />
+      <FirstWeekPilotSection />
+      <ProofArtifactsSection />
       <ValuePillarsSection />
       <PricingEnterpriseSection />
+      <PilotOfferSection />
       <FinalCTASection
-        title="The fastest way to see value is to govern one risky workflow first."
-        body="Most early teams start with pricing changes, billing logic, or revenue-recognition workflows. Prove the control layer on signals — then expand depth deliberately."
+        title="Request the 14-day revenue protection pilot."
+        body="Start with one workflow, one risk surface, and one proof packet before expanding."
+        primaryCta={{ href: "/pilot", label: "Request Pilot" }}
+        secondaryCta={{ href: "/contact", label: "Talk to sales" }}
       />
     </>
   );
