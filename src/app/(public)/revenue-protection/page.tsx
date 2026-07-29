@@ -3,7 +3,6 @@ import {
   ConcreteRiskExamplesSection,
   FinalCTASection,
   HeroSection,
-  MarketingShell,
   PilotOfferSection,
   ProofArtifactsSection,
   RevenueProtectionPromiseSection,
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RevenueProtectionPage() {
   return (
-    <MarketingShell>
+    <>
       <HeroSection
         eyebrow="Revenue protection"
         title="Revenue protection finds leaks before they become losses"
@@ -61,6 +60,6 @@ export default function RevenueProtectionPage() {
         primaryCta={{ href: "/pilot", label: "Request Pilot" }}
         secondaryCta={{ href: "/pricing", label: "View pilot pricing" }}
       />
-    </MarketingShell>
+    </>
   );
 }

@@ -29,6 +29,9 @@ export default async function PublicLayout({
     pathname.startsWith("/legal/") ||
     pathname.startsWith("/platform") ||
     pathname.startsWith("/security") ||
+    pathname === "/pilot" ||
+    pathname === "/pricing" ||
+    pathname === "/revenue-protection" ||
     pathname === "/contact" ||
     pathname === "/about" ||
     pathname === "/careers" ||

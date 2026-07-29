@@ -4,7 +4,6 @@ import {
   FinalCTASection,
   FirstWeekPilotSection,
   HeroSection,
-  MarketingShell,
   PilotOfferSection,
   ProofArtifactsSection,
   RevenueProtectionPromiseSection,
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function PilotPage() {
   return (
-    <MarketingShell>
+    <>
       <HeroSection
         eyebrow="14-Day Revenue Protection Pilot"
         title="Find your first revenue risk in 14 days"
@@ -42,6 +41,6 @@ export default function PilotPage() {
         primaryCta={{ href: "/pilot#pilot-request", label: "Request Pilot" }}
         secondaryCta={{ href: "/pricing", label: "View pricing" }}
       />
-    </MarketingShell>
+    </>
   );
 }
