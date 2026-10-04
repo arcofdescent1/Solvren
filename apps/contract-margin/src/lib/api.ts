@@ -23,6 +23,19 @@ export async function requestOwner(orgId: string) {
   return session;
 }
 
+export async function requestOrgRole(orgId: string, roles: Array<"owner" | "finance" | "engineer" | "viewer">) {
+  const session = await requestUser();
+  if (!session) return null;
+  const { data: membership } = await session.supabase.from("organization_members")
+    .select("role").eq("org_id", orgId).eq("user_id", session.user.id).maybeSingle();
+  if (!membership || !roles.includes(membership.role)) return null;
+  if (membership.role !== "viewer") {
+    const { data: assurance } = await session.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance?.currentLevel !== "aal2") return null;
+  }
+  return { ...session, role: membership.role as "owner" | "finance" | "engineer" | "viewer" };
+}
+
 export async function verifyRecentTotp(
   supabase: NonNullable<Awaited<ReturnType<typeof requestUser>>>["supabase"],
   code: string,

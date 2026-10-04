@@ -7,3 +7,5 @@ coverage/
 .verify-deps/
 .verify-sql.py
 .docker/
+.verify-postgres/
+.verify-migration.*
