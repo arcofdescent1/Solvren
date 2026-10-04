@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { jsonError, requestOrgRole, verifyRecentTotp } from "@/lib/api";
+import { jsonError, requestOrgWriteRole, verifyRecentTotp } from "@/lib/api";
 
 export async function POST(request: Request, context: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await context.params;
   if (!z.uuid().safeParse(orgId).success) return jsonError("Organization not found.", 404);
-  const session = await requestOrgRole(orgId, ["owner", "engineer"]);
+  const session = await requestOrgWriteRole(orgId, ["owner", "engineer"]);
   if (!session) return jsonError("Engineer access with MFA required.", 403);
   const body = z.strictObject({ label: z.string().trim().min(1).max(80), code: z.string() })
     .safeParse(await request.json().catch(() => null));

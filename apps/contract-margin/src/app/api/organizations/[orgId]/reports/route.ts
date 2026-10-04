@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import Decimal from "decimal.js";
 import { z } from "zod";
-import { requestOrgRole } from "@/lib/api";
+import { requestOrgWriteRole } from "@/lib/api";
 import { dateRange, exposure, PortfolioRow } from "@/lib/finance";
 import { reportCsv, reportPdf, ReportPacket } from "@/lib/report-packet";
 import { adminSupabase } from "@/lib/supabase/admin";
@@ -33,7 +33,7 @@ function redirectTo(orgId: string, from: string, to: string, kind: "frozen" | "e
 export async function POST(request: Request, context: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await context.params;
   if (!z.uuid().safeParse(orgId).success) return Response.json({ error: "Organization not found" }, { status: 404 });
-  const session = await requestOrgRole(orgId, ["owner", "finance"]);
+  const session = await requestOrgWriteRole(orgId, ["owner", "finance"]);
   if (!session) return Response.json({ error: "Finance access with MFA required" }, { status: 403 });
   const form = await request.formData().catch(() => null);
   const from = String(form?.get("from") ?? ""); const to = String(form?.get("to") ?? "");

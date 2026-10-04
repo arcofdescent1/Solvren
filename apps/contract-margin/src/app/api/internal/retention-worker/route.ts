@@ -64,6 +64,14 @@ async function runWorker(request: Request) {
       .update({ status: "failed" }).eq("id", report.id).eq("status", "preparing");
     if (updateError) return Response.json({ error: "Report cleanup needs retry" }, { status: 503 });
   }
+  const {data:canceled,error:canceledError}=await db.from("organization_billing")
+    .select("org_id").eq("status","canceled")
+    .lte("billing_purge_at",new Date().toISOString()).limit(2);
+  if(canceledError)return Response.json({error:"Canceled-account deletion queue unavailable"},{status:503});
+  for(const item of canceled??[]){
+    const {error}=await db.rpc("phase4_prepare_canceled_purge",{p_org:item.org_id});
+    if(error)return Response.json({error:"Canceled-account deletion needs retry"},{status:503});
+  }
   const { data: due, error: dueError } = await db.from("organizations").select("id")
     .not("purge_after", "is", null).lte("purge_after", new Date().toISOString()).limit(2);
   if (dueError) return Response.json({ error: "Deletion queue unavailable" }, { status: 503 });

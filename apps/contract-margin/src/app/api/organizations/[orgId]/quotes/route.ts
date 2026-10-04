@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
-import { jsonError, requestOrgRole } from "@/lib/api";
+import { jsonError, requestOrgWriteRole } from "@/lib/api";
 import { quoteReviewSchema } from "@/lib/quote-finance";
 import { quoteEvidence } from "@/lib/quote-service";
 import { adminSupabase } from "@/lib/supabase/admin";
@@ -8,7 +8,7 @@ import { adminSupabase } from "@/lib/supabase/admin";
 export async function POST(request: Request, context: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await context.params;
   if (!z.uuid().safeParse(orgId).success) return jsonError("Organization not found.", 404);
-  const session = await requestOrgRole(orgId, ["owner", "finance"]);
+  const session = await requestOrgWriteRole(orgId, ["owner", "finance"]);
   if (!session) return jsonError("Finance access with MFA required.", 403);
   const parsed = quoteReviewSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError(parsed.error.issues[0]?.message ?? "Invalid quote review.", 400);

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { jsonError, requestOrgRole } from "@/lib/api";
+import { adminSupabase } from "@/lib/supabase/admin";
 
 const sources = {
   customers: { table: "customers", key: "id", limit: 5000 },
@@ -52,6 +53,11 @@ export async function GET(request: Request, context: { params: Promise<{ orgId: 
   const csv = `\uFEFF${columns.map(csvCell).join(",")}\r\n${rows.map((row) =>
     columns.map((column) => csvCell(row[column])).join(",")).join("\r\n")}${rows.length ? "\r\n" : ""}`;
   const next = rows.length === config.limit ? String(rows.at(-1)?.[config.key] ?? "") : "";
+  const {error:auditError}=await adminSupabase().rpc("phase4_record_audit",{
+    p_org:orgId,p_actor:session.user.id,p_type:"export",p_entity:dataset,
+    p_details:{rows:rows.length,continued:!!cursor},
+  });
+  if(auditError)return jsonError("Could not record the export audit event.",503);
   return new Response(csv, { headers: {
     "Content-Type": "text/csv; charset=utf-8",
     "Content-Disposition": `attachment; filename="solvren-${dataset}-${Date.now()}.csv"`,

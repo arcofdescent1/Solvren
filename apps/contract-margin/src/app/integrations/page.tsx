@@ -1,0 +1,10 @@
+import Link from "next/link";
+
+export default function IntegrationsPage(){return <main className="frame page public-copy"><span className="eyebrow">Integration scope</span>
+  <h1>Connect the evidence you already have</h1><p>Solvren reads cost and metadata. It does not request prompts, responses, documents, or payment-card data.</p>
+  <div className="public-cards"><section className="card"><h2>OpenAI and Anthropic</h2><p>Read-only organization-admin cost credentials fetch daily cost buckets by project or workspace and line item. Initial backfill covers 30 completed UTC days. Supplier totals are reconciled against customer-attributed direct usage; differences are not silently allocated.</p></section>
+    <section className="card"><h2>Langfuse v4</h2><p>A project-scoped connection reads observation IDs, model, token usage, cost, and trace context. Solvren does not fetch prompt or response bodies. Backfill is checkpointed and resumable.</p></section>
+    <section className="card"><h2>Stripe revenue evidence</h2><p>An optional restricted, read-only key imports customer, subscription, and invoice evidence for Finance to review. List price is only a suggestion; signed USD contract terms must be confirmed. Solvren never changes your customer billing objects.</p></section></div>
+  <section className="card section"><h2>Files and ingestion API</h2><p>Use downloadable CSV templates for contracts, supplier statements, usage, outcomes, and direct costs, or send metadata-only event batches with a revocable ingestion key. Stable source IDs make retries idempotent. Unknown models remain unpriced and unmapped events remain visible.</p>
+    <p>Cloud-reseller bills and Anthropic Priority Tier are not represented as complete Anthropic Admin Cost API totals; import the relevant supplier statement. Mixed-currency, metered, and complex Stripe revenue terms require manual review. Solvren does not present a false conversion or audited bill when source coverage is incomplete.</p>
+    <Link className="table-link" href="/sample-report">See how gaps appear in a report →</Link></section></main>}

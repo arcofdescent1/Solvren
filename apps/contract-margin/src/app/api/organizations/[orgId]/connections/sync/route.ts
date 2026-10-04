@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jsonError, requestOrgRole } from "@/lib/api";
+import { jsonError, requestOrgWriteRole } from "@/lib/api";
 
 const schema = z.strictObject({ provider: z.enum(["openai", "anthropic", "stripe"]),
   days: z.number().int().min(1).max(31).default(30) });
@@ -11,7 +11,7 @@ export async function POST(request: Request, context: { params: Promise<{ orgId:
   if (!body.success) return jsonError("Choose a provider and 1–31 days.", 400);
   const roles = body.data.provider === "stripe" ? ["owner", "finance"] as const
     : ["owner", "engineer"] as const;
-  const session = await requestOrgRole(orgId, [...roles]);
+  const session = await requestOrgWriteRole(orgId, [...roles]);
   if (!session) return jsonError("Your role and MFA are required.", 403);
   const { data, error } = await session.supabase.rpc("queue_connector_backfill", {
     p_org: orgId, p_provider: body.data.provider, p_days: body.data.days,

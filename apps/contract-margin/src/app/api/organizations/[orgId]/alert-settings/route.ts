@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jsonError, requestOrgRole } from "@/lib/api";
+import { jsonError, requestOrgWriteRole } from "@/lib/api";
 import { adminSupabase } from "@/lib/supabase/admin";
 import { inQuietHours } from "@/lib/phase3-alerts";
 
@@ -20,7 +20,7 @@ const schema = z.strictObject({
 export async function PUT(request:Request,context:{params:Promise<{orgId:string}>}) {
   const {orgId}=await context.params;
   if (!z.uuid().safeParse(orgId).success) return jsonError("Organization not found.",404);
-  const session=await requestOrgRole(orgId,["owner","finance"]);
+  const session=await requestOrgWriteRole(orgId,["owner","finance"]);
   if (!session) return jsonError("Finance access with MFA required.",403);
   const parsed=schema.safeParse(await request.json().catch(()=>null));
   if (!parsed.success) return jsonError(parsed.error.issues[0]?.message??"Invalid alert settings.",400);

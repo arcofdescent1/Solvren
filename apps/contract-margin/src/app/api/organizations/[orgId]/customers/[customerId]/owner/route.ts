@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { jsonError, requestOrgRole } from "@/lib/api";
+import { jsonError, requestOrgWriteRole } from "@/lib/api";
 
 export async function PATCH(request: Request, context: { params: Promise<{ orgId: string; customerId: string }> }) {
   const { orgId, customerId } = await context.params;
   if (!z.uuid().safeParse(orgId).success || !z.uuid().safeParse(customerId).success)
     return jsonError("Customer not found.", 404);
-  const session = await requestOrgRole(orgId, ["owner", "finance"]);
+  const session = await requestOrgWriteRole(orgId, ["owner", "finance"]);
   if (!session) return jsonError("Finance access with MFA required.", 403);
   const body = z.strictObject({ userId: z.uuid().nullable() }).safeParse(await request.json().catch(() => null));
   if (!body.success) return jsonError("Choose an organization member.", 400);

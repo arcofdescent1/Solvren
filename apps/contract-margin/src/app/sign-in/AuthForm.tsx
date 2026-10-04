@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { browserSupabase } from "@/lib/supabase/browser";
 import Link from "next/link";
 
-export function AuthForm({ next, initialError }: { next: string; initialError?: string }) {
+export function AuthForm({ next, initialError,initialMode="in" }: { next: string; initialError?: string;initialMode?:"in"|"up" }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"in" | "up">("in");
+  const [mode, setMode] = useState<"in" | "up">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(initialError ?? "");
@@ -23,6 +23,7 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
     setBusy(false);
     if (result.error) { setMessage(result.error.message); return; }
     if (mode === "up") { router.push("/verify-email"); return; }
+    await fetch("/api/audit/login",{method:"POST"}).catch(()=>null);
     router.push(next); router.refresh();
   }
 

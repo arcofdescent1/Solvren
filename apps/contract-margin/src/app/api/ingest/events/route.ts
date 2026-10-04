@@ -5,6 +5,7 @@ import { validateRows } from "@/lib/import-schemas";
 import { adminSupabase } from "@/lib/supabase/admin";
 import { jsonError } from "@/lib/api";
 import { boundedJson } from "@/lib/bounded-json";
+import { billingCanWrite } from "@/lib/billing";
 
 const payload = z.strictObject({
   kind: z.enum(["usage", "outcomes", "direct_costs"]),
@@ -26,6 +27,16 @@ export async function POST(request: Request) {
   if (authorizationError?.message.includes("rate limit")) return jsonError("Ingestion rate limit exceeded.", 429);
   const key = keyContext?.[0] as { org_id: string; created_by: string } | undefined;
   if (authorizationError || !key) return jsonError("Invalid or revoked ingestion key.", 401);
+  const [billing,usage]=await Promise.all([
+    db.from("organization_billing").select("status,trial_ends_at,current_period_end,last_invoice_status")
+      .eq("org_id",key.org_id).single(),
+    db.from("org_event_usage").select("event_count").eq("org_id",key.org_id)
+      .eq("month_start",new Date().toISOString().slice(0,7)+"-01").maybeSingle(),
+  ]);
+  if(billing.error||!billing.data||usage.error)return jsonError("Entitlement unavailable.",503);
+  if(!billingCanWrite(billing.data))return jsonError("Trial expired or subscription inactive; ingestion is read-only.",402);
+  if(Number(usage.data?.event_count??0)+parsed.data.rows.length>2_000_000)
+    return jsonError("Monthly event limit reached. Retry next month or contact support.",429);
   const checked = validateRows(parsed.data.kind, parsed.data.rows);
   if (checked.rejected.length) return NextResponse.json({
     error: "Batch contains invalid rows. No events were queued.", rejected: checked.rejected,

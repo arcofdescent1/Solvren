@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { jsonError, requestOrgRole } from "@/lib/api";
+import { jsonError, requestOrgWriteRole } from "@/lib/api";
 import { dateRange } from "@/lib/finance";
 
 export async function POST(request: Request, context: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await context.params;
   if (!z.uuid().safeParse(orgId).success) return jsonError("Organization not found.", 404);
-  const session = await requestOrgRole(orgId, ["owner", "engineer"]);
+  const session = await requestOrgWriteRole(orgId, ["owner", "engineer"]);
   if (!session) return jsonError("Engineer access with MFA required.", 403);
   const body = z.strictObject({ provider: z.enum(["openai", "anthropic"]),
     from: z.iso.date(), to: z.iso.date() }).safeParse(await request.json().catch(() => null));

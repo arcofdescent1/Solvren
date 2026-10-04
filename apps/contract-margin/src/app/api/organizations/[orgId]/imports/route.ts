@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { jsonError, requestOrgRole, requestUser } from "@/lib/api";
+import { jsonError, requestOrgWriteRole, requestUser } from "@/lib/api";
 import { createImportJob } from "@/lib/import-job";
 import { ImportKind, parseImportCsv } from "@/lib/import-schemas";
 
@@ -22,7 +22,7 @@ export async function POST(request: Request, context: { params: Promise<{ orgId:
     return jsonError("Choose a CSV file, import kind, and source ID. Files must be at most 4 MB.", 400);
   const allowed = kind.data === "contracts" || kind.data === "statements"
     ? ["owner", "finance"] as const : ["owner", "engineer"] as const;
-  const session = await requestOrgRole(orgId, [...allowed]);
+  const session = await requestOrgWriteRole(orgId, [...allowed]);
   if (!session) return jsonError("Your role and MFA are required for this import.", 403);
   const fileName = file.name.split(/[\\/]/).pop()?.slice(0, 200) || "import.csv";
   let parsed: ReturnType<typeof parseImportCsv>;

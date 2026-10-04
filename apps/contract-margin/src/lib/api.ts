@@ -36,6 +36,15 @@ export async function requestOrgRole(orgId: string, roles: Array<"owner" | "fina
   return { ...session, role: membership.role as "owner" | "finance" | "engineer" | "viewer" };
 }
 
+export async function requestOrgWriteRole(orgId:string,
+  roles:Array<"owner"|"finance"|"engineer"|"viewer">){
+  const session=await requestOrgRole(orgId,roles);
+  if(!session)return null;
+  const {data,error}=await session.supabase.rpc("organization_entitlement",{p_org:orgId});
+  if(error||!data?.[0]?.can_write)return null;
+  return session;
+}
+
 export async function verifyRecentTotp(
   supabase: NonNullable<Awaited<ReturnType<typeof requestUser>>>["supabase"],
   code: string,

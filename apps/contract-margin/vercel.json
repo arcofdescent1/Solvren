@@ -4,6 +4,8 @@
     { "path": "/api/internal/connector-worker", "schedule": "*/5 * * * *" },
     { "path": "/api/internal/retention-worker", "schedule": "*/15 * * * *" },
     { "path": "/api/internal/margin-monitor", "schedule": "* * * * *" },
-    { "path": "/api/internal/margin-delivery", "schedule": "* * * * *" }
+    { "path": "/api/internal/margin-delivery", "schedule": "* * * * *" },
+    { "path": "/api/internal/lifecycle-delivery", "schedule": "* * * * *" },
+    { "path": "/api/internal/billing-reconcile", "schedule": "*/15 * * * *" }
   ]
 }

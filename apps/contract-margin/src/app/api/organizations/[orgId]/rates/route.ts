@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jsonError, requestOrgRole } from "@/lib/api";
+import { jsonError, requestOrgWriteRole } from "@/lib/api";
 
 const money = z.string().regex(/^\d+(\.\d{1,8})?$/);
 const schema = z.strictObject({
@@ -11,7 +11,7 @@ const schema = z.strictObject({
 export async function POST(request: Request, context: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await context.params;
   if (!z.uuid().safeParse(orgId).success) return jsonError("Organization not found.", 404);
-  const session = await requestOrgRole(orgId, ["owner", "finance", "engineer"]);
+  const session = await requestOrgWriteRole(orgId, ["owner", "finance", "engineer"]);
   if (!session) return jsonError("Finance or Engineer access with MFA required.", 403);
   const body = schema.safeParse(await request.json().catch(() => null));
   if (!body.success) return jsonError("Enter valid provider pricing per million tokens.", 400);
