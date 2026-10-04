@@ -16,6 +16,12 @@ const sources = {
   stripe_subscriptions: { table: "stripe_subscriptions", key: "export_id", limit: 5000 },
   stripe_invoices: { table: "stripe_invoices", key: "export_id", limit: 5000 },
   reports: { table: "report_snapshots", key: "id", limit: 1 },
+  quote_decisions: { table: "quote_decisions", key: "id", limit: 1000 },
+  margin_issues: { table: "margin_issues", key: "id", limit: 5000 },
+  issue_events: { table: "margin_issue_events", key: "id", limit: 5000 },
+  alert_settings: { table: "margin_alert_settings", key: "org_id", limit: 1 },
+  alert_deliveries: { table: "margin_alert_deliveries", key: "id", limit: 5000 },
+  executive_digests: { table: "executive_digests", key: "id", limit: 1000 },
 } as const;
 
 function csvCell(value: unknown) {

@@ -5,6 +5,8 @@ import { organizationAccess } from "@/lib/auth";
 import { contribution, contributionRate, dateRange, exposure, PortfolioRow, usd } from "@/lib/finance";
 import { ContractEditor } from "@/components/ContractEditor";
 import { CustomerOwnerPicker } from "@/components/CustomerOwnerPicker";
+import { monthlyForecast } from "@/lib/phase3-forecast";
+import { serverNowMs } from "@/lib/server-time";
 
 type Contract = { id: string; version: number; effective_from: string; effective_to: string | null;
   billing_period: string; base_fee_usd: string; included_outcomes: number; overage_usd: string;
@@ -31,8 +33,9 @@ export default async function CustomerPage({ params, searchParams }: {
   const { supabase, role } = await organizationAccess(orgId);
   const canEdit = role === "owner" || role === "finance";
   const before = search.before && /^\d+$/.test(search.before) ? Number(search.before) : null;
+  const clockMs = serverNowMs();
   const [customerResult, contractsResult, portfolioResult, dailyResult,
-    workflowsResult, distributionResult, sourcesResult, membersResult] = await Promise.all([
+    workflowsResult, distributionResult, sourcesResult, membersResult, forecastDailyResult] = await Promise.all([
     supabase.from("customers").select("id,name,external_id,owner_user_id").eq("org_id", orgId).eq("id", customerId).maybeSingle(),
     supabase.from("contract_versions").select("id,version,effective_from,effective_to,billing_period,base_fee_usd,included_outcomes,overage_usd,discount_pct,target_margin_pct,renewal_on")
       .eq("org_id", orgId).eq("customer_id", customerId).order("version", { ascending: false }),
@@ -44,11 +47,14 @@ export default async function CustomerPage({ params, searchParams }: {
       p_start: period.from, p_end: period.to, p_before: before, p_limit: 100 }),
     canEdit ? supabase.rpc("organization_member_picker", { p_org: orgId })
       : Promise.resolve({ data: [], error: null }),
+    supabase.rpc("phase1_customer_daily", { p_org:orgId,p_customer:customerId,
+      p_start:new Date(clockMs-30*86400_000).toISOString().slice(0,10),
+      p_end:new Date(clockMs).toISOString().slice(0,10) }),
   ]);
   const customer = customerResult.data;
   if (!customer) notFound();
   if ([contractsResult, portfolioResult, dailyResult, workflowsResult,
-    distributionResult, sourcesResult, membersResult].some((result) => result.error))
+    distributionResult, sourcesResult, membersResult, forecastDailyResult].some((result) => result.error))
     return <main className="frame page"><h1>Customer report unavailable</h1><p>Try again after checking import activity.</p><Link className="button" href={`/o/${orgId}/data`}>Data & imports</Link></main>;
   const row = ((portfolioResult.data ?? []) as PortfolioRow[]).find((item) => item.customer_id === customerId);
   const contracts = (contractsResult.data ?? []) as Contract[];
@@ -62,16 +68,22 @@ export default async function CustomerPage({ params, searchParams }: {
   const completed = Number(row?.completed_outcomes ?? 0);
   const now = new Date();
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString().slice(0, 10);
-  const elapsedDays = daily.filter((day) => day.day < today).length;
-  const projectedCost = period.to > today && elapsedDays >= 3
-    ? knownCost.div(elapsedDays).times(period.days) : null;
+  const currentTerms = contracts.find((item) => item.effective_from <= today
+    && (!item.effective_to || item.effective_to > today));
+  const forecast = currentTerms && row ? monthlyForecast(customerId,
+    ((forecastDailyResult.data ?? []) as Day[]).map((item) => ({
+      customer_id:customerId,day:item.day,
+      known_cost_usd:new Decimal(item.model_cost_usd).plus(item.direct_cost_usd).toString(),
+      unknown_cost_events:item.unknown_cost_events,completed_outcomes:item.completed_outcomes,
+      usage_events:Number(new Decimal(item.model_cost_usd).gt(0)),
+    })),currentTerms,row.target_margin_pct,now) : null;
   const base = `/o/${orgId}/customers/${customerId}`;
   return <main className="frame page">
     <Link className="button ghost" href={`/o/${orgId}?from=${period.from}&to=${period.to}`}>← Portfolio</Link>
     <div className="intro"><span className="eyebrow">Contract evidence · {customer.external_id}</span><h1 style={{marginTop:18}}>{customer.name}</h1><p>Observed usage and contract economics for {period.from} through {period.to} (end exclusive). Every amount follows the effective version of the contract.</p></div>
     {row && <div className="metric-grid"><div className="metric"><span>Contract revenue</span><strong>{usd(row.revenue_usd)}</strong><small>Base fee and observed overage</small></div><div className="metric"><span>Known direct cost</span><strong>{usd(row.known_cost_usd)}</strong><small>{row.unknown_cost_events} unpriced events</small></div><div className="metric"><span>Contribution upper bound</span><strong>{usd(contribution(row))}</strong><small>{contributionRate(row)?.toDecimalPlaces(1).toString() ?? "n/a"}% of revenue</small></div><div className="metric"><span>Floor variance</span><strong>{usd(exposure(row))}</strong><small>Known dollars above {row.target_margin_pct}% target cost limit</small></div></div>}
     <div className="grid section"><section className="card"><h2>Outcome economics</h2><p>Known cost includes failed attempts, tool work, and review. It is a lower bound when usage is unpriced.</p><div className="metric" style={{boxShadow:"none"}}><span>Known cost per completed outcome</span><strong>{completed ? usd(knownCost.div(completed)) : "Unavailable"}</strong><small>{completed} completed · {row?.failed_outcomes ?? 0} failed · {row?.unknown_cost_events ?? 0} unpriced events</small></div><div className="row"><span>Median completed-run cost</span><b>{distribution?.median_completed_run_usd ? usd(distribution.median_completed_run_usd) : "Unavailable"}</b></div><div className="row"><span>90th percentile completed run</span><b>{distribution?.p90_completed_run_usd ? usd(distribution.p90_completed_run_usd) : "Unavailable"}</b></div><p className="small">Run distribution excludes {distribution?.completed_runs_with_unknown_cost ?? 0} completed runs with unknown cost. The effective per-outcome figure above includes costs from failed runs.</p></section>
-      <section className="card"><h2>Period-end estimate</h2>{projectedCost && row ? <><p>A simple known-cost run rate based on {elapsedDays} observed days. It is not adjusted for seasonality or future usage changes.</p><div className="metric" style={{boxShadow:"none"}}><span>Projected known direct cost</span><strong>{usd(projectedCost)}</strong><small>Compared with {usd(row.revenue_usd)} period revenue under current terms</small></div><p>{row.unknown_cost_events ? "Unpriced events make this estimate incomplete." : "Revisit as new usage arrives."}</p></> : <p>Choose a current period with at least three observed days to see a run-rate estimate. Historical periods show actuals above.</p>}</section></div>
+      <section className="card"><h2>Month-end run rate</h2>{forecast ? <><p>{forecast.method}</p><div className="row"><span>Trailing 14 days</span><b>{usd(forecast.trailing14.dailyRunRateUsd)}/day · {forecast.trailing14.observedDays} active days</b></div><div className="row"><span>Trailing 30 days</span><b>{usd(forecast.trailing30.dailyRunRateUsd)}/day · {forecast.trailing30.observedDays} active days</b></div><div className="row"><span>Projected known cost / revenue</span><b>{usd(forecast.projectedKnownCostUsd)} / {usd(forecast.projectedRevenueUsd)}</b></div><div className="row"><span>Projected margin / floor gap</span><b>{forecast.projectedMarginPct??"n/a"}% / {usd(forecast.floorExposureUsd)}</b></div><p className="small">{forecast.confidence==="sufficient_run_rate"?"Enough observed days and completed outcomes for a run-rate alert; this is not a seasonal forecast.":"Sparse or incomplete data: do not treat this run rate as a confident forecast or trigger a projected-breach alert."} {forecast.unknownCostEvents} unpriced events.</p></> : <p>No current signed contract terms are available for a month-end forecast.</p>}</section></div>
     <section className="card section"><div className="section-heading"><div><h2>Cost by workflow</h2><p>Measured costs take priority over rate-card estimates.</p></div></div><div className="table-scroll"><table><thead><tr><th>Workflow</th><th>Model</th><th>Tool</th><th>Human review</th><th>Other</th><th>Unpriced events</th></tr></thead><tbody>{workflows.map((item) => <tr key={item.workflow_id}><td>{item.workflow_id}</td><td>{usd(item.model_cost_usd)}</td><td>{usd(item.tool_cost_usd)}</td><td>{usd(item.human_cost_usd)}</td><td>{usd(item.other_cost_usd)}</td><td>{item.unknown_cost_events}</td></tr>)}</tbody></table></div>{workflows.length === 0 && <p>No attributed workflow cost in this period.</p>}</section>
     <section className="card section"><h2>Daily cost & completed runs</h2><div className="trend-list">{daily.map((day) => { const amount = new Decimal(day.model_cost_usd).plus(day.direct_cost_usd); return <div className="trend-row" key={day.day}><span>{day.day}</span><div className="trend-track"><span style={{width:`${amount.div(highestDay).times(100).toNumber()}%`}}/></div><b>{usd(amount)}</b><small>{day.completed_outcomes} done{day.unknown_cost_events ? ` · ${day.unknown_cost_events} unknown` : ""}</small></div>; })}</div></section>
     <section className="card section"><div className="section-heading"><div><h2>Contract versions</h2><p>Past terms remain visible when a new effective version is saved.</p></div></div>{contracts.map((item) => <div className="row" key={item.id}><div><b>Version {item.version} · {item.billing_period}</b><div className="row-sub">{item.effective_from} to {item.effective_to ?? "current"} · Renewal {item.renewal_on ?? "not set"}</div></div><div>{usd(item.base_fee_usd)} base · {item.included_outcomes} included · {usd(item.overage_usd)} overage · {item.discount_pct}% discount</div></div>)}

@@ -16,6 +16,7 @@ export type ReportPacket = {
   mappings: Array<Record<string, unknown>>;
   providerCostBuckets: Array<Record<string, unknown>>;
   rateCards: Array<Record<string, unknown>>;
+  issues: Array<Record<string, unknown>>;
   exceptions: Array<{ kind: string; subject: string; status: string; detail: string }>;
 };
 
@@ -75,6 +76,9 @@ export function reportCsv(packet: ReportPacket) {
     row.line_item, row.amount_usd, "captured", row.day);
   for (const issue of packet.exceptions) add("exception", issue.subject, issue.kind,
     "status", issue.status, issue.status, issue.detail);
+  for (const issue of packet.issues) add("managed_issue", issue.id, issue.kind,
+    "status", issue.status, issue.status,
+    `${issue.first_seen_at} to ${issue.last_seen_at}; ${issue.exposure_usd} USD known exposure; assignee ${issue.assignee_user_id ?? "unassigned"}`);
   return `\uFEFF${lines.join("\r\n")}\r\n`;
 }
 
@@ -128,6 +132,9 @@ export async function reportPdf(packet: ReportPacket) {
   if (!packet.unmapped.length && !packet.exceptions.length) line("No unmapped IDs or detected margin/reconciliation exceptions in this period.");
   for (const row of packet.unmapped) line(`${row.source}: ${row.source_customer_id}; ${row.event_count} unmapped events; $${row.known_cost_usd} measured cost excluded from customer totals.`);
   for (const issue of packet.exceptions) line(`${issue.kind}: ${issue.subject}; ${issue.status}; ${issue.detail}`);
+  heading("Managed issue status at freeze time");
+  if (!packet.issues.length) line("No managed issues were recorded for this reporting period.");
+  for (const issue of packet.issues) line(`${issue.kind}: ${issue.status}; known exposure $${issue.exposure_usd}; assignee ${issue.assignee_user_id ?? "unassigned"}; last observed ${issue.last_seen_at}.`);
   const pages = pdf.getPages();
   pages.forEach((item, index) => item.drawText(`${index + 1} / ${pages.length}`, {
     x: 520, y: 22, font, size: 8, color: muted,

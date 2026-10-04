@@ -15,7 +15,7 @@ const packet: ReportPacket = {
     attributed_usd: "25.00", variance_usd: "0.00", covered_days: 31, total_days: 31,
     unmapped_events: 0, unpriced_events: 0, status: "verified" }],
   unmapped: [], contracts: [], mappings: [{ source: "stripe", source_customer_id: "cus_1",
-    customer_id: "a" }], providerCostBuckets: [], rateCards: [], exceptions: [],
+    customer_id: "a" }], providerCostBuckets: [], rateCards: [], issues: [], exceptions: [],
 };
 
 it("creates an immutable packet's actual PDF and a formula-safe CSV", async () => {

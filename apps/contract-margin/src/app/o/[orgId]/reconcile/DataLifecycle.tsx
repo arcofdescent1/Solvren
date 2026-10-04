@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 
 const datasets = ["customers", "mappings", "contracts", "rates", "usage", "outcomes",
   "direct_costs", "statements", "provider_costs", "provider_days", "stripe_customers",
-  "stripe_subscriptions", "stripe_invoices", "reports"];
+  "stripe_subscriptions", "stripe_invoices", "reports", "quote_decisions",
+  "margin_issues", "issue_events", "alert_settings", "alert_deliveries", "executive_digests"];
 
 export function DataLifecycle({ orgId, owner }: { orgId: string; owner: boolean }) {
   const router = useRouter();

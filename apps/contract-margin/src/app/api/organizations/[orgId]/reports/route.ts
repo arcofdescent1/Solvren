@@ -44,7 +44,7 @@ export async function POST(request: Request, context: { params: Promise<{ orgId:
   const paths: string[] = [];
   try {
     const [orgResult, portfolioResult, reconciliationResult, unmapped,
-      contracts, mappings, providerCostBuckets, rateCards] = await Promise.all([
+      contracts, mappings, providerCostBuckets, rateCards, issues] = await Promise.all([
       session.supabase.from("organizations").select("name").eq("id", orgId).single(),
       session.supabase.rpc("phase1_portfolio", { p_org: orgId, p_start: from, p_end: to }),
       session.supabase.rpc("phase2_reconciliation", { p_org: orgId, p_start: from, p_end: to }),
@@ -65,6 +65,10 @@ export async function POST(request: Request, context: { params: Promise<{ orgId:
       pages(async (start, end) => await session.supabase.from("model_rates")
         .select("provider,model,effective_from,input_per_million_usd,output_per_million_usd,cache_read_per_million_usd,cache_write_per_million_usd")
         .eq("org_id", orgId).lte("effective_from", to).order("provider").order("id").range(start, end)),
+      pages(async (start, end) => await session.supabase.from("margin_issues")
+        .select("id,kind,status,severity,exposure_usd,assignee_user_id,first_seen_at,last_seen_at")
+        .eq("org_id",orgId).lt("first_seen_at",`${to}T00:00:00Z`)
+        .gte("last_seen_at",`${from}T00:00:00Z`).order("id").range(start,end)),
     ]);
     if (orgResult.error || !orgResult.data || portfolioResult.error || reconciliationResult.error)
       throw new Error("Report evidence could not be read");
@@ -90,7 +94,7 @@ export async function POST(request: Request, context: { params: Promise<{ orgId:
       generatedAt: new Date().toISOString(), formulaVersion: "2026-10-v2", confidence,
       portfolio, reconciliation, unmapped: unmapped as Array<Record<string, unknown>>,
       contracts, mappings, providerCostBuckets,
-      rateCards, exceptions,
+      rateCards, issues, exceptions,
     };
     const hash = createHash("sha256").update(JSON.stringify(packet)).digest("hex");
     const db = adminSupabase();
