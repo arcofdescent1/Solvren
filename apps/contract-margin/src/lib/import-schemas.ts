@@ -25,6 +25,7 @@ export const usageRow = z.strictObject({
   provider: z.enum(["openai", "anthropic"]),
   billingRoute: z.enum(["openai_direct", "anthropic_direct", "gateway_or_cloud", "other"]),
   model: id,
+  providerScopeId: z.union([id, z.literal("").transform(() => undefined)]).optional(),
   inputTokens: whole,
   outputTokens: whole,
   cacheReadTokens: optionalWhole,

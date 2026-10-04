@@ -1,5 +1,7 @@
 {
   "crons": [
-    { "path": "/api/internal/import-worker", "schedule": "* * * * *" }
+    { "path": "/api/internal/import-worker", "schedule": "* * * * *" },
+    { "path": "/api/internal/connector-worker", "schedule": "*/5 * * * *" },
+    { "path": "/api/internal/retention-worker", "schedule": "*/15 * * * *" }
   ]
 }

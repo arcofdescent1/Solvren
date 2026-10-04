@@ -35,7 +35,7 @@ export default async function DataPage({ params, searchParams }: {
     statementsResult, connectionsResult, keysResult].some((result) => result.error);
   if (failed) return <main className="frame page"><h1>Data workspace unavailable</h1><p>We could not load the organization’s data setup. Try again.</p><Link className="button" href={`/o/${orgId}`}>Return to portfolio</Link></main>;
   return <main className="frame page">
-    <Link className="button ghost" href={`/o/${orgId}`}>← Portfolio</Link>
+    <div className="inline-form"><Link className="button ghost" href={`/o/${orgId}`}>← Portfolio</Link><Link className="button ghost" href={`/o/${orgId}/reconcile`}>Reconcile & reports →</Link></div>
     <div className="intro"><span className="eyebrow">{orgResult.data.name}</span><h1 style={{marginTop:18}}>Data & imports</h1><p>Bring contracts, usage, outcomes, and supplier statements together. Every missing or rejected row stays visible.</p></div>
     <DataConsole orgId={orgId} role={role} period={period} targetMarginPct={String(orgResult.data.target_margin_pct)}
       customers={customersResult.data ?? []} jobs={jobsResult.data ?? []}

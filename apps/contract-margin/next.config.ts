@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  outputFileTracingIncludes: { "/api/organizations/**/reports": ["./src/assets/*.woff"] },
   async headers() {
     return [{
       source: "/:path*",
