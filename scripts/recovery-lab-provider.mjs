@@ -30,12 +30,20 @@ try{
   const org=randomUUID(),job=randomUUID(),file=randomUUID(),objectKey=`${org}/${job}/${file}`;
   await db.query('insert into public.organizations(id,name) values($1,$2)',[org,'Synthetic restored organization']);
   await db.query("insert into public.memberships(org_id,user_id,role) values($1,$2,'owner')",[org,made.data.user.id]);
+  const revokedEmail=`revoked-${randomUUID()}@example.invalid`,revokedUser=await admin.auth.admin.createUser({email:revokedEmail,password,email_confirm:true});assert.equal(revokedUser.error,null);
+  await db.query("insert into public.memberships(org_id,user_id,role) values($1,$2,'viewer')",[org,revokedUser.data.user.id]);
+  await db.query('delete from public.memberships where org_id=$1 and user_id=$2',[org,revokedUser.data.user.id]);
   await db.query('insert into public.catalog_jobs(id,org_id,title,created_by) values($1,$2,$3,$4)',[job,org,'Synthetic recovery job',made.data.user.id]);
   assert.equal((await admin.storage.createBucket('recovery-private',{public:false})).error,null);
   const bytes=Buffer.from('synthetic,private,restore\n001,test,only\n');
   assert.equal((await admin.storage.from('recovery-private').upload('source.csv',bytes)).error,null);
   await db.query("insert into public.source_files(id,org_id,job_id,original_name,object_key,sha256,state,byte_size,uploaded_by) values($1,$2,$3,'source.csv',$4,$5,'ready',$6,$7)",[file,org,job,objectKey,hash(bytes),bytes.length,made.data.user.id]);
   assert.equal((await admin.storage.from('catalog-private').upload(objectKey,bytes)).error,null);
+  const deliveryFile=randomUUID(),delivery=randomUUID(),deliveryKey=`${org}/${job}/${deliveryFile}`;
+  await db.query("insert into public.source_files(id,org_id,job_id,original_name,object_key,sha256,state,byte_size,uploaded_by,purpose) values($1,$2,$3,'delivery.csv',$4,$5,'ready',$6,$7,'delivery')",[deliveryFile,org,job,deliveryKey,hash(bytes),bytes.length,made.data.user.id]);
+  await db.query("insert into public.catalog_deliveries(id,org_id,job_id,version,file_id,notes,created_by) values($1,$2,$3,1,$4,'Synthetic released result',$5)",[delivery,org,job,deliveryFile,made.data.user.id]);
+  await db.query("insert into public.delivery_decisions(delivery_id,decision,note,actor_id) values($1,'released','Synthetic release',$2)",[delivery,made.data.user.id]);
+  assert.equal((await admin.storage.from('catalog-private').upload(deliveryKey,bytes)).error,null);
   const retiredFile=randomUUID(),retiredKey=`${org}/${job}/${retiredFile}`,profile=randomUUID(),run=randomUUID();
   await db.query("insert into public.source_files(id,org_id,job_id,original_name,object_key,sha256,state,byte_size,uploaded_by) values($1,$2,$3,'retired.csv',$4,$5,'ready',$6,$7)",[retiredFile,org,job,retiredKey,hash(bytes),bytes.length,made.data.user.id]);
   assert.equal((await admin.storage.from('catalog-private').upload(retiredKey,bytes)).error,null);
@@ -78,7 +86,7 @@ try{
   await writeFile('object.bin',actual);
   // Ledger entry is later than the database snapshot: recovery must honor it.
   const tombstone={bucket:'catalog-private',key:retiredKey,recordedAt:new Date().toISOString(),evidence:randomUUID()};
-  await writeFile('recovery-fixture.json',JSON.stringify({counts,dumpHashes,org,job,file,objectKey,retiredFile,retiredKey,tombstone,run,notice,refund,claimToken:claim.claim_token,export:{request,part,key:archiveKey,bytes:archive.toString('base64'),sha256:hash(archive)},email,password,user:made.data.user.id,factor:factor.data.id,secret:factor.data.totp.secret,sha256:hash(actual),createdAt:new Date().toISOString()}),{mode:0o600});
+  await writeFile('recovery-fixture.json',JSON.stringify({counts,dumpHashes,revokedEmail,delivery,deliveryKey,oldAccessToken:(await signed.auth.getSession()).data.session.access_token,org,job,file,objectKey,retiredFile,retiredKey,tombstone,run,notice,refund,claimToken:claim.claim_token,export:{request,part,key:archiveKey,bytes:archive.toString('base64'),sha256:hash(archive)},email,password,user:made.data.user.id,factor:factor.data.id,secret:factor.data.totp.secret,sha256:hash(actual),createdAt:new Date().toISOString()}),{mode:0o600});
   console.log('PASS: real provider password/TOTP enrollment and private object captured. Synthetic-only fixture; no production credentials.');
  }else{
   const fixture=JSON.parse(await readFile('recovery-fixture.json','utf8'));
@@ -120,6 +128,7 @@ try{
   const bytes=await readFile('object.bin');assert.equal(hash(bytes),fixture.sha256);
   assert.equal((await admin.storage.from('recovery-private').upload('source.csv',bytes)).error,null);
   assert.equal((await admin.storage.from('catalog-private').upload(fixture.objectKey,bytes)).error,null);
+  assert.equal((await admin.storage.from('catalog-private').upload(fixture.deliveryKey,bytes)).error,null);
   const archive=Buffer.from(fixture.export.bytes,'base64');assert.equal(hash(archive),fixture.export.sha256);
   const restoredPart=(await db.query('select * from solvren_private.organization_export_parts where id=$1',[fixture.export.part])).rows[0];
   const decrypt=(input,key)=>{assert.equal(input.subarray(0,5).toString(),'SLVX1');const d=createDecipheriv('aes-256-gcm',key,input.subarray(5,17));d.setAuthTag(input.subarray(17,33));return Buffer.concat([d.update(input.subarray(33)),d.final()]);};
@@ -147,6 +156,13 @@ try{
   await assert.rejects(db.query("select solvren_private.catalog_run_checkpoint($1,$2,'exported')",[fixture.run,fixture.claimToken]),{code:'40001'});
   await db.query("select solvren_private.catalog_run_checkpoint($1,$2,'exported')",[fixture.run,replacement.claim_token]);
   const jobs=await signed.from('catalog_jobs').select('id').eq('id',fixture.job);assert.equal(jobs.error,null);assert.deepEqual(jobs.data,[{id:fixture.job}]);
+  const oldSession=createClient(config.API_URL,config.ANON_KEY,{global:{headers:{Authorization:`Bearer ${fixture.oldAccessToken}`}},auth:{persistSession:false,autoRefreshToken:false}});
+  const staleRows=await oldSession.from('catalog_jobs').select('id');assert.ok(staleRows.error||staleRows.data.length===0,'Pre-restore session cannot regain access');
+  const revoked=api();assert.equal((await revoked.auth.signInWithPassword({email:fixture.revokedEmail,password:fixture.password})).error,null);
+  assert.deepEqual((await revoked.from('catalog_jobs').select('id').eq('id',fixture.job)).data,[]);
+  assert.ok((await revoked.storage.from('catalog-private').download(fixture.deliveryKey)).error);
+  const deliveryRows=await signed.from('catalog_deliveries').select('id').eq('id',fixture.delivery);assert.equal(deliveryRows.error,null);assert.deepEqual(deliveryRows.data,[{id:fixture.delivery}]);
+  const deliveryBytes=await signed.storage.from('catalog-private').download(fixture.deliveryKey);assert.equal(deliveryBytes.error,null);assert.equal(hash(Buffer.from(await deliveryBytes.data.arrayBuffer())),fixture.sha256);
   const ownFile=await signed.storage.from('catalog-private').download(fixture.objectKey);assert.equal(ownFile.error,null);assert.equal(hash(Buffer.from(await ownFile.data.arrayBuffer())),fixture.sha256);
   const visible=await signed.from('recovery_fixture').select('*');assert.equal(visible.error,null);assert.equal(visible.data.length,1);
   assert.deepEqual((await signed.from('source_files').select('id').eq('id',fixture.retiredFile)).data,[]);
@@ -168,6 +184,7 @@ try{
   console.log('PASS: 65 migrations, restored application permissions, in-flight checkpoint containment/retry fencing and newer tombstone replay. Retired file stays inaccessible and cannot be recreated.');
   console.log('PASS: encrypted ZIP export restored, DB-bound plaintext hash/size verified, wrong key/tamper rejected, owner download/key access restored and outsider denied.');
   console.log('PASS: every application table count matches; damaged dump and missing source/export inventory block recovery; sending notification and pending refund become uncertain without replay.');
+  console.log('PASS: released delivery bytes/access restored; previously revoked member and pre-restore session remain denied.');
   console.log('SCOPE: synthetic provider recovery only; managed-provider configuration and production operating evidence are separate gates.');
  }
 }catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));for(const line of (error.stderr?.toString()??'').split('\n')){if(line.includes('ERROR:'))console.error(line.split('ERROR:')[1].replace(/"[^"]*"/g,'"[identifier]"'));}process.exitCode=1;}
