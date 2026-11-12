@@ -90,6 +90,10 @@ jobs:
             test "$(printf '%s\n' "$found" | wc -l)" -eq 1
             cp "$found" "$file"
           done
+          restic restore latest --tag managed-auth-canary-20261112 --host deleted-synthetic-canary --target canary-restored
+          canary=$(find canary-restored -type f -name managed-canary.json)
+          test "$(printf '%s\n' "$canary" | wc -l)" -eq 1
+          cp "$canary" managed-canary.json
           node scripts/recovery-lab-provider.mjs restore
       - name: Stop disposable destination
         if: always()

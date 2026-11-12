@@ -185,6 +185,24 @@ try{
   console.log('PASS: encrypted ZIP export restored, DB-bound plaintext hash/size verified, wrong key/tamper rejected, owner download/key access restored and outsider denied.');
   console.log('PASS: every application table count matches; damaged dump and missing source/export inventory block recovery; sending notification and pending refund become uncertain without replay.');
   console.log('PASS: released delivery bytes/access restored; previously revoked member and pre-restore session remain denied.');
+  const managed=JSON.parse(await readFile('managed-canary.json','utf8'));
+  assert.equal(managed.scope,'deleted-synthetic-managed-canary');assert.equal(managed.sourceDeleted,true);assert.match(managed.email,/^recovery-canary-[a-f0-9-]+@example\.com$/);
+  assert.equal(managed.records.users.length,1);assert.equal(managed.records.users[0].id,managed.userId);assert.equal(managed.records.users[0].email,managed.email);
+  for(const table of ['users','identities','mfa_factors']){
+   const columns=new Set((await db.query("select column_name from information_schema.columns where table_schema='auth' and table_name=$1 and is_generated='NEVER'",[table])).rows.map(r=>r.column_name));
+   for(const row of managed.records[table]){
+    assert.equal(table==='users'?row.id:row.user_id,managed.userId);
+    const names=Object.keys(row).filter(n=>columns.has(n));for(const name of names)assert.match(name,/^[a-z_0-9]+$/);
+    await db.query(`insert into auth.${table}(${names.join(',')}) select ${names.join(',')} from jsonb_populate_record(null::auth.${table},$1)`,[row]);
+   }
+  }
+  const managedClient=api();const managedLogin=await managedClient.auth.signInWithPassword({email:managed.email,password:managed.password});
+  assert.equal(managedLogin.error,null,'Managed canary password restore');
+  const managedFactor=await managedClient.auth.mfa.challengeAndVerify({factorId:managed.factorId,code:totp(managed.totpSecret)});
+  if(managedFactor.error)console.log('Managed canary MFA provider error code:',String(managedFactor.error.code??'unknown').replace(/[^a-z0-9_]/gi,''));
+  assert.equal(managedFactor.error,null,'Managed canary TOTP restore');
+  assert.equal((await managedClient.auth.mfa.getAuthenticatorAssuranceLevel()).data.currentLevel,'aal2');
+  console.log('PASS: deleted synthetic identity originally enrolled in managed Supabase restores its password and original TOTP into the independent provider. No active staging account or provider credential entered this lab.');
   console.log('SCOPE: synthetic provider recovery only; managed-provider configuration and production operating evidence are separate gates.');
  }
 }catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));for(const line of (error.stderr?.toString()??'').split('\n')){if(line.includes('ERROR:'))console.error(line.split('ERROR:')[1].replace(/"[^"]*"/g,'"[identifier]"'));}process.exitCode=1;}
