@@ -44,8 +44,8 @@ try{
  }else{
   const fixture=JSON.parse(await readFile('recovery-fixture.json','utf8'));
   assert.equal(Number((await db.query('select count(*) from auth.users')).rows[0].count),0,'Restore target must be empty');
-  execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','postgres','-d','postgres','--data-only','--no-owner','--no-acl','--disable-triggers','--exit-on-error'],{input:await readFile('identity.dump'),stdio:['pipe','pipe','pipe']});
-  execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','postgres','-d','postgres','--no-owner','--no-acl','--exit-on-error'],{input:await readFile('application.dump'),stdio:['pipe','pipe','pipe']});
+  execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','supabase_admin','-d','postgres','--data-only','--no-owner','--no-acl','--disable-triggers','--exit-on-error'],{input:await readFile('identity.dump'),stdio:['pipe','pipe','pipe']});
+  execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','supabase_admin','-d','postgres','--no-owner','--no-acl','--exit-on-error'],{input:await readFile('application.dump'),stdio:['pipe','pipe','pipe']});
   // Never carry authenticated sessions into a recovered environment.
   await db.query('delete from auth.refresh_tokens; delete from auth.sessions');
   assert.equal((await admin.storage.createBucket('recovery-private',{public:false})).error,null);
@@ -68,3 +68,4 @@ try{
  }
 }catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));for(const line of (error.stderr?.toString()??'').split('\n')){if(line.includes('ERROR:'))console.error(line.split('ERROR:')[1].replace(/"[^"]*"/g,'"[identifier]"'));}process.exitCode=1;}
 finally{await db.end();}
+
