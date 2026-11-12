@@ -26,7 +26,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq restic
-          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0
+          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0 jszip@3.10.2
           supabase init
           sed -i 's/project_id = .*/project_id = "solvren-synthetic-recovery"/' supabase/config.toml
           sed -i '/^\[auth.mfa.totp\]/,/^\[/{s/enroll_enabled = false/enroll_enabled = true/;s/verify_enabled = false/verify_enabled = true/;}' supabase/config.toml
@@ -68,7 +68,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq restic
-          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0
+          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0 jszip@3.10.2
           supabase init
           sed -i 's/project_id = .*/project_id = "solvren-synthetic-recovery"/' supabase/config.toml
           sed -i '/^\[auth.mfa.totp\]/,/^\[/{s/enroll_enabled = false/enroll_enabled = true/;s/verify_enabled = false/verify_enabled = true/;}' supabase/config.toml
@@ -95,3 +95,4 @@ jobs:
         if: always()
         run: supabase stop --no-backup
 # No artifact uploads, cache uploads, prune/forget or customer records.
+
