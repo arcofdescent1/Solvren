@@ -68,15 +68,23 @@ try{
   for(const {tablename} of tables){assert.match(tablename,/^[a-z_]+$/);args.push('--table=auth.'+tablename);}
   await writeFile('identity.dump',execFileSync('docker',args,{stdio:'pipe'}));
   await writeFile('application.dump',execFileSync('docker',['exec','supabase_db_solvren-synthetic-recovery','pg_dump','-U','postgres','-d','postgres','--format=custom','--data-only','--no-owner','--no-acl','--schema=public','--schema=solvren_private'],{stdio:'pipe'}));
+  const counts={};for(const {schemaname,tablename} of (await db.query("select schemaname,tablename from pg_tables where schemaname in ('public','solvren_private')")).rows){
+   assert.match(schemaname,/^[a-z_]+$/);assert.match(tablename,/^[a-z_]+$/);
+   counts[`${schemaname}.${tablename}`]=(await db.query(`select count(*)::int n from ${schemaname}.${tablename}`)).rows[0].n;
+  }
+  const dumpHashes={identity:hash(await readFile('identity.dump')),application:hash(await readFile('application.dump'))};
   const downloaded=await admin.storage.from('recovery-private').download('source.csv');assert.equal(downloaded.error,null);
   const actual=Buffer.from(await downloaded.data.arrayBuffer());assert.equal(hash(actual),hash(bytes));
   await writeFile('object.bin',actual);
   // Ledger entry is later than the database snapshot: recovery must honor it.
   const tombstone={bucket:'catalog-private',key:retiredKey,recordedAt:new Date().toISOString(),evidence:randomUUID()};
-  await writeFile('recovery-fixture.json',JSON.stringify({org,job,file,objectKey,retiredFile,retiredKey,tombstone,run,notice,refund,claimToken:claim.claim_token,export:{request,part,key:archiveKey,bytes:archive.toString('base64'),sha256:hash(archive)},email,password,user:made.data.user.id,factor:factor.data.id,secret:factor.data.totp.secret,sha256:hash(actual),createdAt:new Date().toISOString()}),{mode:0o600});
+  await writeFile('recovery-fixture.json',JSON.stringify({counts,dumpHashes,org,job,file,objectKey,retiredFile,retiredKey,tombstone,run,notice,refund,claimToken:claim.claim_token,export:{request,part,key:archiveKey,bytes:archive.toString('base64'),sha256:hash(archive)},email,password,user:made.data.user.id,factor:factor.data.id,secret:factor.data.totp.secret,sha256:hash(actual),createdAt:new Date().toISOString()}),{mode:0o600});
   console.log('PASS: real provider password/TOTP enrollment and private object captured. Synthetic-only fixture; no production credentials.');
  }else{
   const fixture=JSON.parse(await readFile('recovery-fixture.json','utf8'));
+  const verifyDump=(bytes,expected)=>assert.equal(hash(bytes),expected,'Restore dump digest mismatch');
+  verifyDump(await readFile('identity.dump'),fixture.dumpHashes.identity);verifyDump(await readFile('application.dump'),fixture.dumpHashes.application);
+  const corrupt=Buffer.from(await readFile('application.dump'));corrupt[corrupt.length-1]^=1;assert.throws(()=>verifyDump(corrupt,fixture.dumpHashes.application));
   assert.equal(Number((await db.query('select count(*) from auth.users')).rows[0].count),0,'Restore target must be empty');
   execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','supabase_admin','-d','postgres','--data-only','--no-owner','--no-acl','--disable-triggers','--exit-on-error'],{input:await readFile('identity.dump'),stdio:['pipe','pipe','pipe']});
   await db.query(`create table public.recovery_fixture(owner_id uuid references auth.users(id),value text);alter table public.recovery_fixture enable row level security;grant select on public.recovery_fixture to authenticated;create policy own on public.recovery_fixture for select to authenticated using(owner_id=auth.uid());`);
@@ -84,6 +92,7 @@ try{
   for(const t of appTables){assert.match(t.schemaname,/^[a-z_]+$/);assert.match(t.tablename,/^[a-z_]+$/);}
   await db.query('truncate '+appTables.map(t=>`${t.schemaname}.${t.tablename}`).join(',')+' restart identity cascade');
   execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','supabase_admin','-d','postgres','--data-only','--disable-triggers','--no-owner','--no-acl','--exit-on-error'],{input:await readFile('application.dump'),stdio:['pipe','pipe','pipe']});
+  for(const [table,count] of Object.entries(fixture.counts)){assert.match(table,/^(public|solvren_private)\.[a-z_]+$/);assert.equal((await db.query(`select count(*)::int n from ${table}`)).rows[0].n,count,`Restored row count: ${table}`);}
   // Never carry authenticated sessions into a recovered environment.
   const recoveryId=randomUUID();await db.query('select solvren_private.begin_restore($1)',[recoveryId]);
   const epoch=(await db.query('select execution_epoch from public.catalog_jobs where id=$1',[fixture.job])).rows[0].execution_epoch;
@@ -97,6 +106,16 @@ try{
   await db.query('insert into solvren_private.object_tombstones(bucket_id,object_key,recorded_at,evidence_id) values($1,$2,$3,$4)',[fixture.tombstone.bucket,fixture.tombstone.key,fixture.tombstone.recordedAt,fixture.tombstone.evidence]);
   await assert.rejects(db.query('insert into storage.objects(bucket_id,name) values($1,$2)',['catalog-private',fixture.retiredKey]),{code:'42501'});
   await db.query('delete from auth.refresh_tokens; delete from auth.sessions');
+  async function requireInventory(){
+   const missing=(await db.query(`select f.object_key from public.source_files f where f.state='ready'
+    and not exists(select 1 from solvren_private.object_tombstones t where t.bucket_id='catalog-private' and t.object_key=f.object_key)
+    and not exists(select 1 from storage.objects o where o.bucket_id='catalog-private' and o.name=f.object_key)
+    union all select p.object_key from solvren_private.organization_export_parts p where p.status='ready'
+    and not exists(select 1 from solvren_private.object_tombstones t where t.bucket_id='catalog-exports' and t.object_key=p.object_key)
+    and not exists(select 1 from storage.objects o where o.bucket_id='catalog-exports' and o.name=p.object_key)`)).rows;
+   assert.equal(missing.length,0,'Ready source/export inventory incomplete');
+  }
+  await assert.rejects(requireInventory(),'Missing objects must prevent release');
   assert.equal((await admin.storage.createBucket('recovery-private',{public:false})).error,null);
   const bytes=await readFile('object.bin');assert.equal(hash(bytes),fixture.sha256);
   assert.equal((await admin.storage.from('recovery-private').upload('source.csv',bytes)).error,null);
@@ -108,6 +127,7 @@ try{
   const damaged=Buffer.from(archive);damaged[damaged.length-1]^=1;assert.throws(()=>decrypt(damaged,restoredPart.encryption_key));assert.throws(()=>decrypt(archive,randomBytes(32)));
   const contents=await JSZip.loadAsync(plain);assert.equal(JSON.parse(await contents.file('records/recovery.json').async('string')).sourceSha256,fixture.sha256);
   assert.equal((await admin.storage.from('catalog-exports').upload(fixture.export.key,archive,{contentType:'application/octet-stream'})).error,null);
+  await requireInventory();
   await db.query("notify pgrst, 'reload schema'");
   const signed=api();assert.equal((await signed.auth.signInWithPassword({email:fixture.email,password:fixture.password})).error,null);
   assert.equal((await signed.auth.mfa.getAuthenticatorAssuranceLevel()).data.currentLevel,'aal1');
@@ -147,7 +167,8 @@ try{
   console.log('PASS: clean provider restore preserves password and MFA; fresh login starts AAL1, original TOTP reaches AAL2; outsider RLS/private-file denial and restored object hash pass.');
   console.log('PASS: 65 migrations, restored application permissions, in-flight checkpoint containment/retry fencing and newer tombstone replay. Retired file stays inaccessible and cannot be recreated.');
   console.log('PASS: encrypted ZIP export restored, DB-bound plaintext hash/size verified, wrong key/tamper rejected, owner download/key access restored and outsider denied.');
-  console.log('SCOPE: complete export inventory and financial-effect reconciliation remain separate gates; no deletion executor or customer data used.');
+  console.log('PASS: every application table count matches; damaged dump and missing source/export inventory block recovery; sending notification and pending refund become uncertain without replay.');
+  console.log('SCOPE: synthetic provider recovery only; managed-provider configuration and production operating evidence are separate gates.');
  }
 }catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));for(const line of (error.stderr?.toString()??'').split('\n')){if(line.includes('ERROR:'))console.error(line.split('ERROR:')[1].replace(/"[^"]*"/g,'"[identifier]"'));}process.exitCode=1;}
 finally{await db.end();}
