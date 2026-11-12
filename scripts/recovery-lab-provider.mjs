@@ -35,6 +35,17 @@ try{
   assert.equal((await admin.storage.from('recovery-private').upload('source.csv',bytes)).error,null);
   await db.query("insert into public.source_files(id,org_id,job_id,original_name,object_key,sha256,state,byte_size,uploaded_by) values($1,$2,$3,'source.csv',$4,$5,'ready',$6,$7)",[file,org,job,objectKey,hash(bytes),bytes.length,made.data.user.id]);
   assert.equal((await admin.storage.from('catalog-private').upload(objectKey,bytes)).error,null);
+  const retiredFile=randomUUID(),retiredKey=`${org}/${job}/${retiredFile}`,profile=randomUUID(),run=randomUUID();
+  await db.query("insert into public.source_files(id,org_id,job_id,original_name,object_key,sha256,state,byte_size,uploaded_by) values($1,$2,$3,'retired.csv',$4,$5,'ready',$6,$7)",[retiredFile,org,job,retiredKey,hash(bytes),bytes.length,made.data.user.id]);
+  assert.equal((await admin.storage.from('catalog-private').upload(retiredKey,bytes)).error,null);
+  await db.query("insert into public.catalog_profile_versions(id,org_id,name,version) values($1,$2,'Recovery profile',1)",[profile,org]);
+  await db.query('insert into solvren_private.operator_allowlist(email,user_id) values($1,$2)',[email,made.data.user.id]);
+  await db.query('insert into solvren_private.staff_members(user_id) values($1)',[made.data.user.id]);
+  await db.query('insert into solvren_private.staff_assignments(job_id,user_id) values($1,$2)',[job,made.data.user.id]);
+  await db.query("update public.catalog_jobs set status='processing',profile_version_id=$2 where id=$1",[job,profile]);
+  await db.query('insert into public.catalog_runs(id,org_id,job_id,profile_version_id,input_file_id,created_by) values($1,$2,$3,$4,$5,$6)',[run,org,job,profile,file,made.data.user.id]);
+  const claim=(await db.query('select * from solvren_private.claim_catalog_run()')).rows[0];assert.equal(claim.id,run);
+  await db.query("select solvren_private.catalog_run_checkpoint($1,$2,'validated',$3)",[run,claim.claim_token,{issues:[],marker:'preserved through offsite recovery'}]);
   await db.query(`create table public.recovery_fixture(owner_id uuid references auth.users(id),value text);alter table public.recovery_fixture enable row level security;grant select on public.recovery_fixture to authenticated;create policy own on public.recovery_fixture for select to authenticated using(owner_id=auth.uid());`);
   await db.query('insert into public.recovery_fixture values($1,$2)',[made.data.user.id,'synthetic-only']);
   // Export provider-owned identity rows, preserving real password and TOTP state.
@@ -46,7 +57,9 @@ try{
   const downloaded=await admin.storage.from('recovery-private').download('source.csv');assert.equal(downloaded.error,null);
   const actual=Buffer.from(await downloaded.data.arrayBuffer());assert.equal(hash(actual),hash(bytes));
   await writeFile('object.bin',actual);
-  await writeFile('recovery-fixture.json',JSON.stringify({org,job,file,objectKey,email,password,user:made.data.user.id,factor:factor.data.id,secret:factor.data.totp.secret,sha256:hash(actual),createdAt:new Date().toISOString()}),{mode:0o600});
+  // Ledger entry is later than the database snapshot: recovery must honor it.
+  const tombstone={bucket:'catalog-private',key:retiredKey,recordedAt:new Date().toISOString(),evidence:randomUUID()};
+  await writeFile('recovery-fixture.json',JSON.stringify({org,job,file,objectKey,retiredFile,retiredKey,tombstone,run,claimToken:claim.claim_token,email,password,user:made.data.user.id,factor:factor.data.id,secret:factor.data.totp.secret,sha256:hash(actual),createdAt:new Date().toISOString()}),{mode:0o600});
   console.log('PASS: real provider password/TOTP enrollment and private object captured. Synthetic-only fixture; no production credentials.');
  }else{
   const fixture=JSON.parse(await readFile('recovery-fixture.json','utf8'));
@@ -58,6 +71,15 @@ try{
   await db.query('truncate '+appTables.map(t=>`${t.schemaname}.${t.tablename}`).join(',')+' restart identity cascade');
   execFileSync('docker',['exec','-i','supabase_db_solvren-synthetic-recovery','pg_restore','-U','supabase_admin','-d','postgres','--data-only','--disable-triggers','--no-owner','--no-acl','--exit-on-error'],{input:await readFile('application.dump'),stdio:['pipe','pipe','pipe']});
   // Never carry authenticated sessions into a recovered environment.
+  const recoveryId=randomUUID();await db.query('select solvren_private.begin_restore($1)',[recoveryId]);
+  const epoch=(await db.query('select execution_epoch from public.catalog_jobs where id=$1',[fixture.job])).rows[0].execution_epoch;
+  await db.query('select solvren_private.begin_restore($1)',[recoveryId]);
+  assert.equal((await db.query('select execution_epoch from public.catalog_jobs where id=$1',[fixture.job])).rows[0].execution_epoch,epoch,'Containment replay is idempotent');
+  const held=(await db.query('select state,result,claim_token from public.catalog_runs where id=$1',[fixture.run])).rows[0];
+  assert.equal(held.state,'failed');assert.equal(held.claim_token,null);assert.equal(held.result.marker,'preserved through offsite recovery');
+  await assert.rejects(db.query("select solvren_private.catalog_run_checkpoint($1,$2,'exported')",[fixture.run,fixture.claimToken]),{code:'40001'});
+  await db.query('insert into solvren_private.object_tombstones(bucket_id,object_key,recorded_at,evidence_id) values($1,$2,$3,$4)',[fixture.tombstone.bucket,fixture.tombstone.key,fixture.tombstone.recordedAt,fixture.tombstone.evidence]);
+  await assert.rejects(db.query('insert into storage.objects(bucket_id,name) values($1,$2)',['catalog-private',fixture.retiredKey]),{code:'42501'});
   await db.query('delete from auth.refresh_tokens; delete from auth.sessions');
   assert.equal((await admin.storage.createBucket('recovery-private',{public:false})).error,null);
   const bytes=await readFile('object.bin');assert.equal(hash(bytes),fixture.sha256);
@@ -69,9 +91,22 @@ try{
   const factors=await signed.auth.mfa.listFactors();assert.equal(factors.error,null);assert.ok(factors.data.totp.some(f=>f.id===fixture.factor));
   assert.equal((await signed.auth.mfa.challengeAndVerify({factorId:fixture.factor,code:totp(fixture.secret)})).error,null);
   assert.equal((await signed.auth.mfa.getAuthenticatorAssuranceLevel()).data.currentLevel,'aal2');
+  assert.deepEqual((await signed.from('catalog_jobs').select('id').eq('id',fixture.job)).data,[],'Contained database denies even fresh MFA sessions');
+  assert.ok((await signed.storage.from('catalog-private').download(fixture.objectKey)).error);
+  assert.equal((await db.query('select count(*)::int n from solvren_private.worker_readiness where expected')).rows[0].n,0);
+  // Explicit lab-only release after reconciliation; no worker is activated.
+  await db.query('update solvren_private.recovery_control set contained=false where recovery_id=$1',[recoveryId]);
+  await db.query("update public.catalog_runs set state='queued' where id=$1",[fixture.run]);
+  const replacement=(await db.query('select * from solvren_private.claim_catalog_run()')).rows[0];
+  assert.equal(replacement.id,fixture.run);assert.notEqual(replacement.claim_token,fixture.claimToken);
+  assert.equal(replacement.result.marker,'preserved through offsite recovery');
+  await assert.rejects(db.query("select solvren_private.catalog_run_checkpoint($1,$2,'exported')",[fixture.run,fixture.claimToken]),{code:'40001'});
+  await db.query("select solvren_private.catalog_run_checkpoint($1,$2,'exported')",[fixture.run,replacement.claim_token]);
   const jobs=await signed.from('catalog_jobs').select('id').eq('id',fixture.job);assert.equal(jobs.error,null);assert.deepEqual(jobs.data,[{id:fixture.job}]);
   const ownFile=await signed.storage.from('catalog-private').download(fixture.objectKey);assert.equal(ownFile.error,null);assert.equal(hash(Buffer.from(await ownFile.data.arrayBuffer())),fixture.sha256);
   const visible=await signed.from('recovery_fixture').select('*');assert.equal(visible.error,null);assert.equal(visible.data.length,1);
+  assert.deepEqual((await signed.from('source_files').select('id').eq('id',fixture.retiredFile)).data,[]);
+  assert.ok((await signed.storage.from('catalog-private').download(fixture.retiredKey)).error);
   const other=await admin.auth.admin.createUser({email:`other-${randomUUID()}@example.invalid`,password:fixture.password,email_confirm:true});assert.equal(other.error,null);
   const outsider=api();assert.equal((await outsider.auth.signInWithPassword({email:other.data.user.email,password:fixture.password})).error,null);
   assert.deepEqual((await outsider.from('recovery_fixture').select('*')).data,[]);
@@ -81,8 +116,8 @@ try{
   assert.ok((await api().storage.from('recovery-private').download('source.csv')).error);
   const restored=await admin.storage.from('recovery-private').download('source.csv');assert.equal(restored.error,null);assert.equal(hash(Buffer.from(await restored.data.arrayBuffer())),fixture.sha256);
   console.log('PASS: clean provider restore preserves password and MFA; fresh login starts AAL1, original TOTP reaches AAL2; outsider RLS/private-file denial and restored object hash pass.');
-  console.log('PASS: all 64 Solvren migrations applied to both provider stacks; actual restored job and private source access succeed for owner and deny outsider.');
-  console.log('SCOPE: queue/financial reconciliation, deletion ledger, export completeness and offsite ciphertext remain separate gates.');
+  console.log('PASS: 65 migrations, restored application permissions, in-flight checkpoint containment/retry fencing and newer tombstone replay. Retired file stays inaccessible and cannot be recreated.');
+  console.log('SCOPE: financial-effect reconciliation and export archive completeness remain separate gates; no deletion executor or customer data used.');
  }
 }catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));for(const line of (error.stderr?.toString()??'').split('\n')){if(line.includes('ERROR:'))console.error(line.split('ERROR:')[1].replace(/"[^"]*"/g,'"[identifier]"'));}process.exitCode=1;}
 finally{await db.end();}

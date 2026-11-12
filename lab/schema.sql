@@ -1,4 +1,4 @@
--- SYNTHETIC RECOVERY LAB ONLY. Derived from 64 immutable Solvren migrations.
+-- SYNTHETIC RECOVERY LAB ONLY. Derived from 65 immutable Solvren migrations.
 -- Owner email replaced by recovery-operator@example.invalid. No customer records included.
 set solvren.foundation_bootstrap='isolated-foundation';
 -- Source: 202611110001_catalog_foundation.sql
@@ -2424,3 +2424,77 @@ begin
  return true;
 end $$;
 
+
+-- Source: 202611120065_restore_containment.sql
+-- Recovery containment grants no customer deletion or public recovery authority.
+create table solvren_private.recovery_control (
+ singleton boolean primary key default true check(singleton),
+ contained boolean not null default false,
+ recovery_id uuid, started_at timestamptz
+);
+insert into solvren_private.recovery_control(singleton) values(true);
+create table solvren_private.object_tombstones (
+ bucket_id text not null check(bucket_id in ('catalog-private','catalog-exports')),
+ object_key text not null check(length(object_key) between 1 and 2048),
+ recorded_at timestamptz not null, evidence_id uuid not null,
+ primary key(bucket_id,object_key)
+);
+revoke all on solvren_private.recovery_control,solvren_private.object_tombstones from public,anon,authenticated;
+
+-- Existing restrictive RLS and RPC entry guards all call this function.
+do $$declare definition text;body text;begin
+ select pg_get_functiondef(p.oid),p.prosrc into definition,body from pg_proc p
+ join pg_namespace n on n.oid=p.pronamespace
+ where n.nspname='public' and p.proname='catalog_session_active';
+ if body is null then raise exception 'Session gate missing';end if;
+ execute replace(definition,body,regexp_replace(body,'\mbegin\M',E'begin\n if exists(select 1 from solvren_private.recovery_control where contained) then return false;end if;','i'));
+end $$;
+
+create function solvren_private.begin_restore(recovery uuid) returns void
+ language plpgsql set search_path='' as $$
+begin
+ if recovery is null then raise exception 'Recovery ID required';end if;
+ perform pg_advisory_xact_lock(110065);
+ if exists(select 1 from solvren_private.recovery_control where contained and recovery_id=recovery) then return;end if;
+ if exists(select 1 from solvren_private.recovery_control where contained) then raise exception 'Another recovery is active';end if;
+ update solvren_private.recovery_control set contained=true,recovery_id=recovery,started_at=clock_timestamp();
+ update public.catalog_jobs set execution_epoch=execution_epoch+1;
+ update public.catalog_runs set state='failed',claim_token=null,lease_expires_at=null,
+  diagnostic='Restored checkpoint requires operator review' where state in ('queued','running');
+ update public.source_files set scan_claim_token=null,scan_lease_expires_at=null;
+ update solvren_private.notification_outbox set state='uncertain',claim_token=null,
+  last_error='restore_requires_delivery_reconciliation' where state in ('pending','sending');
+ update solvren_private.service_outbox set state='uncertain',claim_token=null,body='',
+  last_error='restore_requires_delivery_reconciliation' where state in ('pending','sending');
+ update public.billing_refunds set status='uncertain',last_error='restore_requires_provider_reconciliation' where status='pending';
+ update solvren_private.worker_readiness set expected=false,state='inactive',invocation_id=null;
+end $$;
+revoke all on function solvren_private.begin_restore(uuid) from public,anon,authenticated;
+
+create function public.catalog_object_not_retired(bucket text,object_name text) returns boolean
+ language sql stable security definer set search_path='' as $$
+ select not exists(select 1 from solvren_private.object_tombstones where bucket_id=bucket and object_key=object_name)
+$$;
+revoke all on function public.catalog_object_not_retired(text,text) from public,anon;
+grant execute on function public.catalog_object_not_retired(text,text) to authenticated;
+create policy catalog_retired_object on storage.objects as restrictive for all to authenticated
+ using(public.catalog_object_not_retired(bucket_id,name)) with check(public.catalog_object_not_retired(bucket_id,name));
+create policy catalog_retired_file on public.source_files as restrictive for all to authenticated
+ using(public.catalog_object_not_retired('catalog-private',object_key)) with check(public.catalog_object_not_retired('catalog-private',object_key));
+
+create function solvren_private.reject_retired_object_write() returns trigger
+ language plpgsql security definer set search_path='' as $$
+declare bucket text;key text;
+begin
+ if TG_TABLE_SCHEMA='storage' then bucket:=new.bucket_id;key:=new.name;
+ else bucket:='catalog-private';key:=new.object_key;end if;
+ if exists(select 1 from solvren_private.object_tombstones where bucket_id=bucket and object_key=key) then
+  raise exception 'Object is retired; restoring or recreating it is forbidden' using errcode='42501';
+ end if;
+ return new;
+end $$;
+revoke all on function solvren_private.reject_retired_object_write() from public,anon,authenticated;
+create trigger catalog_no_retired_storage_write before insert or update on storage.objects
+ for each row execute function solvren_private.reject_retired_object_write();
+create trigger catalog_no_retired_source_write before insert or update on public.source_files
+ for each row execute function solvren_private.reject_retired_object_write();
