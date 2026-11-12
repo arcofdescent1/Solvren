@@ -1,17 +1,17 @@
-name: Synthetic provider recovery lab
+name: Synthetic offsite application recovery
 on:
   push:
     branches: ['recovery-lab/synthetic-provider']
 permissions:
   contents: read
 concurrency:
-  group: synthetic-provider-recovery
+  group: synthetic-offsite-recovery
   cancel-in-progress: false
 jobs:
-  recovery:
+  capture:
     if: github.repository == 'arcofdescent1/Solvren' && github.event.repository.private == false
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     env:
       SOLVREN_DISPOSABLE_RECOVERY_LAB: 'true'
     steps:
@@ -22,24 +22,76 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - name: Prepare synthetic-only lab
+      - name: Prepare isolated synthetic provider
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq restic
           npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0
           supabase init
           sed -i 's/project_id = .*/project_id = "solvren-synthetic-recovery"/' supabase/config.toml
           sed -i '/^\[auth.mfa.totp\]/,/^\[/{s/enroll_enabled = false/enroll_enabled = true/;s/verify_enabled = false/verify_enabled = true/;}' supabase/config.toml
           supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
           supabase status -o json > lab-status.json
-      - name: Capture synthetic identity and private object
-        run: node scripts/recovery-lab-provider.mjs seed
-      - name: Replace disposable provider stack
+          node scripts/recovery-lab-provider.mjs seed
+      - name: Encrypt synthetic bundle into scoped B2 repository
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SOLVREN_LAB_B2_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SOLVREN_LAB_B2_KEY }}
+          RESTIC_PASSWORD: ${{ secrets.SOLVREN_LAB_RECOVERY_PASSWORD }}
+          AWS_DEFAULT_REGION: us-east-005
+          RESTIC_REPOSITORY: s3:https://s3.us-east-005.backblazeb2.com/solvren-synthetic-recovery-20261112/automated-drill/restic
         run: |
-          supabase stop --no-backup
-          supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
-          supabase status -o json > lab-status.json
-      - name: Restore and verify real provider behavior
-        run: node scripts/recovery-lab-provider.mjs restore
-      - name: Stop disposable lab
+          test -n "$AWS_ACCESS_KEY_ID" && test -n "$AWS_SECRET_ACCESS_KEY" && test -n "$RESTIC_PASSWORD"
+          mkdir backup
+          mv identity.dump application.dump object.bin recovery-fixture.json backup/
+          test "$(du -sb backup | cut -f1)" -lt 10485760
+          restic backup backup --tag "synthetic-provider-$GITHUB_RUN_ID" --host github-synthetic-capture --quiet
+          restic check --read-data
+      - name: Stop disposable source
         if: always()
         run: supabase stop --no-backup
-      # Deliberately no artifact/cache upload: fixture contains synthetic auth secrets.
+  restore:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOLVREN_DISPOSABLE_RECOVERY_LAB: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Prepare second isolated provider
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq restic
+          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0
+          supabase init
+          sed -i 's/project_id = .*/project_id = "solvren-synthetic-recovery"/' supabase/config.toml
+          sed -i '/^\[auth.mfa.totp\]/,/^\[/{s/enroll_enabled = false/enroll_enabled = true/;s/verify_enabled = false/verify_enabled = true/;}' supabase/config.toml
+          supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
+          supabase status -o json > lab-status.json
+      - name: Restore exclusively from encrypted offsite snapshot
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SOLVREN_LAB_B2_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SOLVREN_LAB_B2_KEY }}
+          RESTIC_PASSWORD: ${{ secrets.SOLVREN_LAB_RECOVERY_PASSWORD }}
+          AWS_DEFAULT_REGION: us-east-005
+          RESTIC_REPOSITORY: s3:https://s3.us-east-005.backblazeb2.com/solvren-synthetic-recovery-20261112/automated-drill/restic
+        run: |
+          test -n "$AWS_ACCESS_KEY_ID" && test -n "$AWS_SECRET_ACCESS_KEY" && test -n "$RESTIC_PASSWORD"
+          restic check --read-data
+          restic restore latest --tag "synthetic-provider-$GITHUB_RUN_ID" --host github-synthetic-capture --target restored
+          for file in identity.dump application.dump object.bin recovery-fixture.json; do
+            found=$(find restored -type f -name "$file")
+            test "$(printf '%s\n' "$found" | wc -l)" -eq 1
+            cp "$found" "$file"
+          done
+          node scripts/recovery-lab-provider.mjs restore
+      - name: Stop disposable destination
+        if: always()
+        run: supabase stop --no-backup
+# No artifact uploads, cache uploads, prune/forget or customer records.
