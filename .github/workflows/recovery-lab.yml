@@ -27,6 +27,7 @@ jobs:
           npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0
           supabase init
           sed -i 's/project_id = .*/project_id = "solvren-synthetic-recovery"/' supabase/config.toml
+          sed -i '/^\[auth.mfa.totp\]/,/^\[/{s/enroll_enabled = false/enroll_enabled = true/;s/verify_enabled = false/verify_enabled = true/;}' supabase/config.toml
           supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
           supabase status -o json > lab-status.json
       - name: Capture synthetic identity and private object
