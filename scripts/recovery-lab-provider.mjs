@@ -66,5 +66,5 @@ try{
   console.log('PASS: clean provider restore preserves password and MFA; fresh login starts AAL1, original TOTP reaches AAL2; outsider RLS/private-file denial and restored object hash pass.');
   console.log('SCOPE: provider primitive only. Full Solvren migrations, queue/financial reconciliation, deletion ledger, offsite ciphertext and independent key custody remain separate gates.');
  }
-}catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));process.exitCode=1;}
+}catch(error){console.error('Recovery provider lab failed:',error.name);console.error((error.stack??'').split('\n').filter(line=>/^\s+at /.test(line)).join('\n'));for(const line of (error.stderr?.toString()??'').split('\n')){if(line.includes('ERROR:'))console.error(line.split('ERROR:')[1].replace(/"[^"]*"/g,'"[identifier]"'));}process.exitCode=1;}
 finally{await db.end();}
