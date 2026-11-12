@@ -1,0 +1,44 @@
+name: Synthetic provider recovery lab
+on:
+  push:
+    branches: ['recovery-lab/synthetic-provider']
+permissions:
+  contents: read
+concurrency:
+  group: synthetic-provider-recovery
+  cancel-in-progress: false
+jobs:
+  recovery:
+    if: github.repository == 'arcofdescent1/Solvren' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SOLVREN_DISPOSABLE_RECOVERY_LAB: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Prepare synthetic-only lab
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund @supabase/supabase-js@2.119.0 pg@8.20.0
+          supabase init
+          sed -i 's/project_id = .*/project_id = "solvren-synthetic-recovery"/' supabase/config.toml
+          supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
+          supabase status -o json > lab-status.json
+      - name: Capture synthetic identity and private object
+        run: node scripts/recovery-lab-provider.mjs seed
+      - name: Replace disposable provider stack
+        run: |
+          supabase stop --no-backup
+          supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
+          supabase status -o json > lab-status.json
+      - name: Restore and verify real provider behavior
+        run: node scripts/recovery-lab-provider.mjs restore
+      - name: Stop disposable lab
+        if: always()
+        run: supabase stop --no-backup
+      # Deliberately no artifact/cache upload: fixture contains synthetic auth secrets.
